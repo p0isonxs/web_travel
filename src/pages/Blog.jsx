@@ -1,110 +1,141 @@
-import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
-import { collection, getDocs, query, orderBy, where } from 'firebase/firestore'
-import { db } from '../firebase/config'
-import Navbar from '../components/Navbar'
-import Footer from '../components/Footer'
-import { FiSearch, FiCalendar, FiUser, FiArrowRight } from 'react-icons/fi'
-
-const dummyPosts = [
-  { id: '1', title: 'Petualangan Epik di Derawan Labuan Cermin: Snorkeling & Menyelam Bersama Whaleshark', slug: 'derawan-labuan-cermin', excerpt: 'Mengungkap pesona tersembunyi Derawan dan Labuan Cermin yang memukau dengan kejernihan airnya yang bagai kaca...', category: 'Informasi', author: 'Umar Dary', date: '2024-09-11', image: 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=600', tags: ['derawan', 'diving'] },
-  { id: '2', title: '10 Tips Hemat Traveling ke Raja Ampat dengan Budget Minimal', slug: 'tips-hemat-raja-ampat', excerpt: 'Raja Ampat identik dengan destinasi mahal. Namun dengan tips ini, kamu bisa menikmati keindahannya dengan budget terbatas...', category: 'Tips', author: 'Admin', date: '2024-08-20', image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600', tags: ['tips', 'budget'] },
-  { id: '3', title: 'Curug Luhur Air Terjun Unik di Bogor Lengkap dengan Harga Tiketnya', slug: 'curug-luhur-bogor', excerpt: 'Temukan keindahan Curug Luhur, air terjun tersembunyi di Bogor yang cocok untuk weekend getaway dari hiruk pikuk kota...', category: 'Destinasi', author: 'Admin', date: '2023-11-09', image: 'https://images.unsplash.com/photo-1555400038-63f5ba517a47?w=600', tags: ['bogor', 'curug'] },
-  { id: '4', title: 'Panduan Lengkap Open Trip vs Private Trip: Mana Yang Cocok Untukmu?', slug: 'open-trip-vs-private', excerpt: 'Bingung memilih antara open trip dan private trip? Artikel ini membantu kamu memilih jenis perjalanan yang paling sesuai...', category: 'Tips', author: 'Admin', date: '2025-01-15', image: 'https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?w=600', tags: ['tips', 'perjalanan'] },
-  { id: '5', title: 'Mengenal Budaya Unik Suku Baduy yang Hidup Tanpa Teknologi', slug: 'budaya-suku-baduy', excerpt: 'Suku Baduy di Banten adalah salah satu komunitas yang masih mempertahankan gaya hidup tradisional di era modern...', category: 'Budaya', author: 'Umar Dary', date: '2025-02-10', image: 'https://images.unsplash.com/photo-1483728642387-6c3bdd6c93e5?w=600', tags: ['budaya', 'baduy'] },
-  { id: '6', title: '5 Destinasi Wisata Bawah Laut Terbaik Indonesia 2026', slug: 'destinasi-bawah-laut-2026', excerpt: 'Indonesia memiliki kekayaan laut yang luar biasa. Berikut 5 destinasi bawah laut terbaik yang wajib dikunjungi...', category: 'Destinasi', author: 'Admin', date: '2026-01-05', image: 'https://images.unsplash.com/photo-1559827291-72ee739d0d9a?w=600', tags: ['diving', 'bahari'] },
-]
-
-const categories = ['Semua', 'Informasi', 'Tips', 'Destinasi', 'Budaya', 'Adventure']
+import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
+import { collection, getDocs, query, orderBy, where } from 'firebase/firestore';
+import { db } from '../firebase/config';
+import { Calendar, User, Tag, ArrowRight, Search } from 'lucide-react';
 
 export default function Blog() {
-  const [posts, setPosts] = useState(dummyPosts)
-  const [loading, setLoading] = useState(false)
-  const [search, setSearch] = useState('')
-  const [category, setCategory] = useState('Semua')
+    const [posts, setPosts] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [search, setSearch] = useState('');
+    const [activeCategory, setActiveCategory] = useState('semua');
 
-  const filtered = posts.filter(p => {
-    const s = p.title.toLowerCase().includes(search.toLowerCase())
-    const c = category === 'Semua' || p.category === category
-    return s && c
-  })
+  const categories = ['semua', 'tips wisata', 'destinasi', 'kuliner', 'open trip', 'private trip'];
+
+  useEffect(() => {
+        fetchPosts();
+        window.scrollTo(0, 0);
+  }, [activeCategory]);
+
+  const fetchPosts = async () => {
+        setLoading(true);
+        try {
+                let q;
+                if (activeCategory === 'semua') {
+                          q = query(collection(db, 'blog'), where('published', '==', true), orderBy('createdAt', 'desc'));
+                } else {
+                          q = query(collection(db, 'blog'), where('published', '==', true), where('category', '==', activeCategory), orderBy('createdAt', 'desc'));
+                }
+                const snap = await getDocs(q);
+                setPosts(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+        } catch {
+                setPosts([]);
+        }
+        setLoading(false);
+  };
+
+  const filtered = posts.filter(p =>
+        p.title?.toLowerCase().includes(search.toLowerCase()) ||
+        p.excerpt?.toLowerCase().includes(search.toLowerCase())
+                                  );
+
+  const formatDate = (ts) => {
+        if (!ts) return '';
+        const d = ts.toDate ? ts.toDate() : new Date(ts);
+        return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar />
-      
-      {/* Hero */}
-      <div className="bg-gradient-to-r from-primary-600 to-teal-700 text-white pt-32 pb-16 text-center">
-        <h1 className="text-4xl font-bold font-display mb-3">Blog & Artikel</h1>
-        <p className="text-lg opacity-90">Tips wisata, destinasi pilihan, dan cerita perjalanan inspiratif</p>
-        <div className="max-w-xl mx-auto mt-6 flex items-center gap-3 bg-white rounded-full px-5 py-3">
-          <FiSearch className="text-gray-400" size={20}/>
-          <input type="text" placeholder="Cari artikel..." value={search} onChange={e=>setSearch(e.target.value)} className="flex-1 text-gray-700 outline-none"/>
-        </div>
-      </div>
-
-      <div className="max-w-7xl mx-auto px-4 py-12">
-        {/* Category Filter */}
-        <div className="flex gap-2 overflow-x-auto pb-2 mb-8">
-          {categories.map(cat => (
-            <button key={cat} onClick={()=>setCategory(cat)} className={"whitespace-nowrap px-5 py-2 rounded-full text-sm font-medium transition-colors " + (category === cat ? 'bg-primary-500 text-white' : 'bg-white text-gray-600 shadow-sm hover:bg-primary-50')}>
-              {cat}
-            </button>
-          ))}
-        </div>
-
-        {/* Featured Post */}
-        {filtered.length > 0 && (
-          <div className="mb-10">
-            <Link to={"/blog/" + filtered[0].slug} className="group grid grid-cols-1 md:grid-cols-2 bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition-shadow">
-              <div className="overflow-hidden h-64 md:h-auto">
-                <img src={filtered[0].image} alt={filtered[0].title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"/>
-              </div>
-              <div className="p-8 flex flex-col justify-center">
-                <span className="badge bg-primary-100 text-primary-600 w-fit mb-3">{filtered[0].category}</span>
-                <h2 className="text-2xl font-bold text-gray-800 mb-3 group-hover:text-primary-500 transition-colors leading-snug">{filtered[0].title}</h2>
-                <p className="text-gray-500 leading-relaxed mb-4 line-clamp-3">{filtered[0].excerpt}</p>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3 text-xs text-gray-400">
-                    <span className="flex items-center gap-1"><FiUser size={12}/> {filtered[0].author}</span>
-                    <span className="flex items-center gap-1"><FiCalendar size={12}/> {filtered[0].date}</span>
-                  </div>
-                  <span className="flex items-center gap-1 text-primary-500 text-sm font-semibold group-hover:gap-2 transition-all">Baca <FiArrowRight size={14}/></span>
-                </div>
-              </div>
-            </Link>
-          </div>
-        )}
-
-        {/* Posts Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filtered.slice(1).map(post => (
-            <Link key={post.id} to={"/blog/" + post.slug} className="group bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition-all hover:-translate-y-1">
-              <div className="overflow-hidden h-52">
-                <img src={post.image} alt={post.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"/>
-              </div>
-              <div className="p-5">
-                <span className="badge bg-gray-100 text-gray-600 mb-3 w-fit">{post.category}</span>
-                <h3 className="font-bold text-gray-800 mb-2 line-clamp-2 group-hover:text-primary-500 transition-colors">{post.title}</h3>
-                <p className="text-gray-500 text-sm line-clamp-2 mb-3">{post.excerpt}</p>
-                <div className="flex items-center gap-3 text-xs text-gray-400">
-                  <span className="flex items-center gap-1"><FiUser size={12}/> {post.author}</span>
-                  <span className="flex items-center gap-1"><FiCalendar size={12}/> {post.date}</span>
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
-
-        {filtered.length === 0 && (
-          <div className="text-center py-20">
-            <div className="text-6xl mb-4">📝</div>
-            <h3 className="text-xl font-bold text-gray-700 mb-2">Artikel tidak ditemukan</h3>
-            <p className="text-gray-500">Coba ubah kata pencarian atau kategori</p>
-          </div>
-        )}
-      </div>
-      <Footer />
-    </div>
-  )
-}
+        <>
+              <Helmet>
+                      <title>Blog & Artikel Wisata - Liburan Terus</title>title>
+                      <meta name="description" content="Tips wisata, destinasi terbaik, dan panduan perjalanan terlengkap dari Liburan Terus. Temukan inspirasi liburan Anda di sini." />
+              </Helmet>Helmet>
+        
+          {/* Hero */}
+              <div className="bg-gradient-to-r from-emerald-700 to-teal-600 py-24 mt-16">
+                      <div className="max-w-4xl mx-auto px-4 text-center">
+                                <h1 className="text-5xl font-bold text-white mb-4">Blog & Artikel</h1>h1>
+                                <p className="text-emerald-100 text-xl mb-8">Tips wisata, destinasi, dan inspirasi perjalanan untuk Anda</p>p>
+                        {/* Search */}
+                                <div className="relative max-w-lg mx-auto">
+                                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+                                            <input
+                                                            type="text" value={search} onChange={e => setSearch(e.target.value)}
+                                                            placeholder="Cari artikel..."
+                                                            className="w-full pl-12 pr-4 py-4 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-300 text-lg"
+                                                          />
+                                </div>div>
+                      </div>div>
+              </div>div>
+        
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                {/* Categories */}
+                      <div className="flex flex-wrap gap-3 justify-center mb-10">
+                        {categories.map(cat => (
+                      <button
+                                      key={cat} onClick={() => setActiveCategory(cat)}
+                                      className={`px-5 py-2 rounded-full font-medium capitalize transition-all ${
+                                                        activeCategory === cat ? 'bg-emerald-600 text-white shadow-lg' : 'bg-white text-gray-600 hover:bg-emerald-50 border border-gray-200'
+                                      }`}
+                                    >
+                        {cat}
+                      </button>button>
+                    ))}
+                      </div>div>
+              
+                {/* Posts Grid */}
+                {loading ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                      {[...Array(6)].map((_, i) => (
+                                    <div key={i} className="bg-white rounded-2xl overflow-hidden shadow animate-pulse">
+                                                    <div className="h-48 bg-gray-200" />
+                                                    <div className="p-5 space-y-3">
+                                                                      <div className="h-4 bg-gray-200 rounded w-1/3" />
+                                                                      <div className="h-5 bg-gray-200 rounded w-3/4" />
+                                                                      <div className="h-4 bg-gray-200 rounded" />
+                                                                      <div className="h-4 bg-gray-200 rounded w-2/3" />
+                                                    </div>div>
+                                    </div>div>
+                                  ))}
+                    </div>div>
+                  ) : filtered.length === 0 ? (
+                    <div className="text-center py-20 text-gray-500">
+                                <p className="text-xl">Belum ada artikel untuk saat ini.</p>p>
+                    </div>div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                      {filtered.map(post => (
+                                    <Link key={post.id} to={`/blog/${post.slug || post.id}`} className="bg-white rounded-2xl overflow-hidden shadow hover:shadow-xl transition-all group">
+                                                    <div className="relative h-48 overflow-hidden">
+                                                                      <img
+                                                                                            src={post.coverImage || 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&q=80'}
+                                                                                            alt={post.title}
+                                                                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                                                                          />
+                                                      {post.category && (
+                                                          <span className="absolute top-3 left-3 bg-emerald-500 text-white text-xs font-bold px-3 py-1 rounded-full capitalize">
+                                                            {post.category}
+                                                          </span>span>
+                                                                      )}
+                                                    </div>div>
+                                                    <div className="p-5">
+                                                                      <div className="flex items-center gap-3 text-gray-400 text-sm mb-3">
+                                                                                          <span className="flex items-center gap-1"><Calendar className="w-4 h-4" />{formatDate(post.createdAt)}</span>span>
+                                                                        {post.author && <span className="flex items-center gap-1"><User className="w-4 h-4" />{post.author}</span>span>}
+                                                                      </div>div>
+                                                                      <h2 className="font-bold text-gray-900 text-lg mb-2 line-clamp-2 group-hover:text-emerald-600 transition-colors">{post.title}</h2>h2>
+                                                                      <p className="text-gray-500 text-sm line-clamp-3 mb-4">{post.excerpt}</p>p>
+                                                                      <span className="inline-flex items-center gap-1 text-emerald-600 font-semibold text-sm group-hover:gap-2 transition-all">
+                                                                                          Baca Selengkapnya <ArrowRight className="w-4 h-4" />
+                                                                      </span>span>
+                                                    </div>div>
+                                    </Link>Link>
+                                  ))}
+                    </div>div>
+                      )}
+              </div>div>
+        </>>
+      );
+}</>
