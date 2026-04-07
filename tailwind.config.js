@@ -1,45 +1,40 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
-  ],
-  theme: {
-    extend: {
-      colors: {
-        primary: {
-          50: '#fff7ed',
-          100: '#ffedd5',
-          200: '#fed7aa',
-          300: '#fdba74',
-          400: '#fb923c',
-          500: '#f97316',
-          600: '#ea580c',
-          700: '#c2410c',
-          800: '#9a3412',
-          900: '#7c2d12',
-        },
-        teal: {
-          50: '#f0fdfa',
-          100: '#ccfbf1',
-          500: '#14b8a6',
-          600: '#0d9488',
-          700: '#0f766e',
-        }
-      },
-      fontFamily: {
-        sans: ['Inter', 'sans-serif'],
-        display: ['Poppins', 'sans-serif'],
-      },
-      animation: {
-        'fade-in': 'fadeIn 0.5s ease-in-out',
-        'slide-up': 'slideUp 0.5s ease-out',
-      },
-      keyframes: {
-        fadeIn: { from: { opacity: '0' }, to: { opacity: '1' } },
-        slideUp: { from: { opacity: '0', transform: 'translateY(30px)' }, to: { opacity: '1', transform: 'translateY(0)' } },
-      }
+    content: [
+          "./index.html",
+          "./src/**/*.{js,ts,jsx,tsx}",
+        ],
+    theme: {
+          extend: {
+                  fontFamily: {
+                            sans: ['Inter', 'system-ui', 'sans-serif'],
+                  },
+                  colors: {
+                            emerald: {
+                                        50: '#ecfdf5',
+                                        100: '#d1fae5',
+                                        200: '#a7f3d0',
+                                        300: '#6ee7b7',
+                                        400: '#34d399',
+                                        500: '#10b981',
+                                        600: '#059669',
+                                        700: '#047857',
+                                        800: '#065f46',
+                                        900: '#064e3b',
+                            },
+                  },
+          },
     },
-  },
-  plugins: [],
+    plugins: [
+          require('@tailwindcss/typography'),
+        ],
+    safelist: [
+          'bg-emerald-50', 'bg-emerald-100', 'text-emerald-600', 'text-emerald-700',
+          'bg-teal-50', 'bg-teal-100', 'text-teal-600',
+          'bg-blue-50', 'bg-blue-100', 'text-blue-600',
+          'bg-purple-50', 'bg-purple-100', 'text-purple-600',
+          'bg-amber-50', 'bg-amber-100', 'text-amber-600', 'text-amber-700', 'border-amber-200',
+          'bg-green-50', 'bg-green-100', 'text-green-600', 'text-green-700', 'border-green-200',
+          'bg-red-50', 'bg-red-100', 'text-red-600', 'text-red-700', 'border-red-200',
+        ],
 }
