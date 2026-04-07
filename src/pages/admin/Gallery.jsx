@@ -1,158 +1,163 @@
-import { useState, useEffect } from 'react'
-import { collection, getDocs, addDoc, deleteDoc, doc, serverTimestamp } from 'firebase/firestore'
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
-import { db, storage } from '../../firebase/config'
-import { FiPlus, FiTrash2, FiUpload, FiX, FiImage } from 'react-icons/fi'
+import { useState, useEffect } from 'react';
+import { collection, getDocs, addDoc, deleteDoc, doc, serverTimestamp, query, orderBy } from 'firebase/firestore';
+import { ref as storageRef, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
+import { db, storage } from '../../firebase/config';
+import { Plus, Trash2, X, Upload, Image } from 'lucide-react';
+import { toast } from 'react-toastify';
+
+const categories = ['open trip', 'private trip', 'destinasi', 'kuliner'];
 
 export default function AdminGallery() {
-  const [images, setImages] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [uploading, setUploading] = useState(false)
-  const [showAddModal, setShowAddModal] = useState(false)
-  const [formData, setFormData] = useState({ imageUrl: '', caption: '', destination: '', type: 'photo' })
-  const [imageFile, setImageFile] = useState(null)
-  const [deleteConfirm, setDeleteConfirm] = useState(null)
+    const [photos, setPhotos] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [showForm, setShowForm] = useState(false);
+    const [form, setForm] = useState({ caption: '', category: 'destinasi', imageUrl: '' });
+    const [file, setFile] = useState(null);
+    const [uploading, setUploading] = useState(false);
+    const [preview, setPreview] = useState('');
 
-  const dummyImages = [
-    { id: '1', imageUrl: 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=400', caption: 'Komodo Island', destination: 'NTT', type: 'photo' },
-    { id: '2', imageUrl: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400', caption: 'Raja Ampat', destination: 'Papua', type: 'photo' },
-    { id: '3', imageUrl: 'https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?w=400', caption: 'Bali Temple', destination: 'Bali', type: 'photo' },
-    { id: '4', imageUrl: 'https://images.unsplash.com/photo-1588668214407-6ea9a6d8c272?w=400', caption: 'Bromo Sunrise', destination: 'Jawa Timur', type: 'photo' },
-    { id: '5', imageUrl: 'https://images.unsplash.com/photo-1559827291-72ee739d0d9a?w=400', caption: 'Wakatobi Diving', destination: 'Sulawesi', type: 'photo' },
-    { id: '6', imageUrl: 'https://images.unsplash.com/photo-1547036967-23d11aacaee0?w=400', caption: 'Derawan Beach', destination: 'Kalimantan', type: 'photo' },
-  ]
+  useEffect(() => { fetchPhotos(); }, []);
 
-  useEffect(() => {
-    const fetch = async () => {
-      try {
-        const snap = await getDocs(collection(db, 'gallery'))
-        const data = snap.docs.map(d => ({ id: d.id, ...d.data() }))
-        setImages(data.length > 0 ? data : dummyImages)
-      } catch { setImages(dummyImages) }
-      setLoading(false)
-    }
-    fetch()
-  }, [])
+  const fetchPhotos = async () => {
+        setLoading(true);
+        const snap = await getDocs(query(collection(db, 'gallery'), orderBy('createdAt', 'desc')));
+        setPhotos(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+        setLoading(false);
+  };
 
-  const handleAdd = async () => {
-    setUploading(true)
-    try {
-      let url = formData.imageUrl
-      if (imageFile) {
-        const sRef = ref(storage, "gallery/" + Date.now() + "_" + imageFile.name)
-        const snap = await uploadBytes(sRef, imageFile)
-        url = await getDownloadURL(snap.ref)
-      }
-      const data = { ...formData, imageUrl: url, createdAt: serverTimestamp() }
-      await addDoc(collection(db, 'gallery'), data)
-      setImages(prev => [...prev, { id: 'new_'+Date.now(), ...data }])
-    } catch {
-      setImages(prev => [...prev, { id: 'new_'+Date.now(), ...formData, imageUrl: imageFile ? URL.createObjectURL(imageFile) : formData.imageUrl }])
-    }
-    setShowAddModal(false)
-    setImageFile(null)
-    setFormData({ imageUrl: '', caption: '', destination: '', type: 'photo' })
-    setUploading(false)
-  }
+  const handleFile = (e) => {
+        const f = e.target.files[0];
+        if (f) { setFile(f); setPreview(URL.createObjectURL(f)); }
+  };
 
-  const handleDelete = async (id) => {
-    try {
-      if (!id.match(/^[0-9]+$/) && !id.startsWith('new_')) await deleteDoc(doc(db, 'gallery', id))
-      setImages(prev => prev.filter(i => i.id !== id))
-    } catch { setImages(prev => prev.filter(i => i.id !== id)) }
-    setDeleteConfirm(null)
-  }
+  const handleSave = async (e) => {
+        e.preventDefault();
+        setUploading(true);
+        try {
+                let imageUrl = form.imageUrl;
+                if (file) {
+                          const r = storageRef(storage, `gallery/${Date.now()}_${file.name}`);
+                          await uploadBytes(r, file);
+                          imageUrl = await getDownloadURL(r);
+                }
+                if (!imageUrl) { toast.error('Pilih foto atau masukkan URL foto'); setUploading(false); return; }
+                await addDoc(collection(db, 'gallery'), { ...form, imageUrl, createdAt: serverTimestamp() });
+                toast.success('Foto berhasil ditambahkan!');
+                setShowForm(false);
+                setForm({ caption: '', category: 'destinasi', imageUrl: '' });
+                setFile(null); setPreview('');
+                fetchPhotos();
+        } catch (e) { toast.error('Gagal: ' + e.message); }
+        setUploading(false);
+  };
+
+  const handleDelete = async (photo) => {
+        if (!confirm('Hapus foto ini?')) return;
+        try {
+                await deleteDoc(doc(db, 'gallery', photo.id));
+                // Try to delete from storage if it's a Firebase URL
+          if (photo.imageUrl?.includes('firebasestorage')) {
+                    try {
+                                const r = storageRef(storage, photo.imageUrl);
+                                await deleteObject(r);
+                    } catch {}
+          }
+                toast.success('Foto dihapus');
+                fetchPhotos();
+        } catch { toast.error('Gagal menghapus foto'); }
+  };
+
+  const inputClass = 'w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500';
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-xl font-bold">Kelola Galeri</h2>
-          <p className="text-gray-500 text-sm">{images.length} foto/video</p>
-        </div>
-        <button onClick={() => setShowAddModal(true)} className="btn-primary flex items-center gap-2 text-sm"><FiPlus size={16}/> Tambah Foto</button>
-      </div>
-
-      {loading ? (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[...Array(8)].map((_, i) => <div key={i} className="bg-gray-200 animate-pulse rounded-2xl h-48"/>)}
-        </div>
-      ) : (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {images.map(img => (
-            <div key={img.id} className="group relative rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-              <img src={img.imageUrl} alt={img.caption} className="w-full h-48 object-cover" />
-              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2">
-                <p className="text-white text-sm font-medium text-center px-2">{img.caption}</p>
-                <p className="text-white/70 text-xs">{img.destination}</p>
-                <button onClick={()=>setDeleteConfirm(img.id)} className="mt-2 p-2 bg-red-500 hover:bg-red-600 text-white rounded-full transition-colors">
-                  <FiTrash2 size={16}/>
-                </button>
-              </div>
-            </div>
-          ))}
-          <button onClick={()=>setShowAddModal(true)} className="border-2 border-dashed border-gray-300 rounded-2xl h-48 flex flex-col items-center justify-center gap-2 text-gray-400 hover:border-primary-400 hover:text-primary-500 transition-colors">
-            <FiImage size={32}/>
-            <span className="text-sm">Tambah Foto</span>
-          </button>
-        </div>
-      )}
-
-      {deleteConfirm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
-          <div className="bg-white rounded-2xl p-6 max-w-sm w-full text-center">
-            <div className="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4"><FiTrash2 className="text-red-500" size={28}/></div>
-            <h3 className="text-lg font-bold mb-2">Hapus Foto?</h3>
-            <div className="flex gap-3 mt-4">
-              <button onClick={()=>setDeleteConfirm(null)} className="flex-1 py-3 border-2 border-gray-200 rounded-full font-semibold">Batal</button>
-              <button onClick={()=>handleDelete(deleteConfirm)} className="flex-1 py-3 bg-red-500 text-white rounded-full font-semibold">Hapus</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {showAddModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg">
-            <div className="px-6 py-4 border-b flex items-center justify-between">
-              <h3 className="font-bold text-lg">Tambah Foto</h3>
-              <button onClick={()=>setShowAddModal(false)} className="p-2 hover:bg-gray-100 rounded-lg"><FiX size={20}/></button>
-            </div>
-            <div className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Upload Foto</label>
-                <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center">
-                  <input type="file" accept="image/*,video/*" onChange={e=>setImageFile(e.target.files[0])} className="hidden" id="gallery-upload"/>
-                  <label htmlFor="gallery-upload" className="cursor-pointer flex flex-col items-center gap-2 text-gray-400 hover:text-primary-500">
-                    <FiUpload size={32}/>
-                    <span className="text-sm">{imageFile ? imageFile.name : 'Klik untuk upload foto/video'}</span>
-                  </label>
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Atau URL Gambar</label>
-                <input type="text" value={formData.imageUrl} onChange={e=>setFormData({...formData,imageUrl:e.target.value})} className="form-input" placeholder="https://..."/>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-sm font-medium mb-1">Caption</label>
-                  <input type="text" value={formData.caption} onChange={e=>setFormData({...formData,caption:e.target.value})} className="form-input text-sm" placeholder="Deskripsi foto"/>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Destinasi</label>
-                  <input type="text" value={formData.destination} onChange={e=>setFormData({...formData,destination:e.target.value})} className="form-input text-sm" placeholder="Raja Ampat"/>
-                </div>
-              </div>
-            </div>
-            <div className="px-6 py-4 border-t flex gap-3">
-              <button onClick={()=>setShowAddModal(false)} className="flex-1 py-3 border-2 border-gray-200 rounded-full font-semibold">Batal</button>
-              <button onClick={handleAdd} disabled={uploading} className="flex-1 py-3 bg-primary-500 text-white rounded-full font-semibold flex items-center justify-center gap-2">
-                {uploading ? <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"/> : <><FiUpload size={18}/> Upload</>}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
+        <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                      <div>
+                                <h1 className="text-2xl font-bold text-gray-900">Galeri Foto</h1>h1>
+                                <p className="text-gray-500 text-sm">{photos.length} foto terdaftar</p>p>
+                      </div>div>
+                      <button onClick={() => setShowForm(true)} className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-4 py-2 rounded-xl transition-colors">
+                                <Plus className="w-5 h-5" /> Tambah Foto
+                      </button>button>
+              </div>div>
+        
+          {loading ? (
+                  <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                    {[...Array(10)].map((_, i) => <div key={i} className="aspect-square bg-gray-200 rounded-xl animate-pulse" />)}
+                  </div>div>
+                ) : photos.length === 0 ? (
+                  <div className="bg-white rounded-2xl p-16 text-center text-gray-400">
+                            <Image className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+                            <p>Belum ada foto. Tambahkan foto pertama!</p>p>
+                  </div>div>
+                ) : (
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {photos.map(photo => (
+                                <div key={photo.id} className="group relative aspect-square rounded-xl overflow-hidden bg-gray-100 shadow-sm">
+                                              <img src={photo.imageUrl} alt={photo.caption || ''} className="w-full h-full object-cover" loading="lazy" />
+                                              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-all flex items-end p-3">
+                                                              <div className="translate-y-full group-hover:translate-y-0 transition-transform w-full">
+                                                                {photo.caption && <p className="text-white text-xs mb-2 line-clamp-2">{photo.caption}</p>p>}
+                                                                                <div className="flex items-center justify-between">
+                                                                                                    <span className="text-xs text-white/80 bg-black/30 px-2 py-0.5 rounded-full capitalize">{photo.category}</span>span>
+                                                                                                    <button onClick={() => handleDelete(photo)} className="p-1.5 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors">
+                                                                                                                          <Trash2 className="w-4 h-4" />
+                                                                                                      </button>button>
+                                                                                </div>div>
+                                                              </div>div>
+                                              </div>div>
+                                </div>div>
+                              ))}
+                  </div>div>
+              )}
+        
+          {/* Form Modal */}
+          {showForm && (
+                  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+                            <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl">
+                                        <div className="flex items-center justify-between p-6 border-b border-gray-100">
+                                                      <h2 className="text-xl font-bold">Tambah Foto</h2>h2>
+                                                      <button onClick={() => { setShowForm(false); setFile(null); setPreview(''); }}><X className="w-6 h-6 text-gray-400" /></button>button>
+                                        </div>div>
+                                        <form onSubmit={handleSave} className="p-6 space-y-4">
+                                          {/* Upload or URL */}
+                                                      <div>
+                                                                      <label className="block text-sm font-medium text-gray-700 mb-2">Upload Foto atau Masukkan URL</label>label>
+                                                                      <div className="border-2 border-dashed border-gray-200 rounded-xl p-4 text-center mb-3 hover:border-emerald-300 transition-colors cursor-pointer" onClick={() => document.getElementById('gallery-file').click()}>
+                                                                        {preview ? (
+                                        <img src={preview} alt="" className="max-h-40 mx-auto rounded-lg" />
+                                      ) : (
+                                        <div className="text-gray-400">
+                                                              <Upload className="w-10 h-10 mx-auto mb-2" />
+                                                              <p className="text-sm">Klik untuk upload foto</p>p>
+                                        </div>div>
+                                                                                        )}
+                                                                      </div>div>
+                                                                      <input id="gallery-file" type="file" accept="image/*" onChange={handleFile} className="hidden" />
+                                                                      <p className="text-center text-xs text-gray-400 mb-2">— atau —</p>p>
+                                                                      <input type="url" value={form.imageUrl} onChange={e => { setForm({...form, imageUrl: e.target.value}); setPreview(e.target.value); setFile(null); }} placeholder="https://... (URL foto)" className={inputClass} />
+                                                      </div>div>
+                                                      <div>
+                                                                      <label className="block text-sm font-medium text-gray-700 mb-1">Keterangan Foto</label>label>
+                                                                      <input type="text" value={form.caption} onChange={e => setForm({...form, caption: e.target.value})} className={inputClass} placeholder="Contoh: Sunset di Labuan Bajo" />
+                                                      </div>div>
+                                                      <div>
+                                                                      <label className="block text-sm font-medium text-gray-700 mb-1">Kategori</label>label>
+                                                                      <select value={form.category} onChange={e => setForm({...form, category: e.target.value})} className={inputClass}>
+                                                                        {categories.map(c => <option key={c} value={c} className="capitalize">{c}</option>option>)}
+                                                                      </select>select>
+                                                      </div>div>
+                                                      <div className="flex gap-3 pt-2">
+                                                                      <button type="button" onClick={() => { setShowForm(false); setFile(null); setPreview(''); }} className="flex-1 border border-gray-300 text-gray-700 font-semibold py-2 rounded-xl hover:bg-gray-50">Batal</button>button>
+                                                                      <button type="submit" disabled={uploading} className="flex-1 flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white font-semibold py-2 rounded-xl">
+                                                                        {uploading ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <Upload className="w-5 h-5" />}
+                                                                        {uploading ? 'Mengupload...' : 'Simpan Foto'}
+                                                                      </button>button>
+                                                      </div>div>
+                                        </form>form>
+                            </div>div>
+                  </div>div>
+              )}
+        </div>div>
+      );
+}</div>
