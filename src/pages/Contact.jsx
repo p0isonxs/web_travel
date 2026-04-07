@@ -1,137 +1,163 @@
-import { useState } from 'react'
-import Navbar from '../components/Navbar'
-import Footer from '../components/Footer'
-import { FiMapPin, FiPhone, FiMail, FiClock, FiSend } from 'react-icons/fi'
-import { FaWhatsapp, FaInstagram, FaFacebook } from 'react-icons/fa'
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
-import { db } from '../firebase/config'
+import { useState, useEffect } from 'react';
+import { Helmet } from 'react-helmet-async';
+import { MapPin, Phone, Mail, Clock, MessageCircle, Send } from 'lucide-react';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { db } from '../firebase/config';
+import { toast } from 'react-toastify';
 
 export default function Contact() {
-  const [form, setForm] = useState({ name: '', email: '', phone: '', subject: '', message: '' })
-  const [sending, setSending] = useState(false)
-  const [sent, setSent] = useState(false)
+    const [form, setForm] = useState({ name: '', email: '', phone: '', subject: '', message: '' });
+    const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => { window.scrollTo(0, 0); }, []);
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setSending(true)
-    try {
-      await addDoc(collection(db, 'contacts'), { ...form, createdAt: serverTimestamp() })
-    } catch {}
-    setSent(true)
-    setSending(false)
-    setForm({ name: '', email: '', phone: '', subject: '', message: '' })
-  }
+        e.preventDefault();
+        setSubmitting(true);
+        try {
+                await addDoc(collection(db, 'contacts'), { ...form, createdAt: serverTimestamp(), status: 'unread' });
+                toast.success('Pesan Anda telah terkirim! Kami akan segera menghubungi Anda.');
+                setForm({ name: '', email: '', phone: '', subject: '', message: '' });
+        } catch {
+                toast.error('Gagal mengirim pesan. Silakan coba lagi.');
+        }
+        setSubmitting(false);
+  };
+
+  const contactInfo = [
+    { icon: <MapPin className="w-6 h-6" />, label: 'Alamat', value: 'Jl. Wisata Indah No. 123, Jakarta Selatan, 12345', color: 'emerald' },
+    { icon: <Phone className="w-6 h-6" />, label: 'Telepon / WhatsApp', value: '+62 812-3456-7890', color: 'teal', link: 'https://wa.me/6281234567890' },
+    { icon: <Mail className="w-6 h-6" />, label: 'Email', value: 'info@liburanterus.com', color: 'blue', link: 'mailto:info@liburanterus.com' },
+    { icon: <Clock className="w-6 h-6" />, label: 'Jam Operasional', value: 'Senin - Sabtu: 08.00 - 20.00 WIB\nMinggu: 09.00 - 17.00 WIB', color: 'purple' },
+      ];
+
+  const inputClass = 'w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all';
 
   return (
-    <div className="min-h-screen">
-      <Navbar />
-      
-      {/* Hero */}
-      <div className="bg-gradient-to-r from-primary-600 to-teal-700 text-white pt-32 pb-16 text-center">
-        <h1 className="text-4xl font-bold font-display mb-3">Hubungi Kami</h1>
-        <p className="text-lg opacity-90">Tim kami siap membantu Anda 7 hari seminggu</p>
-      </div>
-
-      <section className="py-16">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Contact Info */}
-            <div className="space-y-5">
-              <h2 className="text-2xl font-bold">Informasi Kontak</h2>
-              
-              {[
-                { icon: FiMapPin, title: 'Kantor Pusat', info: 'Jl. Wisata Nusantara No. 123
-Jakarta Selatan 12345
-DKI Jakarta, Indonesia', color: 'text-primary-500 bg-primary-50' },
-                { icon: FiPhone, title: 'Telepon', info: '+62 812-3456-7890
-+62 21-9876-5432', color: 'text-blue-500 bg-blue-50' },
-                { icon: FiMail, title: 'Email', info: 'info@nusatrip.com
-booking@nusatrip.com', color: 'text-teal-500 bg-teal-50' },
-                { icon: FiClock, title: 'Jam Operasional', info: 'Senin - Sabtu: 08.00 - 18.00 WIB
-Minggu: 09.00 - 15.00 WIB', color: 'text-purple-500 bg-purple-50' },
-              ].map(({ icon: Icon, title, info, color }) => (
-                <div key={title} className="flex gap-4">
-                  <div className={"w-12 h-12 rounded-xl flex items-center justify-center shrink-0 " + color}>
-                    <Icon size={22} />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-gray-800 mb-1">{title}</h3>
-                    {info.split('
-').map((line, i) => <p key={i} className="text-gray-500 text-sm">{line}</p>)}
-                  </div>
-                </div>
-              ))}
-
-              <div className="bg-green-50 rounded-2xl p-5">
-                <h3 className="font-bold text-green-700 mb-3">Chat via WhatsApp</h3>
-                <p className="text-green-600 text-sm mb-3">Untuk respons lebih cepat, hubungi kami via WhatsApp</p>
-                <a href="https://wa.me/6281234567890?text=Halo NusaTrip, saya ingin bertanya..." target="_blank" rel="noreferrer" className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-3 rounded-full font-semibold transition-colors">
-                  <FaWhatsapp size={20} /> Mulai Chat WhatsApp
-                </a>
-              </div>
-
-              <div>
-                <h3 className="font-bold text-gray-800 mb-3">Follow Kami</h3>
-                <div className="flex gap-3">
-                  <a href="#" className="w-10 h-10 bg-pink-100 text-pink-500 rounded-full flex items-center justify-center hover:bg-pink-200 transition-colors"><FaInstagram size={18}/></a>
-                  <a href="#" className="w-10 h-10 bg-blue-100 text-blue-500 rounded-full flex items-center justify-center hover:bg-blue-200 transition-colors"><FaFacebook size={18}/></a>
-                  <a href="#" className="w-10 h-10 bg-green-100 text-green-500 rounded-full flex items-center justify-center hover:bg-green-200 transition-colors"><FaWhatsapp size={18}/></a>
-                </div>
-              </div>
-            </div>
-
-            {/* Contact Form */}
-            <div className="lg:col-span-2">
-              <div className="bg-white rounded-2xl shadow-sm p-8">
-                <h2 className="text-2xl font-bold mb-6">Kirim Pesan</h2>
-                
-                {sent && (
-                  <div className="bg-green-50 border border-green-200 text-green-600 rounded-xl p-4 mb-6">
-                    ✅ Pesan berhasil terkirim! Kami akan menghubungi Anda segera.
-                  </div>
-                )}
-
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Nama Lengkap *</label>
-                      <input type="text" value={form.name} onChange={e=>setForm({...form,name:e.target.value})} placeholder="Nama Anda" className="form-input" required/>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Email *</label>
-                      <input type="email" value={form.email} onChange={e=>setForm({...form,email:e.target.value})} placeholder="email@example.com" className="form-input" required/>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-1">No. WhatsApp</label>
-                      <input type="tel" value={form.phone} onChange={e=>setForm({...form,phone:e.target.value})} placeholder="08xxxxxxxxxx" className="form-input"/>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Subjek *</label>
-                      <select value={form.subject} onChange={e=>setForm({...form,subject:e.target.value})} className="form-input" required>
-                        <option value="">Pilih subjek...</option>
-                        {['Pertanyaan Paket', 'Booking & Pembayaran', 'Pengaduan', 'Kerjasama', 'Lainnya'].map(s=><option key={s}>{s}</option>)}
-                      </select>
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Pesan *</label>
-                    <textarea value={form.message} onChange={e=>setForm({...form,message:e.target.value})} rows={6} placeholder="Tuliskan pesan Anda di sini..." className="form-input" required/>
-                  </div>
-                  <button type="submit" disabled={sending} className="btn-primary w-full flex items-center justify-center gap-2 py-4">
-                    {sending ? <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"/> : <><FiSend size={18}/> Kirim Pesan</>}
-                  </button>
-                </form>
-              </div>
-
-              {/* Map placeholder */}
-              <div className="mt-6 bg-gray-200 rounded-2xl h-64 flex items-center justify-center overflow-hidden">
-                <iframe src="https://maps.google.com/maps?q=Jakarta+Selatan&output=embed" width="100%" height="100%" style={{border:0}} loading="lazy" className="rounded-2xl" title="Lokasi Kantor NusaTrip" />
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-      <Footer />
-    </div>
-  )
-}
+        <>
+              <Helmet>
+                      <title>Kontak Kami - Liburan Terus</title>title>
+                      <meta name="description" content="Hubungi Liburan Terus untuk informasi paket wisata, booking, atau pertanyaan lainnya. Kami siap membantu Anda merencanakan liburan impian." />
+              </Helmet>Helmet>
+        
+          {/* Hero */}
+              <div className="bg-gradient-to-r from-emerald-700 to-teal-600 py-24 mt-16">
+                      <div className="max-w-4xl mx-auto px-4 text-center">
+                                <h1 className="text-5xl font-bold text-white mb-4">Hubungi Kami</h1>h1>
+                                <p className="text-emerald-100 text-xl">Kami siap membantu Anda merencanakan perjalanan impian</p>p>
+                      </div>div>
+              </div>div>
+        
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+                      <div className="grid lg:grid-cols-2 gap-16">
+                        {/* Contact Info */}
+                                <div>
+                                            <h2 className="text-3xl font-bold text-gray-900 mb-8">Informasi Kontak</h2>h2>
+                                            <div className="space-y-6 mb-10">
+                                              {contactInfo.map((info, i) => (
+                          <div key={i} className="flex gap-4">
+                                            <div className={`w-12 h-12 bg-${info.color}-100 rounded-xl flex items-center justify-center text-${info.color}-600 shrink-0`}>
+                                              {info.icon}
+                                            </div>div>
+                                            <div>
+                                                                <p className="font-semibold text-gray-900">{info.label}</p>p>
+                                              {info.link ? (
+                                                  <a href={info.link} className={`text-${info.color}-600 hover:underline whitespace-pre-line`}>{info.value}</a>a>
+                                                ) : (
+                                                  <p className="text-gray-600 whitespace-pre-line">{info.value}</p>p>
+                                                                )}
+                                            </div>div>
+                          </div>div>
+                        ))}
+                                            </div>div>
+                                
+                                  {/* WhatsApp CTA */}
+                                            <div className="bg-green-50 border border-green-200 rounded-2xl p-6">
+                                                          <h3 className="font-bold text-green-800 text-lg mb-2">Butuh Respon Cepat?</h3>h3>
+                                                          <p className="text-green-700 mb-4">Chat langsung via WhatsApp untuk mendapatkan balasan lebih cepat dari tim kami!</p>p>
+                                                          <a
+                                                                            href="https://wa.me/6281234567890?text=Halo Liburan Terus! Saya ingin bertanya mengenai paket wisata."
+                                                                            target="_blank" rel="noopener noreferrer"
+                                                                            className="inline-flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white font-bold px-6 py-3 rounded-xl transition-colors"
+                                                                          >
+                                                                          <MessageCircle className="w-5 h-5" />
+                                                                          Chat WhatsApp Sekarang
+                                                          </a>a>
+                                            </div>div>
+                                </div>div>
+                      
+                        {/* Contact Form */}
+                                <div>
+                                            <h2 className="text-3xl font-bold text-gray-900 mb-8">Kirim Pesan</h2>h2>
+                                            <form onSubmit={handleSubmit} className="space-y-5">
+                                                          <div className="grid grid-cols-2 gap-4">
+                                                                          <div>
+                                                                                            <label className="block text-sm font-medium text-gray-700 mb-1">Nama Lengkap *</label>label>
+                                                                                            <input
+                                                                                                                  type="text" required value={form.name}
+                                                                                                                  onChange={e => setForm({...form, name: e.target.value})}
+                                                                                                                  placeholder="John Doe"
+                                                                                                                  className={inputClass}
+                                                                                                                />
+                                                                          </div>div>
+                                                                          <div>
+                                                                                            <label className="block text-sm font-medium text-gray-700 mb-1">No. WhatsApp *</label>label>
+                                                                                            <input
+                                                                                                                  type="tel" required value={form.phone}
+                                                                                                                  onChange={e => setForm({...form, phone: e.target.value})}
+                                                                                                                  placeholder="0812xxxxxxxx"
+                                                                                                                  className={inputClass}
+                                                                                                                />
+                                                                          </div>div>
+                                                          </div>div>
+                                                          <div>
+                                                                          <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>label>
+                                                                          <input
+                                                                                              type="email" required value={form.email}
+                                                                                              onChange={e => setForm({...form, email: e.target.value})}
+                                                                                              placeholder="email@example.com"
+                                                                                              className={inputClass}
+                                                                                            />
+                                                          </div>div>
+                                                          <div>
+                                                                          <label className="block text-sm font-medium text-gray-700 mb-1">Subjek *</label>label>
+                                                                          <select
+                                                                                              required value={form.subject}
+                                                                                              onChange={e => setForm({...form, subject: e.target.value})}
+                                                                                              className={inputClass}
+                                                                                            >
+                                                                                            <option value="">-- Pilih Subjek --</option>option>
+                                                                                            <option value="Informasi Open Trip">Informasi Open Trip</option>option>
+                                                                                            <option value="Informasi Private Trip">Informasi Private Trip</option>option>
+                                                                                            <option value="Pertanyaan Booking">Pertanyaan Booking</option>option>
+                                                                                            <option value="Pertanyaan Pembayaran">Pertanyaan Pembayaran</option>option>
+                                                                                            <option value="Keluhan / Saran">Keluhan / Saran</option>option>
+                                                                                            <option value="Lainnya">Lainnya</option>option>
+                                                                          </select>select>
+                                                          </div>div>
+                                                          <div>
+                                                                          <label className="block text-sm font-medium text-gray-700 mb-1">Pesan *</label>label>
+                                                                          <textarea
+                                                                                              required rows={5} value={form.message}
+                                                                                              onChange={e => setForm({...form, message: e.target.value})}
+                                                                                              placeholder="Tuliskan pesan atau pertanyaan Anda..."
+                                                                                              className={inputClass}
+                                                                                            />
+                                                          </div>div>
+                                                          <button
+                                                                            type="submit" disabled={submitting}
+                                                                            className="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white font-bold py-4 rounded-xl transition-colors text-lg"
+                                                                          >
+                                                            {submitting ? (
+                                                                                              <><div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" /> Mengirim...</>>
+                                                                                            ) : (
+                                                                                              <><Send className="w-5 h-5" /> Kirim Pesan</>>
+                                                                                            )}
+                                                          </button>button>
+                                            </form>form>
+                                </div>div>
+                      </div>div>
+              </div>div>
+        </>>
+      );
+}</></></>
