@@ -1,195 +1,198 @@
-import { useState, useEffect } from 'react'
-import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, query, orderBy } from 'firebase/firestore'
-import { db } from '../../firebase/config'
-import { FiPlus, FiEdit2, FiTrash2, FiSearch, FiX, FiSave } from 'react-icons/fi'
+import { useState, useEffect } from 'react';
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, query, orderBy } from 'firebase/firestore';
+import { db } from '../../firebase/config';
+import { Plus, Edit2, Trash2, X, Save, Search, Eye, EyeOff } from 'lucide-react';
+import { toast } from 'react-toastify';
 
-const emptyPost = { title: '', slug: '', content: '', excerpt: '', image: '', category: 'Informasi', author: 'Admin', published: false, tags: '' }
+const emptyForm = { title: '', slug: '', category: 'tips wisata', excerpt: '', content: '', coverImage: '', author: 'Admin', published: false, readTime: 5 };
+
+const categories = ['tips wisata', 'destinasi', 'kuliner', 'open trip', 'private trip', 'lainnya'];
 
 export default function AdminBlog() {
-  const [posts, setPosts] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [showModal, setShowModal] = useState(false)
-  const [editingPost, setEditingPost] = useState(null)
-  const [formData, setFormData] = useState(emptyPost)
-  const [search, setSearch] = useState('')
-  const [saving, setSaving] = useState(false)
-  const [deleteConfirm, setDeleteConfirm] = useState(null)
+    const [posts, setPosts] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [showForm, setShowForm] = useState(false);
+    const [editId, setEditId] = useState(null);
+    const [form, setForm] = useState(emptyForm);
+    const [saving, setSaving] = useState(false);
+    const [search, setSearch] = useState('');
 
-  const dummyPosts = [
-    { id: '1', title: 'Petualangan Epik di Derawan Labuan Cermin', slug: 'derawan-labuan-cermin', excerpt: 'Menjelajahi keajaiban bawah laut Derawan yang memukau...', category: 'Informasi', author: 'Umar Dary', published: true, image: 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=200', tags: 'derawan,diving,bahari' },
-    { id: '2', title: 'Tips Hemat Traveling ke Raja Ampat', slug: 'tips-hemat-raja-ampat', excerpt: 'Cara menikmati Raja Ampat dengan budget terbatas...', category: 'Tips', author: 'Admin', published: true, image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=200', tags: 'raja ampat,tips,budget' },
-    { id: '3', title: '10 Destinasi Wisata Terbaik 2026', slug: 'destinasi-wisata-2026', excerpt: 'Daftar destinasi wisata paling populer tahun 2026...', category: 'Informasi', author: 'Admin', published: false, image: 'https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?w=200', tags: 'destinasi,2026,populer' },
-  ]
+  useEffect(() => { fetchPosts(); }, []);
 
   const fetchPosts = async () => {
-    try {
-      const snap = await getDocs(query(collection(db, 'blog'), orderBy('createdAt', 'desc')))
-      const data = snap.docs.map(d => ({ id: d.id, ...d.data() }))
-      setPosts(data.length > 0 ? data : dummyPosts)
-    } catch { setPosts(dummyPosts) }
-    setLoading(false)
-  }
+        setLoading(true);
+        const snap = await getDocs(query(collection(db, 'blog'), orderBy('createdAt', 'desc')));
+        setPosts(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+        setLoading(false);
+  };
 
-  useEffect(() => { fetchPosts() }, [])
+  const generateSlug = (title) => title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 
-  const openModal = (post = null) => {
-    setEditingPost(post)
-    setFormData(post ? { ...emptyPost, ...post } : emptyPost)
-    setShowModal(true)
-  }
+  const openCreate = () => { setForm(emptyForm); setEditId(null); setShowForm(true); };
+    const openEdit = (p) => { setForm({ ...emptyForm, ...p }); setEditId(p.id); setShowForm(true); };
+    const closeForm = () => { setShowForm(false); setEditId(null); };
 
-  const handleSave = async () => {
-    setSaving(true)
-    try {
-      const data = { ...formData, updatedAt: serverTimestamp(), slug: formData.slug || formData.title.toLowerCase().replace(/s+/g, '-') }
-      if (editingPost && !editingPost.id.match(/^[0-9]+$/)) {
-        await updateDoc(doc(db, 'blog', editingPost.id), data)
-      } else {
-        await addDoc(collection(db, 'blog'), { ...data, createdAt: serverTimestamp() })
-      }
-      await fetchPosts()
-    } catch {
-      if (editingPost) setPosts(prev => prev.map(p => p.id === editingPost.id ? {...p,...formData} : p))
-      else setPosts(prev => [{id: 'new_'+Date.now(),...formData},...prev])
-    }
-    setShowModal(false)
-    setSaving(false)
-  }
+  const handleSave = async (e) => {
+        e.preventDefault();
+        setSaving(true);
+        try {
+                const data = { ...form, slug: form.slug || generateSlug(form.title), updatedAt: serverTimestamp() };
+                if (editId) {
+                          await updateDoc(doc(db, 'blog', editId), data);
+                          toast.success('Artikel diperbarui!');
+                } else {
+                          await addDoc(collection(db, 'blog'), { ...data, createdAt: serverTimestamp() });
+                          toast.success('Artikel berhasil ditambahkan!');
+                }
+                closeForm();
+                fetchPosts();
+        } catch (e) { toast.error('Gagal: ' + e.message); }
+        setSaving(false);
+  };
 
-  const handleDelete = async (id) => {
-    try {
-      if (!id.match(/^[0-9]+$/)) await deleteDoc(doc(db, 'blog', id))
-      setPosts(prev => prev.filter(p => p.id !== id))
-    } catch { setPosts(prev => prev.filter(p => p.id !== id)) }
-    setDeleteConfirm(null)
-  }
+  const handleDelete = async (id, title) => {
+        if (!confirm(`Hapus artikel "${title}"?`)) return;
+        await deleteDoc(doc(db, 'blog', id));
+        toast.success('Artikel dihapus');
+        fetchPosts();
+  };
 
-  const filtered = posts.filter(p => p.title?.toLowerCase().includes(search.toLowerCase()))
+  const togglePublish = async (id, current) => {
+        await updateDoc(doc(db, 'blog', id), { published: !current });
+        fetchPosts();
+  };
+
+  const formatDate = (ts) => {
+        if (!ts) return '-';
+        const d = ts.toDate ? ts.toDate() : new Date(ts);
+        return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+  };
+
+  const filtered = posts.filter(p => p.title?.toLowerCase().includes(search.toLowerCase()));
+    const inputClass = 'w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500';
+    const labelClass = 'block text-sm font-medium text-gray-700 mb-1';
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-xl font-bold">Blog & Artikel</h2>
-          <p className="text-gray-500 text-sm">{posts.length} artikel</p>
-        </div>
-        <button onClick={() => openModal()} className="btn-primary flex items-center gap-2 text-sm"><FiPlus size={16}/> Tulis Artikel</button>
-      </div>
-
-      <div className="bg-white rounded-xl shadow-sm p-3 flex items-center gap-2">
-        <FiSearch className="text-gray-400" size={18}/>
-        <input type="text" placeholder="Cari artikel..." value={search} onChange={e=>setSearch(e.target.value)} className="outline-none flex-1 text-sm"/>
-      </div>
-
-      <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-        <table className="w-full">
-          <thead className="bg-gray-50 text-gray-500 text-xs uppercase">
-            <tr>
-              <th className="px-4 py-3 text-left">Artikel</th>
-              <th className="px-4 py-3 text-left">Kategori</th>
-              <th className="px-4 py-3 text-left">Penulis</th>
-              <th className="px-4 py-3 text-left">Status</th>
-              <th className="px-4 py-3 text-center">Aksi</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-50">
-            {filtered.map(post => (
-              <tr key={post.id} className="hover:bg-gray-50">
-                <td className="px-4 py-4">
-                  <div className="flex items-center gap-3">
-                    <img src={post.image} alt="" className="w-12 h-10 rounded-lg object-cover" onError={e=>e.target.src='https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=100'}/>
-                    <div>
-                      <p className="font-medium text-sm text-gray-800">{post.title}</p>
-                      <p className="text-xs text-gray-400 line-clamp-1">{post.excerpt}</p>
-                    </div>
-                  </div>
-                </td>
-                <td className="px-4 py-4 text-sm text-gray-500">{post.category}</td>
-                <td className="px-4 py-4 text-sm text-gray-500">{post.author}</td>
-                <td className="px-4 py-4">
-                  <span className={"px-2 py-1 rounded-full text-xs font-medium " + (post.published ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700')}>
-                    {post.published ? 'Dipublish' : 'Draft'}
-                  </span>
-                </td>
-                <td className="px-4 py-4">
-                  <div className="flex items-center justify-center gap-2">
-                    <button onClick={()=>openModal(post)} className="p-1.5 text-gray-400 hover:text-primary-500 hover:bg-primary-50 rounded-lg"><FiEdit2 size={16}/></button>
-                    <button onClick={()=>setDeleteConfirm(post.id)} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg"><FiTrash2 size={16}/></button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {deleteConfirm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
-          <div className="bg-white rounded-2xl p-6 max-w-sm w-full text-center">
-            <div className="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4"><FiTrash2 className="text-red-500" size={28}/></div>
-            <h3 className="text-lg font-bold mb-2">Hapus Artikel?</h3>
-            <div className="flex gap-3 mt-4">
-              <button onClick={()=>setDeleteConfirm(null)} className="flex-1 py-3 border-2 border-gray-200 rounded-full font-semibold">Batal</button>
-              <button onClick={()=>handleDelete(deleteConfirm)} className="flex-1 py-3 bg-red-500 text-white rounded-full font-semibold">Hapus</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {showModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between rounded-t-2xl">
-              <h3 className="font-bold text-lg">{editingPost ? 'Edit Artikel' : 'Tulis Artikel Baru'}</h3>
-              <button onClick={()=>setShowModal(false)} className="p-2 hover:bg-gray-100 rounded-lg"><FiX size={20}/></button>
-            </div>
-            <div className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Judul Artikel *</label>
-                <input type="text" value={formData.title} onChange={e=>setFormData({...formData,title:e.target.value})} className="form-input" placeholder="Judul menarik..." />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Excerpt / Ringkasan</label>
-                <textarea value={formData.excerpt} onChange={e=>setFormData({...formData,excerpt:e.target.value})} rows={2} className="form-input" placeholder="Deskripsi singkat artikel..." />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Konten Artikel</label>
-                <textarea value={formData.content} onChange={e=>setFormData({...formData,content:e.target.value})} rows={10} className="form-input" placeholder="Tulis konten artikel di sini... Mendukung Markdown." />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium mb-1">URL Gambar</label>
-                  <input type="text" value={formData.image} onChange={e=>setFormData({...formData,image:e.target.value})} className="form-input" placeholder="https://..." />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Kategori</label>
-                  <select value={formData.category} onChange={e=>setFormData({...formData,category:e.target.value})} className="form-input">
-                    {['Informasi','Tips','Kuliner','Budaya','Adventure','Destinasi'].map(c=><option key={c}>{c}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Penulis</label>
-                  <input type="text" value={formData.author} onChange={e=>setFormData({...formData,author:e.target.value})} className="form-input" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Tags (koma pisah)</label>
-                  <input type="text" value={formData.tags} onChange={e=>setFormData({...formData,tags:e.target.value})} className="form-input" placeholder="wisata,bahari,tips" />
-                </div>
-              </div>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" checked={formData.published} onChange={e=>setFormData({...formData,published:e.target.checked})} className="w-4 h-4" />
-                <span className="text-sm font-medium">Publish artikel sekarang</span>
-              </label>
-            </div>
-            <div className="sticky bottom-0 bg-white border-t px-6 py-4 flex gap-3 rounded-b-2xl">
-              <button onClick={()=>setShowModal(false)} className="flex-1 py-3 border-2 border-gray-200 rounded-full font-semibold">Batal</button>
-              <button onClick={handleSave} disabled={saving} className="flex-1 py-3 bg-primary-500 text-white rounded-full font-semibold flex items-center justify-center gap-2">
-                {saving ? <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"/> : <><FiSave size={18}/> Simpan</>}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
+        <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                      <div>
+                                <h1 className="text-2xl font-bold text-gray-900">Blog & Artikel</h1>h1>
+                                <p className="text-gray-500 text-sm">{posts.length} artikel terdaftar</p>p>
+                      </div>div>
+                      <button onClick={openCreate} className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-4 py-2 rounded-xl transition-colors">
+                                <Plus className="w-5 h-5" /> Tulis Artikel
+                      </button>button>
+              </div>div>
+        
+              <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+                      <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Cari artikel..." className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+              </div>div>
+        
+              <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+                {loading ? <div className="p-8 text-center text-gray-400">Memuat...</div>div> :
+                      filtered.length === 0 ? <div className="p-8 text-center text-gray-400">Belum ada artikel</div>div> : (
+                        <div className="overflow-x-auto">
+                                    <table className="w-full text-sm">
+                                                  <thead className="bg-gray-50 border-b border-gray-100">
+                                                                  <tr>
+                                                                                    <th className="text-left px-4 py-3 font-semibold text-gray-700">Judul</th>th>
+                                                                                    <th className="text-left px-4 py-3 font-semibold text-gray-700">Kategori</th>th>
+                                                                                    <th className="text-left px-4 py-3 font-semibold text-gray-700">Tanggal</th>th>
+                                                                                    <th className="text-left px-4 py-3 font-semibold text-gray-700">Status</th>th>
+                                                                                    <th className="text-left px-4 py-3 font-semibold text-gray-700">Aksi</th>th>
+                                                                  </tr>tr>
+                                                  </thead>thead>
+                                                  <tbody className="divide-y divide-gray-50">
+                                                    {filtered.map(p => (
+                            <tr key={p.id} className="hover:bg-gray-50">
+                                                <td className="px-4 py-3">
+                                                                      <div className="flex items-center gap-3">
+                                                                        {p.coverImage && <img src={p.coverImage} alt="" className="w-10 h-10 rounded-lg object-cover" />}
+                                                                                              <span className="font-medium text-gray-900 line-clamp-1">{p.title}</span>span>
+                                                                      </div>div>
+                                                </td>td>
+                                                <td className="px-4 py-3"><span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-full capitalize">{p.category}</span>span></td>td>
+                                                <td className="px-4 py-3 text-gray-600">{formatDate(p.createdAt)}</td>td>
+                                                <td className="px-4 py-3">
+                                                                      <button onClick={() => togglePublish(p.id, p.published)} className={`text-xs font-semibold px-2 py-1 rounded-full flex items-center gap-1 ${p.published ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                                                                        {p.published ? <><Eye className="w-3 h-3" /> Publik</>> : <><EyeOff className="w-3 h-3" /> Draft</>>}
+                                                                      </button>button>
+                                                </td>td>
+                                                <td className="px-4 py-3">
+                                                                      <div className="flex gap-2">
+                                                                                              <button onClick={() => openEdit(p)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"><Edit2 className="w-4 h-4" /></button>button>
+                                                                                              <button onClick={() => handleDelete(p.id, p.title)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg"><Trash2 className="w-4 h-4" /></button>button>
+                                                                      </div>div>
+                                                </td>td>
+                            </tr>tr>
+                          ))}
+                                                  </tbody>tbody>
+                                    </table>table>
+                        </div>div>
+                      )}
+              </div>div>
+        
+          {/* Form Modal */}
+          {showForm && (
+                  <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/50 py-8 px-4">
+                            <div className="bg-white rounded-2xl w-full max-w-3xl shadow-2xl">
+                                        <div className="flex items-center justify-between p-6 border-b border-gray-100">
+                                                      <h2 className="text-xl font-bold">{editId ? 'Edit Artikel' : 'Tulis Artikel Baru'}</h2>h2>
+                                                      <button onClick={closeForm}><X className="w-6 h-6 text-gray-400" /></button>button>
+                                        </div>div>
+                                        <form onSubmit={handleSave} className="p-6 space-y-4">
+                                                      <div>
+                                                                      <label className={labelClass}>Judul *</label>label>
+                                                                      <input type="text" required value={form.title} onChange={e => setForm({...form, title: e.target.value, slug: generateSlug(e.target.value)})} className={inputClass} placeholder="Judul artikel..." />
+                                                      </div>div>
+                                                      <div className="grid grid-cols-2 gap-4">
+                                                                      <div>
+                                                                                        <label className={labelClass}>Slug URL</label>label>
+                                                                                        <input type="text" value={form.slug} onChange={e => setForm({...form, slug: e.target.value})} className={inputClass} />
+                                                                      </div>div>
+                                                                      <div>
+                                                                                        <label className={labelClass}>Kategori</label>label>
+                                                                                        <select value={form.category} onChange={e => setForm({...form, category: e.target.value})} className={inputClass}>
+                                                                                          {categories.map(c => <option key={c} value={c}>{c}</option>option>)}
+                                                                                          </select>select>
+                                                                      </div>div>
+                                                                      <div>
+                                                                                        <label className={labelClass}>Penulis</label>label>
+                                                                                        <input type="text" value={form.author} onChange={e => setForm({...form, author: e.target.value})} className={inputClass} />
+                                                                      </div>div>
+                                                                      <div>
+                                                                                        <label className={labelClass}>Estimasi Baca (menit)</label>label>
+                                                                                        <input type="number" value={form.readTime} onChange={e => setForm({...form, readTime: e.target.value})} className={inputClass} min="1" />
+                                                                      </div>div>
+                                                      </div>div>
+                                                      <div>
+                                                                      <label className={labelClass}>URL Cover Image</label>label>
+                                                                      <input type="url" value={form.coverImage} onChange={e => setForm({...form, coverImage: e.target.value})} className={inputClass} placeholder="https://..." />
+                                                      </div>div>
+                                                      <div>
+                                                                      <label className={labelClass}>Ringkasan (Excerpt)</label>label>
+                                                                      <textarea rows={2} value={form.excerpt} onChange={e => setForm({...form, excerpt: e.target.value})} className={inputClass} placeholder="Ringkasan singkat artikel..." />
+                                                      </div>div>
+                                                      <div>
+                                                                      <label className={labelClass}>Konten (HTML/Teks)</label>label>
+                                                                      <textarea rows={8} value={form.content} onChange={e => setForm({...form, content: e.target.value})} className={inputClass} placeholder="Isi konten artikel..." />
+                                                      </div>div>
+                                                      <label className="flex items-center gap-2 cursor-pointer">
+                                                                      <input type="checkbox" checked={form.published} onChange={e => setForm({...form, published: e.target.checked})} className="w-4 h-4 text-emerald-600 rounded" />
+                                                                      <span className="text-sm font-medium text-gray-700">Publikasikan artikel ini</span>span>
+                                                      </label>label>
+                                                      <div className="flex gap-3 pt-4 border-t border-gray-100">
+                                                                      <button type="button" onClick={closeForm} className="flex-1 border border-gray-300 text-gray-700 font-semibold py-2 rounded-xl hover:bg-gray-50">Batal</button>button>
+                                                                      <button type="submit" disabled={saving} className="flex-1 flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white font-semibold py-2 rounded-xl">
+                                                                        {saving ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <Save className="w-5 h-5" />}
+                                                                        {saving ? 'Menyimpan...' : 'Simpan Artikel'}
+                                                                      </button>button>
+                                                      </div>div>
+                                        </form>form>
+                            </div>div>
+                  </div>div>
+              )}
+        </div>div>
+      );
+}</></></div>
