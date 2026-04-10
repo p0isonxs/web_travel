@@ -63,9 +63,9 @@ export default function Dashboard() {
   return (
         <div className="space-y-8">
               <div>
-                      <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>h1>
-                      <p className="text-gray-500">Selamat datang kembali di panel admin Liburan Terus</p>p>
-              </div>div>
+                      <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+                      <p className="text-gray-500">Selamat datang kembali di panel admin Liburan Terus</p>
+              </div>
         
           {/* Stat Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -74,74 +74,74 @@ export default function Dashboard() {
                                 <div className="flex items-center justify-between mb-4">
                                               <div className={`w-12 h-12 bg-${card.color}-100 rounded-xl flex items-center justify-center text-${card.color}-600`}>
                                                 {card.icon}
-                                              </div>div>
+                                              </div>
                                               <ArrowRight className="w-5 h-5 text-gray-300" />
-                                </div>div>
+                                </div>
                                 <div className={`text-3xl font-bold text-${card.color}-600 mb-1`}>
                                   {loading ? <div className="h-8 w-16 bg-gray-200 rounded animate-pulse" /> : card.value}
-                                </div>div>
-                                <p className="text-gray-500 text-sm">{card.label}</p>p>
-                    </Link>Link>
+                                </div>
+                                <p className="text-gray-500 text-sm">{card.label}</p>
+                    </Link>
                   ))}
-              </div>div>
+              </div>
         
               <div className="grid lg:grid-cols-2 gap-6">
                 {/* Recent Bookings */}
                       <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
                                 <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-                                            <h2 className="font-semibold text-gray-900">Booking Terbaru</h2>h2>
-                                            <Link to="/admin/bookings" className="text-emerald-600 text-sm hover:underline">Lihat Semua</Link>Link>
-                                </div>div>
+                                            <h2 className="font-semibold text-gray-900">Booking Terbaru</h2>
+                                            <Link to="/admin/bookings" className="text-emerald-600 text-sm hover:underline">Lihat Semua</Link>
+                                </div>
                                 <div className="divide-y divide-gray-50">
                                   {recentBookings.length === 0 ? (
-                        <p className="text-gray-400 text-center py-8">Belum ada booking</p>p>
+                        <p className="text-gray-400 text-center py-8">Belum ada booking</p>
                       ) : recentBookings.map(b => (
                         <div key={b.id} className="px-6 py-4">
                                         <div className="flex items-center justify-between">
                                                           <div>
-                                                                              <p className="font-medium text-gray-900">{b.name || 'Anonymous'}</p>p>
-                                                                              <p className="text-sm text-gray-500">{b.packageName || 'Paket wisata'}</p>p>
-                                                                              <p className="text-xs text-gray-400">{formatDate(b.createdAt)}</p>p>
-                                                          </div>div>
+                                                                              <p className="font-medium text-gray-900">{b.name || 'Anonymous'}</p>
+                                                                              <p className="text-sm text-gray-500">{b.packageName || 'Paket wisata'}</p>
+                                                                              <p className="text-xs text-gray-400">{formatDate(b.createdAt)}</p>
+                                                          </div>
                                                           <span className={`text-xs font-semibold px-3 py-1 rounded-full capitalize ${statusBadge(b.status)}`}>
                                                             {b.status || 'pending'}
-                                                          </span>span>
-                                        </div>div>
-                        </div>div>
+                                                          </span>
+                                        </div>
+                        </div>
                       ))}
-                                </div>div>
-                      </div>div>
+                                </div>
+                      </div>
               
                 {/* Recent Payments */}
                       <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
                                 <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-                                            <h2 className="font-semibold text-gray-900">Pembayaran Terbaru</h2>h2>
-                                            <Link to="/admin/payments" className="text-emerald-600 text-sm hover:underline">Lihat Semua</Link>Link>
-                                </div>div>
+                                            <h2 className="font-semibold text-gray-900">Pembayaran Terbaru</h2>
+                                            <Link to="/admin/payments" className="text-emerald-600 text-sm hover:underline">Lihat Semua</Link>
+                                </div>
                                 <div className="divide-y divide-gray-50">
                                   {recentPayments.length === 0 ? (
-                        <p className="text-gray-400 text-center py-8">Belum ada pembayaran</p>p>
+                        <p className="text-gray-400 text-center py-8">Belum ada pembayaran</p>
                       ) : recentPayments.map(p => (
                         <div key={p.id} className="px-6 py-4">
                                         <div className="flex items-center justify-between">
                                                           <div>
-                                                                              <p className="font-medium text-gray-900">{p.bookingName || 'Pembayaran'}</p>p>
-                                                                              <p className="text-sm text-emerald-600 font-semibold">{formatPrice(p.amount)}</p>p>
-                                                                              <p className="text-xs text-gray-400">{formatDate(p.createdAt)}</p>p>
-                                                          </div>div>
+                                                                              <p className="font-medium text-gray-900">{p.bookingName || 'Pembayaran'}</p>
+                                                                              <p className="text-sm text-emerald-600 font-semibold">{formatPrice(p.amount)}</p>
+                                                                              <p className="text-xs text-gray-400">{formatDate(p.createdAt)}</p>
+                                                          </div>
                                                           <span className={`text-xs font-semibold px-3 py-1 rounded-full capitalize ${statusBadge(p.status)}`}>
                                                             {p.status || 'pending'}
-                                                          </span>span>
-                                        </div>div>
-                        </div>div>
+                                                          </span>
+                                        </div>
+                        </div>
                       ))}
-                                </div>div>
-                      </div>div>
-              </div>div>
+                                </div>
+                      </div>
+              </div>
         
           {/* Quick Links */}
               <div className="bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl p-6 text-white">
-                      <h2 className="font-bold text-xl mb-4">Aksi Cepat</h2>h2>
+                      <h2 className="font-bold text-xl mb-4">Aksi Cepat</h2>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                         {[
           { to: '/admin/packages', label: 'Tambah Paket', emoji: '✈️' },
@@ -151,12 +151,12 @@ export default function Dashboard() {
                     ].map((item, i) => (
                                   <Link key={i} to={item.to}
                                                   className="bg-white/20 hover:bg-white/30 rounded-xl p-4 text-center transition-colors">
-                                                <div className="text-3xl mb-2">{item.emoji}</div>div>
-                                                <p className="text-sm font-medium">{item.label}</p>p>
-                                  </Link>Link>
+                                                <div className="text-3xl mb-2">{item.emoji}</div>
+                                                <p className="text-sm font-medium">{item.label}</p>
+                                  </Link>
                                 ))}
-                      </div>div>
-              </div>div>
-        </div>div>
+                      </div>
+              </div>
+        </div>
       );
 }</div>

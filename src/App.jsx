@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -34,56 +34,74 @@ import AdminGallery from './pages/admin/Gallery';
 import AdminTestimonials from './pages/admin/Testimonials';
 import AdminSettings from './pages/admin/Settings';
 
+function PublicLayout() {
+  return (
+    <div className="min-h-screen flex flex-col bg-gray-50">
+      <Navbar />
+      <main className="flex-1">
+        <Outlet />
+      </main>
+      <Footer />
+      <WhatsAppButton />
+    </div>
+  );
+}
+
 export default function App() {
-      return (
-              <HelmetProvider>
-                    <AuthProvider>
-                            <BrowserRouter>
-                                      <div className="min-h-screen flex flex-col bg-gray-50">
-                                                  <Routes>
-                                                      {/* Admin Routes */}
-                                                                <Route path="/admin" element={<PrivateRoute><AdminLayout /></PrivateRoute>PrivateRoute>}>
-                                                                                <Route index element={<Dashboard />} />
-                                                                                <Route path="packages" element={<AdminPackages />} />
-                                                                                <Route path="bookings" element={<AdminBookings />} />
-                                                                                <Route path="payments" element={<AdminPayments />} />
-                                                                                <Route path="blog" element={<AdminBlog />} />
-                                                                                <Route path="gallery" element={<AdminGallery />} />
-                                                                                <Route path="testimonials" element={<AdminTestimonials />} />
-                                                                                <Route path="settings" element={<AdminSettings />} />
-                                                                </Route>Route>
-                                                  
-                                                      {/* Public Routes */}
-                                                                <Route path="*" element={
-                                                                                    <>
-                                                                                                      <Navbar />
-                                                                                                      <main className="flex-1">
-                                                                                                                          <Routes>
-                                                                                                                                                <Route path="/" element={<Home />} />
-                                                                                                                                                <Route path="/open-trip" element={<OpenTrip />} />
-                                                                                                                                                <Route path="/private-trip" element={<PrivateTrip />} />
-                                                                                                                                                <Route path="/paket/:id" element={<PackageDetail />} />
-                                                                                                                                                <Route path="/booking/:id" element={<Booking />} />
-                                                                                                                                                <Route path="/payment/:bookingId" element={<Payment />} />
-                                                                                                                                                <Route path="/pembayaran-berhasil" element={<PaymentSuccess />} />
-                                                                                                                                                <Route path="/galeri" element={<Gallery />} />
-                                                                                                                                                <Route path="/blog" element={<Blog />} />
-                                                                                                                                                <Route path="/blog/:slug" element={<BlogDetail />} />
-                                                                                                                                                <Route path="/tentang-kami" element={<About />} />
-                                                                                                                                                <Route path="/kontak" element={<Contact />} />
-                                                                                                                                                <Route path="/login" element={<Login />} />
-                                                                                                                                                <Route path="*" element={<NotFound />} />
-                                                                                                                              </Routes>Routes>
-                                                                                                          </main>main>
-                                                                                                      <Footer />
-                                                                                                      <WhatsAppButton />
-                                                                                        </>>
-                                                                } />
-                                                  </Routes>Routes>
-                                      </div>div>
-                                      <ToastContainer position="top-right" autoClose={4000} hideProgressBar={false} newestOnTop closeOnClick pauseOnFocusLoss draggable pauseOnHover />
-                            </BrowserRouter>BrowserRouter>
-                    </AuthProvider>AuthProvider>
-              </HelmetProvider>HelmetProvider>
-            );
-}</></HelmetProvider>
+  return (
+    <HelmetProvider>
+      <AuthProvider>
+        <BrowserRouter>
+          <Routes>
+            {/* Admin Routes - no navbar/footer */}
+            <Route
+              path="/admin"
+              element={
+                <PrivateRoute>
+                  <AdminLayout />
+                </PrivateRoute>
+              }
+            >
+              <Route index element={<Dashboard />} />
+              <Route path="packages" element={<AdminPackages />} />
+              <Route path="bookings" element={<AdminBookings />} />
+              <Route path="payments" element={<AdminPayments />} />
+              <Route path="blog" element={<AdminBlog />} />
+              <Route path="gallery" element={<AdminGallery />} />
+              <Route path="testimonials" element={<AdminTestimonials />} />
+              <Route path="settings" element={<AdminSettings />} />
+            </Route>
+
+            {/* Public Routes - with navbar/footer */}
+            <Route element={<PublicLayout />}>
+              <Route path="/" element={<Home />} />
+              <Route path="/open-trip" element={<OpenTrip />} />
+              <Route path="/private-trip" element={<PrivateTrip />} />
+              <Route path="/paket/:id" element={<PackageDetail />} />
+              <Route path="/booking/:id" element={<Booking />} />
+              <Route path="/payment/:bookingId" element={<Payment />} />
+              <Route path="/pembayaran-berhasil" element={<PaymentSuccess />} />
+              <Route path="/galeri" element={<Gallery />} />
+              <Route path="/blog" element={<Blog />} />
+              <Route path="/blog/:slug" element={<BlogDetail />} />
+              <Route path="/tentang-kami" element={<About />} />
+              <Route path="/kontak" element={<Contact />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="*" element={<NotFound />} />
+            </Route>
+          </Routes>
+          <ToastContainer
+            position="top-right"
+            autoClose={4000}
+            hideProgressBar={false}
+            newestOnTop
+            closeOnClick
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+          />
+        </BrowserRouter>
+      </AuthProvider>
+    </HelmetProvider>
+  );
+}

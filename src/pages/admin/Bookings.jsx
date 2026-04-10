@@ -63,120 +63,120 @@ export default function AdminBookings() {
         <div className="space-y-6">
               <div className="flex items-center justify-between">
                       <div>
-                                <h1 className="text-2xl font-bold text-gray-900">Kelola Booking</h1>h1>
-                                <p className="text-gray-500 text-sm">{bookings.length} total booking</p>p>
-                      </div>div>
-              </div>div>
+                                <h1 className="text-2xl font-bold text-gray-900">Kelola Booking</h1>
+                                <p className="text-gray-500 text-sm">{bookings.length} total booking</p>
+                      </div>
+              </div>
         
           {/* Filters */}
               <div className="flex flex-col sm:flex-row gap-3">
                       <div className="relative flex-1">
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
                                 <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Cari nama, email, paket, atau ID..." className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
-                      </div>div>
+                      </div>
                       <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                                <option value="semua">Semua Status</option>option>
-                        {statusOptions.map(s => <option key={s} value={s} className="capitalize">{s}</option>option>)}
-                      </select>select>
-              </div>div>
+                                <option value="semua">Semua Status</option>
+                        {statusOptions.map(s => <option key={s} value={s} className="capitalize">{s}</option>)}
+                      </select>
+              </div>
         
           {/* Table */}
               <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
                 {loading ? (
-                    <div className="p-8 text-center text-gray-400">Memuat data...</div>div>
+                    <div className="p-8 text-center text-gray-400">Memuat data...</div>
                   ) : filtered.length === 0 ? (
-                    <div className="p-8 text-center text-gray-400">Tidak ada booking ditemukan</div>div>
+                    <div className="p-8 text-center text-gray-400">Tidak ada booking ditemukan</div>
                   ) : (
                     <div className="overflow-x-auto">
                                 <table className="w-full text-sm">
                                               <thead className="bg-gray-50 border-b border-gray-100">
                                                               <tr>
-                                                                                <th className="text-left px-4 py-3 font-semibold text-gray-700">Pemesan</th>th>
-                                                                                <th className="text-left px-4 py-3 font-semibold text-gray-700">Paket</th>th>
-                                                                                <th className="text-left px-4 py-3 font-semibold text-gray-700">Tanggal Booking</th>th>
-                                                                                <th className="text-left px-4 py-3 font-semibold text-gray-700">Peserta</th>th>
-                                                                                <th className="text-left px-4 py-3 font-semibold text-gray-700">Status</th>th>
-                                                                                <th className="text-left px-4 py-3 font-semibold text-gray-700">Aksi</th>th>
-                                                              </tr>tr>
-                                              </thead>thead>
+                                                                                <th className="text-left px-4 py-3 font-semibold text-gray-700">Pemesan</th>
+                                                                                <th className="text-left px-4 py-3 font-semibold text-gray-700">Paket</th>
+                                                                                <th className="text-left px-4 py-3 font-semibold text-gray-700">Tanggal Booking</th>
+                                                                                <th className="text-left px-4 py-3 font-semibold text-gray-700">Peserta</th>
+                                                                                <th className="text-left px-4 py-3 font-semibold text-gray-700">Status</th>
+                                                                                <th className="text-left px-4 py-3 font-semibold text-gray-700">Aksi</th>
+                                                              </tr>
+                                              </thead>
                                               <tbody className="divide-y divide-gray-50">
                                                 {filtered.map(b => (
                                         <tr key={b.id} className="hover:bg-gray-50 transition-colors">
                                                             <td className="px-4 py-3">
-                                                                                  <p className="font-medium text-gray-900">{b.name}</p>p>
-                                                                                  <p className="text-xs text-gray-500">{b.email}</p>p>
-                                                            </td>td>
+                                                                                  <p className="font-medium text-gray-900">{b.name}</p>
+                                                                                  <p className="text-xs text-gray-500">{b.email}</p>
+                                                            </td>
                                                             <td className="px-4 py-3">
-                                                                                  <p className="text-gray-800 line-clamp-1">{b.packageName || '-'}</p>p>
-                                                                                  <p className="text-xs text-gray-500">{b.tripDate || '-'}</p>p>
-                                                            </td>td>
-                                                            <td className="px-4 py-3 text-gray-600">{formatDate(b.createdAt)}</td>td>
-                                                            <td className="px-4 py-3 text-gray-600">{b.participants || 1} orang</td>td>
+                                                                                  <p className="text-gray-800 line-clamp-1">{b.packageName || '-'}</p>
+                                                                                  <p className="text-xs text-gray-500">{b.tripDate || '-'}</p>
+                                                            </td>
+                                                            <td className="px-4 py-3 text-gray-600">{formatDate(b.createdAt)}</td>
+                                                            <td className="px-4 py-3 text-gray-600">{b.participants || 1} orang</td>
                                                             <td className="px-4 py-3">
                                                                                   <select
                                                                                                             value={b.status || 'pending'}
                                                                                                             onChange={e => updateStatus(b.id, e.target.value)}
                                                                                                             className={`text-xs font-semibold px-2 py-1 rounded-full border-0 cursor-pointer focus:outline-none capitalize ${statusBadge(b.status)}`}
                                                                                                           >
-                                                                                    {statusOptions.map(s => <option key={s} value={s}>{s}</option>option>)}
-                                                                                    </select>select>
-                                                            </td>td>
+                                                                                    {statusOptions.map(s => <option key={s} value={s}>{s}</option>)}
+                                                                                    </select>
+                                                            </td>
                                                             <td className="px-4 py-3">
                                                                                   <div className="flex items-center gap-2">
-                                                                                                          <button onClick={() => setDetail(b)} className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg"><Eye className="w-4 h-4" /></button>button>
-                                                                                                          <button onClick={() => handleDelete(b.id)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg"><Trash2 className="w-4 h-4" /></button>button>
-                                                                                    </div>div>
-                                                            </td>td>
-                                        </tr>tr>
+                                                                                                          <button onClick={() => setDetail(b)} className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg"><Eye className="w-4 h-4" /></button>
+                                                                                                          <button onClick={() => handleDelete(b.id)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg"><Trash2 className="w-4 h-4" /></button>
+                                                                                    </div>
+                                                            </td>
+                                        </tr>
                                       ))}
-                                              </tbody>tbody>
-                                </table>table>
-                    </div>div>
+                                              </tbody>
+                                </table>
+                    </div>
                       )}
-              </div>div>
+              </div>
         
           {/* Detail Modal */}
           {detail && (
                   <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
                             <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden">
                                         <div className="flex items-center justify-between p-6 border-b border-gray-100">
-                                                      <h2 className="text-xl font-bold text-gray-900">Detail Booking</h2>h2>
-                                                      <button onClick={() => setDetail(null)}><X className="w-6 h-6 text-gray-400" /></button>button>
-                                        </div>div>
+                                                      <h2 className="text-xl font-bold text-gray-900">Detail Booking</h2>
+                                                      <button onClick={() => setDetail(null)}><X className="w-6 h-6 text-gray-400" /></button>
+                                        </div>
                                         <div className="p-6 space-y-4">
                                                       <div className="bg-gray-50 rounded-xl p-4 space-y-2 text-sm">
-                                                                      <p><span className="font-medium">ID Booking:</span>span> <span className="font-mono text-xs">{detail.id}</span>span></p>p>
-                                                                      <p><span className="font-medium">Nama:</span>span> {detail.name}</p>p>
-                                                                      <p><span className="font-medium">Email:</span>span> {detail.email}</p>p>
-                                                                      <p><span className="font-medium">No. HP:</span>span> {detail.phone}</p>p>
-                                                                      <p><span className="font-medium">Paket:</span>span> {detail.packageName}</p>p>
-                                                                      <p><span className="font-medium">Tanggal Trip:</span>span> {detail.tripDate}</p>p>
-                                                                      <p><span className="font-medium">Jumlah Peserta:</span>span> {detail.participants} orang</p>p>
-                                                        {detail.emergencyContact && <p><span className="font-medium">Kontak Darurat:</span>span> {detail.emergencyContact}</p>p>}
-                                                        {detail.notes && <p><span className="font-medium">Catatan:</span>span> {detail.notes}</p>p>}
-                                                                      <p><span className="font-medium">Tanggal Booking:</span>span> {formatDate(detail.createdAt)}</p>p>
-                                                      </div>div>
+                                                                      <p><span className="font-medium">ID Booking:</span> <span className="font-mono text-xs">{detail.id}</span></p>
+                                                                      <p><span className="font-medium">Nama:</span> {detail.name}</p>
+                                                                      <p><span className="font-medium">Email:</span> {detail.email}</p>
+                                                                      <p><span className="font-medium">No. HP:</span> {detail.phone}</p>
+                                                                      <p><span className="font-medium">Paket:</span> {detail.packageName}</p>
+                                                                      <p><span className="font-medium">Tanggal Trip:</span> {detail.tripDate}</p>
+                                                                      <p><span className="font-medium">Jumlah Peserta:</span> {detail.participants} orang</p>
+                                                        {detail.emergencyContact && <p><span className="font-medium">Kontak Darurat:</span> {detail.emergencyContact}</p>}
+                                                        {detail.notes && <p><span className="font-medium">Catatan:</span> {detail.notes}</p>}
+                                                                      <p><span className="font-medium">Tanggal Booking:</span> {formatDate(detail.createdAt)}</p>
+                                                      </div>
                                                       <div className="flex items-center gap-3">
-                                                                      <span className="font-medium text-sm">Status:</span>span>
+                                                                      <span className="font-medium text-sm">Status:</span>
                                                                       <select
                                                                                           value={detail.status || 'pending'}
                                                                                           onChange={e => updateStatus(detail.id, e.target.value)}
                                                                                           className="border border-gray-300 rounded-lg px-3 py-1 text-sm"
                                                                                         >
-                                                                        {statusOptions.map(s => <option key={s} value={s}>{s}</option>option>)}
-                                                                      </select>select>
-                                                      </div>div>
+                                                                        {statusOptions.map(s => <option key={s} value={s}>{s}</option>)}
+                                                                      </select>
+                                                      </div>
                                                       <a
                                                                         href={`https://wa.me/${detail.phone?.replace(/\D/g, '')}?text=Halo ${detail.name}, terima kasih telah memesan paket ${detail.packageName} di Liburan Terus!`}
                                                                         target="_blank" rel="noopener noreferrer"
                                                                         className="block w-full text-center bg-green-500 hover:bg-green-600 text-white font-semibold py-2 rounded-xl transition-colors text-sm"
                                                                       >
                                                                       Chat via WhatsApp
-                                                      </a>a>
-                                        </div>div>
-                            </div>div>
-                  </div>div>
+                                                      </a>
+                                        </div>
+                            </div>
+                  </div>
               )}
-        </div>div>
+        </div>
       );
 }</div>

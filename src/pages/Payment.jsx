@@ -136,10 +136,10 @@ const Payment = () => {
                   <>
                           <Navbar />
                           <div className="min-h-screen flex items-center justify-center pt-20">
-                                    <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>div>
-                          </div>div>
+                                    <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+                          </div>
                           <Footer />
-                  </>>
+                  </>
                 )
     }
   
@@ -148,19 +148,19 @@ const Payment = () => {
                   <>
                           <Navbar />
                           <div className="min-h-screen flex items-center justify-center pt-20 text-center">
-                                    <p className="text-gray-500">Booking tidak ditemukan</p>p>
-                          </div>div>
+                                    <p className="text-gray-500">Booking tidak ditemukan</p>
+                          </div>
                           <Footer />
-                  </>>
+                  </>
                 )
     }
   
     return (
           <>
                 <Helmet>
-                        <title>Pembayaran - Liburan Terus</title>title>
+                        <title>Pembayaran - Liburan Terus</title>
                         <meta name="robots" content="noindex" />
-                </Helmet>Helmet>
+                </Helmet>
                 <Navbar />
           
                 <div className="pt-20 min-h-screen bg-gray-50">
@@ -170,9 +170,9 @@ const Payment = () => {
                                               <Link to={`/booking/${booking.packageId}`} className="inline-flex items-center gap-2 text-gray-500 hover:text-emerald-600 text-sm">
                                                             <FaArrowLeft size={12} />
                                                             Kembali
-                                              </Link>Link>
-                                  </div>div>
-                        </div>div>
+                                              </Link>
+                                  </div>
+                        </div>
                 
                   {/* Progress Steps */}
                         <div className="bg-white border-b">
@@ -181,88 +181,88 @@ const Payment = () => {
                                                             <div className="flex items-center gap-2">
                                                                             <div className="w-8 h-8 bg-emerald-500 text-white rounded-full flex items-center justify-center text-sm">
                                                                                               <FaCheckCircle />
-                                                                            </div>div>
-                                                                            <span className="text-sm font-medium text-emerald-600">Data Peserta</span>span>
-                                                            </div>div>
-                                                            <div className="flex-1 h-0.5 bg-emerald-500"></div>div>
+                                                                            </div>
+                                                                            <span className="text-sm font-medium text-emerald-600">Data Peserta</span>
+                                                            </div>
+                                                            <div className="flex-1 h-0.5 bg-emerald-500"></div>
                                                             <div className="flex items-center gap-2">
-                                                                            <div className="w-8 h-8 bg-emerald-500 text-white rounded-full flex items-center justify-center text-sm font-bold">2</div>div>
-                                                                            <span className="text-sm font-medium text-emerald-600">Pembayaran</span>span>
-                                                            </div>div>
-                                                            <div className="flex-1 h-0.5 bg-gray-200"></div>div>
+                                                                            <div className="w-8 h-8 bg-emerald-500 text-white rounded-full flex items-center justify-center text-sm font-bold">2</div>
+                                                                            <span className="text-sm font-medium text-emerald-600">Pembayaran</span>
+                                                            </div>
+                                                            <div className="flex-1 h-0.5 bg-gray-200"></div>
                                                             <div className="flex items-center gap-2">
-                                                                            <div className="w-8 h-8 bg-gray-200 text-gray-500 rounded-full flex items-center justify-center text-sm font-bold">3</div>div>
-                                                                            <span className="text-sm text-gray-500">Konfirmasi</span>span>
-                                                            </div>div>
-                                              </div>div>
-                                  </div>div>
-                        </div>div>
+                                                                            <div className="w-8 h-8 bg-gray-200 text-gray-500 rounded-full flex items-center justify-center text-sm font-bold">3</div>
+                                                                            <span className="text-sm text-gray-500">Konfirmasi</span>
+                                                            </div>
+                                              </div>
+                                  </div>
+                        </div>
                 
                         <div className="max-w-5xl mx-auto px-4 py-8">
                                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                                     {/* Payment Methods */}
                                               <div className="lg:col-span-2 space-y-6">
                                                             <div className="bg-white rounded-2xl p-6 shadow-sm">
-                                                                            <h2 className="text-lg font-bold text-gray-800 mb-5">Pilih Metode Pembayaran</h2>h2>
+                                                                            <h2 className="text-lg font-bold text-gray-800 mb-5">Pilih Metode Pembayaran</h2>
                                                             
                                                               {/* Method Selector */}
                                                                             <div className="grid grid-cols-2 gap-4 mb-6">
                                                                                               <button onClick={() => setPaymentMethod('midtrans')}
                                                                                                                     className={`p-4 border-2 rounded-xl transition-all ${paymentMethod === 'midtrans' ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200 hover:border-gray-300'}`}>
                                                                                                                   <FaCreditCard className={`mx-auto mb-2 text-2xl ${paymentMethod === 'midtrans' ? 'text-emerald-600' : 'text-gray-400'}`} />
-                                                                                                                  <p className={`text-sm font-semibold ${paymentMethod === 'midtrans' ? 'text-emerald-700' : 'text-gray-600'}`}>Bayar Online</p>p>
-                                                                                                                  <p className="text-xs text-gray-400 mt-0.5">via Midtrans</p>p>
-                                                                                                </button>button>
+                                                                                                                  <p className={`text-sm font-semibold ${paymentMethod === 'midtrans' ? 'text-emerald-700' : 'text-gray-600'}`}>Bayar Online</p>
+                                                                                                                  <p className="text-xs text-gray-400 mt-0.5">via Midtrans</p>
+                                                                                                </button>
                                                                                               <button onClick={() => setPaymentMethod('transfer')}
                                                                                                                     className={`p-4 border-2 rounded-xl transition-all ${paymentMethod === 'transfer' ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200 hover:border-gray-300'}`}>
                                                                                                                   <FaUniversity className={`mx-auto mb-2 text-2xl ${paymentMethod === 'transfer' ? 'text-emerald-600' : 'text-gray-400'}`} />
-                                                                                                                  <p className={`text-sm font-semibold ${paymentMethod === 'transfer' ? 'text-emerald-700' : 'text-gray-600'}`}>Transfer Bank</p>p>
-                                                                                                                  <p className="text-xs text-gray-400 mt-0.5">Manual</p>p>
-                                                                                                </button>button>
-                                                                            </div>div>
+                                                                                                                  <p className={`text-sm font-semibold ${paymentMethod === 'transfer' ? 'text-emerald-700' : 'text-gray-600'}`}>Transfer Bank</p>
+                                                                                                                  <p className="text-xs text-gray-400 mt-0.5">Manual</p>
+                                                                                                </button>
+                                                                            </div>
                                                             
                                                               {/* Midtrans Payment */}
                                                               {paymentMethod === 'midtrans' && (
                               <div className="space-y-4">
                                                   <div className="bg-blue-50 rounded-xl p-4">
-                                                                        <p className="text-sm text-blue-700 font-medium mb-2">Pembayaran via Midtrans</p>p>
-                                                                        <p className="text-xs text-blue-600">Tersedia: Kartu Kredit/Debit, Transfer Bank, E-Wallet (GoPay, OVO, DANA, dll), QRIS, Indomaret/Alfamart</p>p>
-                                                  </div>div>
+                                                                        <p className="text-sm text-blue-700 font-medium mb-2">Pembayaran via Midtrans</p>
+                                                                        <p className="text-xs text-blue-600">Tersedia: Kartu Kredit/Debit, Transfer Bank, E-Wallet (GoPay, OVO, DANA, dll), QRIS, Indomaret/Alfamart</p>
+                                                  </div>
                                                   <button onClick={handleMidtrans}
                                                                           className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white py-4 rounded-xl font-bold hover:shadow-lg transition-all flex items-center justify-center gap-2">
                                                                         <FaCreditCard />
                                                                         Bayar {formatPrice(booking.totalPrice)} via Midtrans
-                                                  </button>button>
-                              </div>div>
+                                                  </button>
+                              </div>
                                                                             )}
                                                             
                                                               {/* Transfer Bank */}
                                                               {paymentMethod === 'transfer' && (
                               <div className="space-y-4">
                                                   <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
-                                                                        <p className="text-sm font-semibold text-amber-800 mb-3">Informasi Rekening</p>p>
+                                                                        <p className="text-sm font-semibold text-amber-800 mb-3">Informasi Rekening</p>
                                                                         <div className="space-y-2 text-sm">
                                                                                                 <div className="flex justify-between">
-                                                                                                                          <span className="text-gray-500">Bank</span>span>
-                                                                                                                          <span className="font-semibold text-gray-800">BCA</span>span>
-                                                                                                  </div>div>
+                                                                                                                          <span className="text-gray-500">Bank</span>
+                                                                                                                          <span className="font-semibold text-gray-800">BCA</span>
+                                                                                                  </div>
                                                                                                 <div className="flex justify-between">
-                                                                                                                          <span className="text-gray-500">No. Rekening</span>span>
-                                                                                                                          <span className="font-semibold text-gray-800 font-mono">1234-5678-90</span>span>
-                                                                                                  </div>div>
+                                                                                                                          <span className="text-gray-500">No. Rekening</span>
+                                                                                                                          <span className="font-semibold text-gray-800 font-mono">1234-5678-90</span>
+                                                                                                  </div>
                                                                                                 <div className="flex justify-between">
-                                                                                                                          <span className="text-gray-500">Atas Nama</span>span>
-                                                                                                                          <span className="font-semibold text-gray-800">PT Liburan Terus</span>span>
-                                                                                                  </div>div>
+                                                                                                                          <span className="text-gray-500">Atas Nama</span>
+                                                                                                                          <span className="font-semibold text-gray-800">PT Liburan Terus</span>
+                                                                                                  </div>
                                                                                                 <div className="flex justify-between border-t pt-2 mt-2">
-                                                                                                                          <span className="text-gray-500 font-semibold">Jumlah Transfer</span>span>
-                                                                                                                          <span className="font-bold text-emerald-600">{formatPrice(booking.totalPrice)}</span>span>
-                                                                                                  </div>div>
-                                                                        </div>div>
-                                                  </div>div>
+                                                                                                                          <span className="text-gray-500 font-semibold">Jumlah Transfer</span>
+                                                                                                                          <span className="font-bold text-emerald-600">{formatPrice(booking.totalPrice)}</span>
+                                                                                                  </div>
+                                                                        </div>
+                                                  </div>
                               
                                                   <div>
-                                                                        <p className="text-sm font-medium text-gray-700 mb-2">Upload Bukti Transfer</p>p>
+                                                                        <p className="text-sm font-medium text-gray-700 mb-2">Upload Bukti Transfer</p>
                                                                         <div className="border-2 border-dashed border-gray-200 rounded-xl p-4 text-center hover:border-emerald-400 transition-colors">
                                                                                                 <input type="file" accept="image/*,application/pdf" onChange={handleFileChange}
                                                                                                                             className="hidden" id="proof-upload" />
@@ -271,79 +271,79 @@ const Payment = () => {
                                                                                       <img src={proofPreview} alt="Bukti" className="max-h-40 mx-auto rounded-lg mb-2 object-contain" />
                                                                                       <label htmlFor="proof-upload" className="text-emerald-600 text-sm cursor-pointer hover:underline">
                                                                                                                     Ganti gambar
-                                                                                        </label>label>
-                                                          </div>div>
+                                                                                        </label>
+                                                          </div>
                                                         ) : (
                                                           <label htmlFor="proof-upload" className="cursor-pointer block">
                                                                                       <FaUpload className="text-gray-400 text-3xl mx-auto mb-2" />
-                                                                                      <p className="text-sm text-gray-500">Klik untuk upload bukti transfer</p>p>
-                                                                                      <p className="text-xs text-gray-400 mt-1">JPG, PNG, atau PDF (maks. 5MB)</p>p>
-                                                          </label>label>
+                                                                                      <p className="text-sm text-gray-500">Klik untuk upload bukti transfer</p>
+                                                                                      <p className="text-xs text-gray-400 mt-1">JPG, PNG, atau PDF (maks. 5MB)</p>
+                                                          </label>
                                                                                                 )}
-                                                                        </div>div>
-                                                  </div>div>
+                                                                        </div>
+                                                  </div>
                               
                                                   <button onClick={handleUploadProof} disabled={!proofFile || uploading}
                                                                           className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 text-white py-4 rounded-xl font-bold hover:shadow-lg transition-all disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2">
                                                     {uploading ? (
                                                                                                     <>
-                                                                                                                              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>div>
+                                                                                                                              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                                                                                                                               Mengunggah...
-                                                                                                      </>>
+                                                                                                      </>
                                                                                                   ) : (
                                                                                                     <>
                                                                                                                               <FaUpload />
                                                                                                                               Kirim Bukti Pembayaran
-                                                                                                      </>>
+                                                                                                      </>
                                                                                                   )}
-                                                  </button>button>
-                              </div>div>
+                                                  </button>
+                              </div>
                                                                             )}
-                                                            </div>div>
-                                              </div>div>
+                                                            </div>
+                                              </div>
                                   
                                     {/* Summary */}
                                               <div className="lg:col-span-1">
                                                             <div className="bg-white rounded-2xl p-6 shadow-sm sticky top-24">
-                                                                            <h3 className="font-bold text-gray-800 mb-4">Detail Pemesanan</h3>h3>
+                                                                            <h3 className="font-bold text-gray-800 mb-4">Detail Pemesanan</h3>
                                                                             <div className="space-y-3 text-sm">
                                                                                               <div>
-                                                                                                                  <p className="text-gray-500 text-xs mb-1">Paket</p>p>
-                                                                                                                  <p className="font-semibold text-gray-800">{booking.packageTitle}</p>p>
-                                                                                                </div>div>
+                                                                                                                  <p className="text-gray-500 text-xs mb-1">Paket</p>
+                                                                                                                  <p className="font-semibold text-gray-800">{booking.packageTitle}</p>
+                                                                                                </div>
                                                                                               <div className="grid grid-cols-2 gap-3">
                                                                                                                   <div>
-                                                                                                                                        <p className="text-gray-500 text-xs mb-0.5">Nama</p>p>
-                                                                                                                                        <p className="font-medium text-gray-700">{booking.name}</p>p>
-                                                                                                                    </div>div>
+                                                                                                                                        <p className="text-gray-500 text-xs mb-0.5">Nama</p>
+                                                                                                                                        <p className="font-medium text-gray-700">{booking.name}</p>
+                                                                                                                    </div>
                                                                                                                   <div>
-                                                                                                                                        <p className="text-gray-500 text-xs mb-0.5">Peserta</p>p>
-                                                                                                                                        <p className="font-medium text-gray-700">{booking.participants} orang</p>p>
-                                                                                                                    </div>div>
+                                                                                                                                        <p className="text-gray-500 text-xs mb-0.5">Peserta</p>
+                                                                                                                                        <p className="font-medium text-gray-700">{booking.participants} orang</p>
+                                                                                                                    </div>
                                                                                                                   <div>
-                                                                                                                                        <p className="text-gray-500 text-xs mb-0.5">Tanggal</p>p>
+                                                                                                                                        <p className="text-gray-500 text-xs mb-0.5">Tanggal</p>
                                                                                                                                         <p className="font-medium text-gray-700">
                                                                                                                                           {booking.date ? new Date(booking.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '-'}
-                                                                                                                                          </p>p>
-                                                                                                                    </div>div>
-                                                                                                </div>div>
+                                                                                                                                          </p>
+                                                                                                                    </div>
+                                                                                                </div>
                                                                                               <div className="border-t pt-3 flex justify-between font-bold text-base">
-                                                                                                                  <span>Total Bayar</span>span>
-                                                                                                                  <span className="text-emerald-600">{formatPrice(booking.totalPrice)}</span>span>
-                                                                                                </div>div>
+                                                                                                                  <span>Total Bayar</span>
+                                                                                                                  <span className="text-emerald-600">{formatPrice(booking.totalPrice)}</span>
+                                                                                                </div>
                                                                                               <div className="flex justify-between text-xs text-gray-400">
-                                                                                                                  <span>Booking ID</span>span>
-                                                                                                                  <span className="font-mono">{bookingId?.substring(0, 8)}</span>span>
-                                                                                                </div>div>
-                                                                            </div>div>
-                                                            </div>div>
-                                              </div>div>
-                                  </div>div>
-                        </div>div>
-                </div>div>
+                                                                                                                  <span>Booking ID</span>
+                                                                                                                  <span className="font-mono">{bookingId?.substring(0, 8)}</span>
+                                                                                                </div>
+                                                                            </div>
+                                                            </div>
+                                              </div>
+                                  </div>
+                        </div>
+                </div>
           
                 <Footer />
-          </>>
+          </>
         )
 }
   

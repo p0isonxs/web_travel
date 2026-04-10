@@ -43,13 +43,13 @@ export default function AdminLayout() {
           {/* Logo */}
               <div className="p-6 border-b border-gray-700">
                       <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center text-2xl">🌴</div>div>
+                                <div className="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center text-2xl">🌴</div>
                                 <div>
-                                            <p className="font-bold text-lg leading-tight">Liburan Terus</p>p>
-                                            <p className="text-xs text-gray-400">Admin Panel</p>p>
-                                </div>div>
-                      </div>div>
-              </div>div>
+                                            <p className="font-bold text-lg leading-tight">Liburan Terus</p>
+                                            <p className="text-xs text-gray-400">Admin Panel</p>
+                                </div>
+                      </div>
+              </div>
         
           {/* Nav */}
               <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
@@ -64,33 +64,33 @@ export default function AdminLayout() {
                                   }`}
                                 >
                       {item.icon}
-                                <span>{item.label}</span>span>
+                                <span>{item.label}</span>
                       {isActive(item.to, item.exact) && <ChevronRight className="w-4 h-4 ml-auto" />}
-                    </Link>Link>
+                    </Link>
                   ))}
-              </nav>nav>
+              </nav>
         
           {/* Footer */}
               <div className="p-4 border-t border-gray-700 space-y-2">
                       <a href="/" target="_blank" rel="noopener noreferrer"
                                   className="flex items-center gap-3 px-4 py-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-xl transition-all text-sm">
                                 <Globe className="w-4 h-4" /> Lihat Website
-                      </a>a>
+                      </a>
                       <div className="flex items-center gap-3 px-4 py-2 text-gray-500 text-sm">
                                 <div className="w-8 h-8 bg-emerald-900 rounded-full flex items-center justify-center text-emerald-400 font-bold text-xs">
                                   {currentUser?.email?.[0]?.toUpperCase() || 'A'}
-                                </div>div>
+                                </div>
                                 <div className="flex-1 min-w-0">
-                                            <p className="text-white text-xs truncate">{currentUser?.email}</p>p>
-                                            <p className="text-gray-500 text-xs">Administrator</p>p>
-                                </div>div>
-                      </div>div>
+                                            <p className="text-white text-xs truncate">{currentUser?.email}</p>
+                                            <p className="text-gray-500 text-xs">Administrator</p>
+                                </div>
+                      </div>
                       <button onClick={handleLogout}
                                   className="flex items-center gap-3 px-4 py-2 text-red-400 hover:text-red-300 hover:bg-red-900/20 rounded-xl transition-all w-full text-sm">
                                 <LogOut className="w-4 h-4" /> Keluar
-                      </button>button>
-              </div>div>
-        </div>div>
+                      </button>
+              </div>
+        </div>
       );
   
     return (
@@ -98,7 +98,7 @@ export default function AdminLayout() {
             {/* Desktop Sidebar */}
                 <div className="hidden lg:flex w-64 shrink-0 flex-col">
                         <Sidebar />
-                </div>div>
+                </div>
           
             {/* Mobile Sidebar Overlay */}
             {sidebarOpen && (
@@ -106,8 +106,8 @@ export default function AdminLayout() {
                               <div className="fixed inset-0 bg-black/50" onClick={() => setSidebarOpen(false)} />
                               <div className="relative w-72 flex-col flex">
                                           <Sidebar />
-                              </div>div>
-                    </div>div>
+                              </div>
+                    </div>
                 )}
           
             {/* Main Content */}
@@ -116,20 +116,20 @@ export default function AdminLayout() {
                         <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center gap-4">
                                   <button onClick={() => setSidebarOpen(true)} className="lg:hidden text-gray-500 hover:text-gray-700">
                                               <Menu className="w-6 h-6" />
-                                  </button>button>
+                                  </button>
                                   <div className="flex-1">
                                               <h1 className="font-semibold text-gray-800 text-lg">
                                                 {navItems.find(n => isActive(n.to, n.exact))?.label || 'Admin Panel'}
-                                              </h1>h1>
-                                  </div>div>
-                                  <div className="text-sm text-gray-500">{new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>div>
-                        </header>header>
+                                              </h1>
+                                  </div>
+                                  <div className="text-sm text-gray-500">{new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
+                        </header>
                 
                   {/* Page Content */}
                         <main className="flex-1 overflow-y-auto p-6">
                                   <Outlet />
-                        </main>main>
-                </div>div>
-          </div>div>
+                        </main>
+                </div>
+          </div>
         );
 }</div>

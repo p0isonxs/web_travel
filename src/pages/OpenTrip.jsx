@@ -48,31 +48,31 @@ const OpenTrip = () => {
     return (
           <>
                 <Helmet>
-                        <title>Open Trip - Liburan Terus | Paket Wisata Bersama</title>title>
+                        <title>Open Trip - Liburan Terus | Paket Wisata Bersama</title>
                         <meta name="description" content="Temukan berbagai paket open trip seru bersama Liburan Terus. Harga terjangkau, pemandu berpengalaman, dan pengalaman tak terlupakan." />
                         <meta name="keywords" content="open trip, paket wisata murah, wisata bersama, tour Indonesia" />
                         <meta property="og:title" content="Open Trip - Liburan Terus" />
                         <meta property="og:description" content="Paket open trip terbaik dengan harga terjangkau." />
-                </Helmet>Helmet>
+                </Helmet>
                 <Navbar />
           
             {/* Hero */}
                 <section className="relative pt-20 pb-16 bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-700 overflow-hidden">
                         <div className="absolute inset-0 opacity-10">
-                                  <div className="absolute top-10 left-10 w-40 h-40 bg-white rounded-full blur-3xl"></div>div>
-                                  <div className="absolute bottom-10 right-10 w-60 h-60 bg-white rounded-full blur-3xl"></div>div>
-                        </div>div>
+                                  <div className="absolute top-10 left-10 w-40 h-40 bg-white rounded-full blur-3xl"></div>
+                                  <div className="absolute bottom-10 right-10 w-60 h-60 bg-white rounded-full blur-3xl"></div>
+                        </div>
                         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
                                   <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white text-sm px-4 py-2 rounded-full mb-4">
                                               <FaUsers size={12} />
-                                              <span>Bergabung bersama ribuan traveler</span>span>
-                                  </div>div>
+                                              <span>Bergabung bersama ribuan traveler</span>
+                                  </div>
                                   <h1 className="text-3xl md:text-5xl font-bold text-white mb-4">
-                                              Open Trip <span className="text-emerald-200">Seru & Terjangkau</span>span>
-                                  </h1>h1>
+                                              Open Trip <span className="text-emerald-200">Seru & Terjangkau</span>
+                                  </h1>
                                   <p className="text-emerald-100 text-lg max-w-2xl mx-auto mb-8">
                                               Kenalan dengan teman baru, jelajahi destinasi impian, dengan biaya yang bersahabat di kantong.
-                                  </p>p>
+                                  </p>
                         
                           {/* Search Bar */}
                                   <div className="max-w-2xl mx-auto">
@@ -86,14 +86,14 @@ const OpenTrip = () => {
                                                                                                 placeholder="Cari destinasi atau paket trip..."
                                                                                                 className="w-full pl-10 pr-4 py-3 rounded-xl text-gray-700 focus:outline-none text-sm"
                                                                                               />
-                                                            </div>div>
+                                                            </div>
                                                             <button className="bg-gradient-to-r from-emerald-500 to-teal-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all text-sm">
                                                                             Cari
-                                                            </button>button>
-                                              </div>div>
-                                  </div>div>
-                        </div>div>
-                </section>section>
+                                                            </button>
+                                              </div>
+                                  </div>
+                        </div>
+                </section>
           
             {/* Packages */}
                 <section className="py-16 bg-gray-50">
@@ -103,9 +103,9 @@ const OpenTrip = () => {
                                               <div>
                                                             <h2 className="text-xl font-bold text-gray-800">
                                                               {loading ? 'Memuat...' : `${filtered.length} Paket Open Trip`}
-                                                            </h2>h2>
-                                                            <p className="text-gray-500 text-sm">Tersedia untuk kamu</p>p>
-                                              </div>div>
+                                                            </h2>
+                                                            <p className="text-gray-500 text-sm">Tersedia untuk kamu</p>
+                                              </div>
                                               <div className="flex items-center gap-3">
                                                             <FaFilter className="text-gray-400" />
                                                             <select
@@ -113,36 +113,36 @@ const OpenTrip = () => {
                                                                               onChange={e => setSortBy(e.target.value)}
                                                                               className="border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
                                                                             >
-                                                                            <option value="newest">Terbaru</option>option>
-                                                                            <option value="price-asc">Harga: Terendah</option>option>
-                                                                            <option value="price-desc">Harga: Tertinggi</option>option>
-                                                            </select>select>
-                                              </div>div>
-                                  </div>div>
+                                                                            <option value="newest">Terbaru</option>
+                                                                            <option value="price-asc">Harga: Terendah</option>
+                                                                            <option value="price-desc">Harga: Tertinggi</option>
+                                                            </select>
+                                              </div>
+                                  </div>
                         
                           {/* Loading */}
                           {loading && (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                           {[...Array(6)].map((_, i) => (
                                           <div key={i} className="bg-white rounded-2xl overflow-hidden shadow-sm animate-pulse">
-                                                            <div className="h-52 bg-gray-200"></div>div>
+                                                            <div className="h-52 bg-gray-200"></div>
                                                             <div className="p-5 space-y-3">
-                                                                                <div className="h-4 bg-gray-200 rounded w-3/4"></div>div>
-                                                                                <div className="h-3 bg-gray-200 rounded w-1/2"></div>div>
-                                                                                <div className="h-6 bg-gray-200 rounded w-1/3"></div>div>
-                                                            </div>div>
-                                          </div>div>
+                                                                                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                                                                                <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                                                                                <div className="h-6 bg-gray-200 rounded w-1/3"></div>
+                                                            </div>
+                                          </div>
                                         ))}
-                        </div>div>
+                        </div>
                                   )}
                         
                           {/* Empty State */}
                           {!loading && filtered.length === 0 && (
                         <div className="text-center py-20">
-                                      <div className="text-6xl mb-4">🏝️</div>div>
-                                      <h3 className="text-xl font-semibold text-gray-700 mb-2">Paket tidak ditemukan</h3>h3>
-                                      <p className="text-gray-500">Coba kata kunci lain atau hapus filter</p>p>
-                        </div>div>
+                                      <div className="text-6xl mb-4">🏝️</div>
+                                      <h3 className="text-xl font-semibold text-gray-700 mb-2">Paket tidak ditemukan</h3>
+                                      <p className="text-gray-500">Coba kata kunci lain atau hapus filter</p>
+                        </div>
                                   )}
                         
                           {/* Grid */}
@@ -161,69 +161,69 @@ const OpenTrip = () => {
                                                                                                       <div className="absolute top-3 left-3">
                                                                                                                               <span className="bg-emerald-500 text-white text-xs font-semibold px-3 py-1 rounded-full">
                                                                                                                                                         Open Trip
-                                                                                                                                </span>span>
-                                                                                                        </div>div>
+                                                                                                                                </span>
+                                                                                                        </div>
                                                                                   {pkg.originalPrice && pkg.originalPrice > pkg.price && (
                                                                     <div className="absolute top-3 right-3">
                                                                                               <span className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
                                                                                                                           DISKON
-                                                                                                </span>span>
-                                                                    </div>div>
+                                                                                                </span>
+                                                                    </div>
                                                                                                       )}
-                                                                                  </div>div>
+                                                                                  </div>
                                                             
                                                               {/* Content */}
                                                                                 <div className="p-5">
                                                                                                       <h3 className="font-bold text-gray-800 text-base mb-2 line-clamp-2 group-hover:text-emerald-600 transition-colors">
                                                                                                         {pkg.title}
-                                                                                                        </h3>h3>
+                                                                                                        </h3>
                                                                                 
                                                                                                       <div className="flex items-center gap-1.5 text-gray-500 text-sm mb-1">
                                                                                                                               <FaMapMarkerAlt className="text-emerald-500" size={12} />
-                                                                                                                              <span>{pkg.location || 'Indonesia'}</span>span>
-                                                                                                        </div>div>
+                                                                                                                              <span>{pkg.location || 'Indonesia'}</span>
+                                                                                                        </div>
                                                                                 
                                                                                                       <div className="flex items-center gap-4 text-gray-500 text-xs mb-4">
                                                                                                                               <span className="flex items-center gap-1">
                                                                                                                                                         <FaClock className="text-teal-500" size={11} />
                                                                                                                                 {pkg.duration || '1 Hari'}
-                                                                                                                                </span>span>
+                                                                                                                                </span>
                                                                                                                               <span className="flex items-center gap-1">
                                                                                                                                                         <FaUsers className="text-teal-500" size={11} />
                                                                                                                                 {pkg.maxParticipants || 15} peserta
-                                                                                                                                </span>span>
+                                                                                                                                </span>
                                                                                                         {pkg.rating && (
                                                                       <span className="flex items-center gap-1">
                                                                                                   <FaStar className="text-yellow-400" size={11} />
                                                                         {pkg.rating}
-                                                                      </span>span>
+                                                                      </span>
                                                                                                                               )}
-                                                                                                        </div>div>
+                                                                                                        </div>
                                                                                 
                                                                                   {/* Price */}
                                                                                                       <div className="flex items-end justify-between">
                                                                                                                               <div>
                                                                                                                                 {pkg.originalPrice && pkg.originalPrice > pkg.price && (
-                                                                        <p className="text-xs text-gray-400 line-through">{formatPrice(pkg.originalPrice)}</p>p>
+                                                                        <p className="text-xs text-gray-400 line-through">{formatPrice(pkg.originalPrice)}</p>
                                                                                                                                                         )}
-                                                                                                                                                        <p className="text-emerald-600 font-bold text-lg">{formatPrice(pkg.price)}</p>p>
-                                                                                                                                                        <p className="text-gray-400 text-xs">per orang</p>p>
-                                                                                                                                </div>div>
+                                                                                                                                                        <p className="text-emerald-600 font-bold text-lg">{formatPrice(pkg.price)}</p>
+                                                                                                                                                        <p className="text-gray-400 text-xs">per orang</p>
+                                                                                                                                </div>
                                                                                                                               <span className="bg-emerald-50 text-emerald-600 text-xs font-semibold px-3 py-1.5 rounded-xl hover:bg-emerald-500 hover:text-white transition-colors">
                                                                                                                                                         Lihat Detail
-                                                                                                                                </span>span>
-                                                                                                        </div>div>
-                                                                                  </div>div>
-                                                            </div>div>
-                                          </Link>Link>
+                                                                                                                                </span>
+                                                                                                        </div>
+                                                                                  </div>
+                                                            </div>
+                                          </Link>
                                         ))}
-                        </div>div>
+                        </div>
                                   )}
-                        </div>div>
-                </section>section>
+                        </div>
+                </section>
           
                 <Footer />
-          </>>
+          </>
         )
 }
   

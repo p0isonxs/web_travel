@@ -14,38 +14,38 @@ const Footer = () => {
                                               <Link to="/" className="flex items-center gap-2 mb-4">
                                                             <div className="bg-gradient-to-r from-emerald-500 to-teal-600 p-2 rounded-xl">
                                                                             <FaPlane className="text-white text-xl" />
-                                                            </div>div>
+                                                            </div>
                                                             <div>
-                                                                            <span className="font-bold text-lg text-white block">Liburan Terus</span>span>
-                                                                            <span className="text-xs text-emerald-400 block">Travel & Tour</span>span>
-                                                            </div>div>
-                                              </Link>Link>
+                                                                            <span className="font-bold text-lg text-white block">Liburan Terus</span>
+                                                                            <span className="text-xs text-emerald-400 block">Travel & Tour</span>
+                                                            </div>
+                                              </Link>
                                               <p className="text-sm leading-relaxed text-gray-400 mb-6">
                                                             Jasa travel terpercaya untuk pengalaman wisata open trip dan private trip yang tak terlupakan di seluruh Indonesia.
-                                              </p>p>
+                                              </p>
                                               <div className="flex gap-3">
                                                             <a href="https://instagram.com" target="_blank" rel="noopener noreferrer"
                                                                               className="bg-gray-800 hover:bg-pink-600 p-2.5 rounded-lg transition-colors">
                                                                             <FaInstagram size={16} />
-                                                            </a>a>
+                                                            </a>
                                                             <a href="https://wa.me/6281234567890" target="_blank" rel="noopener noreferrer"
                                                                               className="bg-gray-800 hover:bg-green-600 p-2.5 rounded-lg transition-colors">
                                                                             <FaWhatsapp size={16} />
-                                                            </a>a>
+                                                            </a>
                                                             <a href="https://youtube.com" target="_blank" rel="noopener noreferrer"
                                                                               className="bg-gray-800 hover:bg-red-600 p-2.5 rounded-lg transition-colors">
                                                                             <FaYoutube size={16} />
-                                                            </a>a>
+                                                            </a>
                                                             <a href="https://tiktok.com" target="_blank" rel="noopener noreferrer"
                                                                               className="bg-gray-800 hover:bg-gray-600 p-2.5 rounded-lg transition-colors">
                                                                             <FaTiktok size={16} />
-                                                            </a>a>
-                                              </div>div>
-                                  </div>div>
+                                                            </a>
+                                              </div>
+                                  </div>
                         
                           {/* Layanan */}
                                   <div>
-                                              <h3 className="text-white font-semibold text-sm uppercase tracking-wider mb-4">Layanan Kami</h3>h3>
+                                              <h3 className="text-white font-semibold text-sm uppercase tracking-wider mb-4">Layanan Kami</h3>
                                               <ul className="space-y-2.5">
                                                 {[
             { to: '/open-trip', label: 'Open Trip' },
@@ -56,16 +56,16 @@ const Footer = () => {
                                             <li key={item.to}>
                                                               <Link to={item.to}
                                                                                     className="text-sm text-gray-400 hover:text-emerald-400 transition-colors flex items-center gap-1.5">
-                                                                                  <span className="text-emerald-500">›</span>span> {item.label}
-                                                              </Link>Link>
-                                            </li>li>
+                                                                                  <span className="text-emerald-500">›</span> {item.label}
+                                                              </Link>
+                                            </li>
                                           ))}
-                                              </ul>ul>
-                                  </div>div>
+                                              </ul>
+                                  </div>
                         
                           {/* Informasi */}
                                   <div>
-                                              <h3 className="text-white font-semibold text-sm uppercase tracking-wider mb-4">Informasi</h3>h3>
+                                              <h3 className="text-white font-semibold text-sm uppercase tracking-wider mb-4">Informasi</h3>
                                               <ul className="space-y-2.5">
                                                 {[
             { to: '/tentang-kami', label: 'Tentang Kami' },
@@ -74,50 +74,50 @@ const Footer = () => {
                                             <li key={item.to}>
                                                               <Link to={item.to}
                                                                                     className="text-sm text-gray-400 hover:text-emerald-400 transition-colors flex items-center gap-1.5">
-                                                                                  <span className="text-emerald-500">›</span>span> {item.label}
-                                                              </Link>Link>
-                                            </li>li>
+                                                                                  <span className="text-emerald-500">›</span> {item.label}
+                                                              </Link>
+                                            </li>
                                           ))}
-                                              </ul>ul>
-                                  </div>div>
+                                              </ul>
+                                  </div>
                         
                           {/* Kontak */}
                                   <div>
-                                              <h3 className="text-white font-semibold text-sm uppercase tracking-wider mb-4">Hubungi Kami</h3>h3>
+                                              <h3 className="text-white font-semibold text-sm uppercase tracking-wider mb-4">Hubungi Kami</h3>
                                               <ul className="space-y-3">
                                                             <li className="flex items-start gap-3 text-sm text-gray-400">
                                                                             <FaMapMarkerAlt className="text-emerald-500 mt-0.5 shrink-0" />
-                                                                            <span>Jl. Contoh No. 123, Jakarta, Indonesia</span>span>
-                                                            </li>li>
+                                                                            <span>Jl. Contoh No. 123, Jakarta, Indonesia</span>
+                                                            </li>
                                                             <li className="flex items-center gap-3 text-sm text-gray-400">
                                                                             <FaPhone className="text-emerald-500 shrink-0" />
                                                                             <a href="tel:+6281234567890" className="hover:text-emerald-400 transition-colors">
                                                                                               +62 812-3456-7890
-                                                                            </a>a>
-                                                            </li>li>
+                                                                            </a>
+                                                            </li>
                                                             <li className="flex items-center gap-3 text-sm text-gray-400">
                                                                             <FaEnvelope className="text-emerald-500 shrink-0" />
                                                                             <a href="mailto:info@liburanterus.com" className="hover:text-emerald-400 transition-colors">
                                                                                               info@liburanterus.com
-                                                                            </a>a>
-                                                            </li>li>
-                                              </ul>ul>
-                                  </div>div>
-                        </div>div>
-                </div>div>
+                                                                            </a>
+                                                            </li>
+                                              </ul>
+                                  </div>
+                        </div>
+                </div>
           
             {/* Bottom Bar */}
                 <div className="border-t border-gray-800">
                         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex flex-col sm:flex-row items-center justify-between gap-3">
                                   <p className="text-sm text-gray-500">
                                               © {currentYear} Liburan Terus. All rights reserved.
-                                  </p>p>
+                                  </p>
                                   <p className="text-sm text-gray-500">
                                               Dibuat dengan ❤️ untuk para traveler Indonesia
-                                  </p>p>
-                        </div>div>
-                </div>div>
-          </footer>footer>
+                                  </p>
+                        </div>
+                </div>
+          </footer>
         )
 }
   

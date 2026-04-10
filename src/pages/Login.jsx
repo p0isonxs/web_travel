@@ -32,9 +32,9 @@ const Login = () => {
     return (
           <>
                 <Helmet>
-                        <title>Login Admin - Liburan Terus</title>title>
+                        <title>Login Admin - Liburan Terus</title>
                         <meta name="robots" content="noindex, nofollow" />
-                </Helmet>Helmet>
+                </Helmet>
                 <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 flex items-center justify-center p-4">
                         <div className="w-full max-w-md">
                           {/* Card */}
@@ -43,17 +43,17 @@ const Login = () => {
                                               <div className="text-center mb-8">
                                                             <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl mb-4 shadow-lg">
                                                                             <FaPlane className="text-white text-2xl" />
-                                                            </div>div>
-                                                            <h1 className="text-2xl font-bold text-gray-800">Liburan Terus</h1>h1>
-                                                            <p className="text-gray-500 text-sm mt-1">Panel Admin</p>p>
-                                              </div>div>
+                                                            </div>
+                                                            <h1 className="text-2xl font-bold text-gray-800">Liburan Terus</h1>
+                                                            <p className="text-gray-500 text-sm mt-1">Panel Admin</p>
+                                              </div>
                                   
-                                              <h2 className="text-xl font-semibold text-gray-700 mb-6 text-center">Masuk ke Dashboard</h2>h2>
+                                              <h2 className="text-xl font-semibold text-gray-700 mb-6 text-center">Masuk ke Dashboard</h2>
                                   
                                               <form onSubmit={handleSubmit} className="space-y-5">
                                                 {/* Email */}
                                                             <div>
-                                                                            <label className="block text-sm font-medium text-gray-700 mb-1.5">Email</label>label>
+                                                                            <label className="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
                                                                             <div className="relative">
                                                                                               <FaEnvelope className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
                                                                                               <input
@@ -64,12 +64,12 @@ const Login = () => {
                                                                                                                     required
                                                                                                                     className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all bg-gray-50 text-sm"
                                                                                                                   />
-                                                                            </div>div>
-                                                            </div>div>
+                                                                            </div>
+                                                            </div>
                                               
                                                 {/* Password */}
                                                             <div>
-                                                                            <label className="block text-sm font-medium text-gray-700 mb-1.5">Password</label>label>
+                                                                            <label className="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
                                                                             <div className="relative">
                                                                                               <FaLock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
                                                                                               <input
@@ -86,9 +86,9 @@ const Login = () => {
                                                                                                                     className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                                                                                                                   >
                                                                                                 {showPassword ? <FaEyeSlash /> : <FaEye />}
-                                                                                                </button>button>
-                                                                            </div>div>
-                                                            </div>div>
+                                                                                                </button>
+                                                                            </div>
+                                                            </div>
                                               
                                                 {/* Submit */}
                                                             <button
@@ -98,22 +98,22 @@ const Login = () => {
                                                                             >
                                                               {loading ? (
                                                                                                 <>
-                                                                                                                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>div>
+                                                                                                                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                                                                                                                     Masuk...
-                                                                                                  </>>
+                                                                                                  </>
                                                                                               ) : (
                                                                                                 'Masuk'
                                                                                               )}
-                                                            </button>button>
-                                              </form>form>
+                                                            </button>
+                                              </form>
                                   
                                               <p className="text-center text-xs text-gray-400 mt-6">
                                                             Hanya untuk administrator Liburan Terus
-                                              </p>p>
-                                  </div>div>
-                        </div>div>
-                </div>div>
-          </>>
+                                              </p>
+                                  </div>
+                        </div>
+                </div>
+          </>
         )
 }
   

@@ -26,19 +26,19 @@ export default function WhatsAppButton() {
                                           className="absolute top-2 right-2 text-gray-400 hover:text-gray-600"
                                         >
                                         <X className="w-4 h-4" />
-                            </button>button>
+                            </button>
                             <div className="flex items-center gap-3 mb-2">
                                         <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center text-white text-xl">
                                                       🌴
-                                        </div>div>
+                                        </div>
                                         <div>
-                                                      <p className="font-bold text-gray-900 text-sm">Liburan Terus</p>p>
-                                                      <p className="text-xs text-green-600">● Online sekarang</p>p>
-                                        </div>div>
-                            </div>div>
+                                                      <p className="font-bold text-gray-900 text-sm">Liburan Terus</p>
+                                                      <p className="text-xs text-green-600">● Online sekarang</p>
+                                        </div>
+                            </div>
                             <p className="text-gray-600 text-sm mb-3">
                                         Halo! Ada yang bisa kami bantu? Tanya seputar paket wisata, booking, atau info perjalanan lainnya 😊
-                            </p>p>
+                            </p>
                             <a
                                           href={waUrl}
                                           target="_blank"
@@ -46,8 +46,8 @@ export default function WhatsAppButton() {
                                           className="block w-full text-center bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-xl text-sm transition-colors"
                                         >
                                         Mulai Chat
-                            </a>a>
-                  </div>div>
+                            </a>
+                  </div>
               )}
         
           {/* Main Button */}
@@ -59,7 +59,7 @@ export default function WhatsAppButton() {
                       <MessageCircle className="w-8 h-8" fill="white" />
                 {/* Ping animation */}
                       <span className="absolute inset-0 rounded-full bg-green-500 animate-ping opacity-30" />
-              </button>button>
-        </div>div>
+              </button>
+        </div>
       );
 }</div>

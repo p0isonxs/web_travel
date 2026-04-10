@@ -90,165 +90,165 @@ export default function AdminPackages() {
         <div className="space-y-6">
               <div className="flex items-center justify-between">
                       <div>
-                                <h1 className="text-2xl font-bold text-gray-900">Paket Wisata</h1>h1>
-                                <p className="text-gray-500 text-sm">{packages.length} paket terdaftar</p>p>
-                      </div>div>
+                                <h1 className="text-2xl font-bold text-gray-900">Paket Wisata</h1>
+                                <p className="text-gray-500 text-sm">{packages.length} paket terdaftar</p>
+                      </div>
                       <button onClick={openCreate} className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-4 py-2 rounded-xl transition-colors">
                                 <Plus className="w-5 h-5" /> Tambah Paket
-                      </button>button>
-              </div>div>
+                      </button>
+              </div>
         
           {/* Filters */}
               <div className="flex flex-col sm:flex-row gap-3">
                       <div className="relative flex-1">
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
                                 <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Cari paket..." className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
-                      </div>div>
+                      </div>
                       <select value={filterType} onChange={e => setFilterType(e.target.value)} className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                                <option value="semua">Semua Tipe</option>option>
-                                <option value="open-trip">Open Trip</option>option>
-                                <option value="private-trip">Private Trip</option>option>
-                      </select>select>
-              </div>div>
+                                <option value="semua">Semua Tipe</option>
+                                <option value="open-trip">Open Trip</option>
+                                <option value="private-trip">Private Trip</option>
+                      </select>
+              </div>
         
           {/* Table */}
               <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
                 {loading ? (
-                    <div className="p-8 text-center text-gray-400">Memuat data...</div>div>
+                    <div className="p-8 text-center text-gray-400">Memuat data...</div>
                   ) : filtered.length === 0 ? (
-                    <div className="p-8 text-center text-gray-400">Tidak ada paket ditemukan</div>div>
+                    <div className="p-8 text-center text-gray-400">Tidak ada paket ditemukan</div>
                   ) : (
                     <div className="overflow-x-auto">
                                 <table className="w-full text-sm">
                                               <thead className="bg-gray-50 border-b border-gray-100">
                                                               <tr>
-                                                                                <th className="text-left px-4 py-3 font-semibold text-gray-700">Paket</th>th>
-                                                                                <th className="text-left px-4 py-3 font-semibold text-gray-700">Tipe</th>th>
-                                                                                <th className="text-left px-4 py-3 font-semibold text-gray-700">Lokasi</th>th>
-                                                                                <th className="text-left px-4 py-3 font-semibold text-gray-700">Harga</th>th>
-                                                                                <th className="text-left px-4 py-3 font-semibold text-gray-700">Status</th>th>
-                                                                                <th className="text-left px-4 py-3 font-semibold text-gray-700">Aksi</th>th>
-                                                              </tr>tr>
-                                              </thead>thead>
+                                                                                <th className="text-left px-4 py-3 font-semibold text-gray-700">Paket</th>
+                                                                                <th className="text-left px-4 py-3 font-semibold text-gray-700">Tipe</th>
+                                                                                <th className="text-left px-4 py-3 font-semibold text-gray-700">Lokasi</th>
+                                                                                <th className="text-left px-4 py-3 font-semibold text-gray-700">Harga</th>
+                                                                                <th className="text-left px-4 py-3 font-semibold text-gray-700">Status</th>
+                                                                                <th className="text-left px-4 py-3 font-semibold text-gray-700">Aksi</th>
+                                                              </tr>
+                                              </thead>
                                               <tbody className="divide-y divide-gray-50">
                                                 {filtered.map(pkg => (
                                         <tr key={pkg.id} className="hover:bg-gray-50 transition-colors">
                                                             <td className="px-4 py-3">
                                                                                   <div className="flex items-center gap-3">
                                                                                     {pkg.images?.[0] && <img src={pkg.images[0]} alt="" className="w-10 h-10 rounded-lg object-cover" />}
-                                                                                                          <span className="font-medium text-gray-900 line-clamp-1">{pkg.title}</span>span>
-                                                                                    </div>div>
-                                                            </td>td>
+                                                                                                          <span className="font-medium text-gray-900 line-clamp-1">{pkg.title}</span>
+                                                                                    </div>
+                                                            </td>
                                                             <td className="px-4 py-3">
                                                                                   <span className={`text-xs font-semibold px-2 py-1 rounded-full ${pkg.type === 'open-trip' ? 'bg-emerald-100 text-emerald-700' : 'bg-purple-100 text-purple-700'}`}>
                                                                                     {pkg.type}
-                                                                                    </span>span>
-                                                            </td>td>
-                                                            <td className="px-4 py-3 text-gray-600">{pkg.location || '-'}</td>td>
-                                                            <td className="px-4 py-3 text-emerald-600 font-semibold">{formatPrice(pkg.price)}</td>td>
+                                                                                    </span>
+                                                            </td>
+                                                            <td className="px-4 py-3 text-gray-600">{pkg.location || '-'}</td>
+                                                            <td className="px-4 py-3 text-emerald-600 font-semibold">{formatPrice(pkg.price)}</td>
                                                             <td className="px-4 py-3">
                                                                                   <button onClick={() => toggleActive(pkg.id, pkg.active)} className={`text-xs font-semibold px-2 py-1 rounded-full ${pkg.active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
                                                                                     {pkg.active ? 'Aktif' : 'Nonaktif'}
-                                                                                    </button>button>
-                                                            </td>td>
+                                                                                    </button>
+                                                            </td>
                                                             <td className="px-4 py-3">
                                                                                   <div className="flex items-center gap-2">
-                                                                                                          <button onClick={() => openEdit(pkg)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"><Edit2 className="w-4 h-4" /></button>button>
-                                                                                                          <button onClick={() => handleDelete(pkg.id, pkg.title)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"><Trash2 className="w-4 h-4" /></button>button>
-                                                                                    </div>div>
-                                                            </td>td>
-                                        </tr>tr>
+                                                                                                          <button onClick={() => openEdit(pkg)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"><Edit2 className="w-4 h-4" /></button>
+                                                                                                          <button onClick={() => handleDelete(pkg.id, pkg.title)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"><Trash2 className="w-4 h-4" /></button>
+                                                                                    </div>
+                                                            </td>
+                                        </tr>
                                       ))}
-                                              </tbody>tbody>
-                                </table>table>
-                    </div>div>
+                                              </tbody>
+                                </table>
+                    </div>
                       )}
-              </div>div>
+              </div>
         
           {/* Modal Form */}
           {showForm && (
                   <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/50 py-8 px-4">
                             <div className="bg-white rounded-2xl w-full max-w-3xl shadow-2xl">
                                         <div className="flex items-center justify-between p-6 border-b border-gray-100">
-                                                      <h2 className="text-xl font-bold text-gray-900">{editId ? 'Edit Paket' : 'Tambah Paket Baru'}</h2>h2>
-                                                      <button onClick={closeForm} className="text-gray-400 hover:text-gray-600"><X className="w-6 h-6" /></button>button>
-                                        </div>div>
+                                                      <h2 className="text-xl font-bold text-gray-900">{editId ? 'Edit Paket' : 'Tambah Paket Baru'}</h2>
+                                                      <button onClick={closeForm} className="text-gray-400 hover:text-gray-600"><X className="w-6 h-6" /></button>
+                                        </div>
                                         <form onSubmit={handleSave} className="p-6 space-y-5">
                                                       <div className="grid grid-cols-2 gap-4">
                                                                       <div className="col-span-2">
-                                                                                        <label className={labelClass}>Judul Paket *</label>label>
+                                                                                        <label className={labelClass}>Judul Paket *</label>
                                                                                         <input type="text" required value={form.title} onChange={e => setForm({...form, title: e.target.value})} className={inputClass} placeholder="Contoh: Open Trip Labuan Bajo 3D2N" />
-                                                                      </div>div>
+                                                                      </div>
                                                                       <div>
-                                                                                        <label className={labelClass}>Tipe Paket *</label>label>
+                                                                                        <label className={labelClass}>Tipe Paket *</label>
                                                                                         <select value={form.type} onChange={e => setForm({...form, type: e.target.value})} className={inputClass}>
-                                                                                                            <option value="open-trip">Open Trip</option>option>
-                                                                                                            <option value="private-trip">Private Trip</option>option>
-                                                                                          </select>select>
-                                                                      </div>div>
+                                                                                                            <option value="open-trip">Open Trip</option>
+                                                                                                            <option value="private-trip">Private Trip</option>
+                                                                                          </select>
+                                                                      </div>
                                                                       <div>
-                                                                                        <label className={labelClass}>Lokasi *</label>label>
+                                                                                        <label className={labelClass}>Lokasi *</label>
                                                                                         <input type="text" required value={form.location} onChange={e => setForm({...form, location: e.target.value})} className={inputClass} placeholder="Labuan Bajo, NTT" />
-                                                                      </div>div>
+                                                                      </div>
                                                                       <div>
-                                                                                        <label className={labelClass}>Durasi</label>label>
+                                                                                        <label className={labelClass}>Durasi</label>
                                                                                         <input type="text" value={form.duration} onChange={e => setForm({...form, duration: e.target.value})} className={inputClass} placeholder="3D2N" />
-                                                                      </div>div>
+                                                                      </div>
                                                                       <div>
-                                                                                        <label className={labelClass}>Max Peserta</label>label>
+                                                                                        <label className={labelClass}>Max Peserta</label>
                                                                                         <input type="number" value={form.maxParticipants} onChange={e => setForm({...form, maxParticipants: e.target.value})} className={inputClass} min="1" />
-                                                                      </div>div>
+                                                                      </div>
                                                                       <div>
-                                                                                        <label className={labelClass}>Harga (Rp) *</label>label>
+                                                                                        <label className={labelClass}>Harga (Rp) *</label>
                                                                                         <input type="number" required value={form.price} onChange={e => setForm({...form, price: e.target.value})} className={inputClass} placeholder="1500000" />
-                                                                      </div>div>
+                                                                      </div>
                                                                       <div>
-                                                                                        <label className={labelClass}>Harga Coret (Rp)</label>label>
+                                                                                        <label className={labelClass}>Harga Coret (Rp)</label>
                                                                                         <input type="number" value={form.originalPrice} onChange={e => setForm({...form, originalPrice: e.target.value})} className={inputClass} placeholder="2000000" />
-                                                                      </div>div>
+                                                                      </div>
                                                                       <div className="col-span-2">
-                                                                                        <label className={labelClass}>URL Foto (pisahkan dengan koma)</label>label>
+                                                                                        <label className={labelClass}>URL Foto (pisahkan dengan koma)</label>
                                                                                         <input type="text" value={form.images?.join(', ')} onChange={e => setForm({...form, images: e.target.value.split(',').map(s => s.trim()).filter(Boolean)})} className={inputClass} placeholder="https://..." />
-                                                                      </div>div>
+                                                                      </div>
                                                                       <div className="col-span-2">
-                                                                                        <label className={labelClass}>Deskripsi</label>label>
+                                                                                        <label className={labelClass}>Deskripsi</label>
                                                                                         <textarea rows={3} value={form.description} onChange={e => setForm({...form, description: e.target.value})} className={inputClass} placeholder="Deskripsi paket wisata..." />
-                                                                      </div>div>
+                                                                      </div>
                                                                       <div className="col-span-2">
-                                                                                        <label className={labelClass}>Itinerary (format: Hari 1: ..., Hari 2: ...)</label>label>
+                                                                                        <label className={labelClass}>Itinerary (format: Hari 1: ..., Hari 2: ...)</label>
                                                                                         <textarea rows={4} value={form.itinerary} onChange={e => setForm({...form, itinerary: e.target.value})} className={inputClass} />
-                                                                      </div>div>
+                                                                      </div>
                                                                       <div>
-                                                                                        <label className={labelClass}>Include (pisahkan dengan koma)</label>label>
+                                                                                        <label className={labelClass}>Include (pisahkan dengan koma)</label>
                                                                                         <textarea rows={3} value={form.include} onChange={e => setForm({...form, include: e.target.value})} className={inputClass} placeholder="Tiket masuk, Penginapan, Makan..." />
-                                                                      </div>div>
+                                                                      </div>
                                                                       <div>
-                                                                                        <label className={labelClass}>Exclude (pisahkan dengan koma)</label>label>
+                                                                                        <label className={labelClass}>Exclude (pisahkan dengan koma)</label>
                                                                                         <textarea rows={3} value={form.exclude} onChange={e => setForm({...form, exclude: e.target.value})} className={inputClass} placeholder="Tiket pesawat, Tips guide..." />
-                                                                      </div>div>
+                                                                      </div>
                                                                       <div className="flex items-center gap-6">
                                                                                         <label className="flex items-center gap-2 cursor-pointer">
                                                                                                             <input type="checkbox" checked={form.active} onChange={e => setForm({...form, active: e.target.checked})} className="w-4 h-4 text-emerald-600 rounded" />
-                                                                                                            <span className="text-sm font-medium text-gray-700">Aktif (tampil di website)</span>span>
-                                                                                          </label>label>
+                                                                                                            <span className="text-sm font-medium text-gray-700">Aktif (tampil di website)</span>
+                                                                                          </label>
                                                                                         <label className="flex items-center gap-2 cursor-pointer">
                                                                                                             <input type="checkbox" checked={form.featured} onChange={e => setForm({...form, featured: e.target.checked})} className="w-4 h-4 text-emerald-600 rounded" />
-                                                                                                            <span className="text-sm font-medium text-gray-700">Featured</span>span>
-                                                                                          </label>label>
-                                                                      </div>div>
-                                                      </div>div>
+                                                                                                            <span className="text-sm font-medium text-gray-700">Featured</span>
+                                                                                          </label>
+                                                                      </div>
+                                                      </div>
                                         
                                                       <div className="flex gap-3 pt-4 border-t border-gray-100">
-                                                                      <button type="button" onClick={closeForm} className="flex-1 border border-gray-300 text-gray-700 font-semibold py-2 rounded-xl hover:bg-gray-50 transition-colors">Batal</button>button>
+                                                                      <button type="button" onClick={closeForm} className="flex-1 border border-gray-300 text-gray-700 font-semibold py-2 rounded-xl hover:bg-gray-50 transition-colors">Batal</button>
                                                                       <button type="submit" disabled={saving} className="flex-1 flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white font-semibold py-2 rounded-xl transition-colors">
                                                                         {saving ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <Save className="w-5 h-5" />}
                                                                         {saving ? 'Menyimpan...' : 'Simpan Paket'}
-                                                                      </button>button>
-                                                      </div>div>
-                                        </form>form>
-                            </div>div>
-                  </div>div>
+                                                                      </button>
+                                                      </div>
+                                        </form>
+                            </div>
+                  </div>
               )}
-        </div>div>
+        </div>
       );
 }</div>
