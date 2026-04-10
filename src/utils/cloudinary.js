@@ -12,8 +12,8 @@ export async function uploadToCloudinary(file, folder = 'general') {
     { method: 'POST', body: formData }
   );
 
-  if (!res.ok) throw new Error('Upload gagal');
   const data = await res.json();
+  if (!res.ok) throw new Error(data?.error?.message || 'Upload gagal');
   return data.secure_url;
 }
 
