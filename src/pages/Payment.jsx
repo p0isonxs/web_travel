@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
-import { getBookingById, updateBooking, uploadFile } from '../firebase/firestore'
+import { getBookingById, updateBooking } from '../firebase/firestore'
+import { uploadToCloudinary } from '../utils/cloudinary'
 import { FaCreditCard, FaUniversity, FaCheckCircle, FaUpload, FaArrowLeft } from 'react-icons/fa'
 import { toast } from 'react-toastify'
 import { useSettings } from '../contexts/SettingsContext'
@@ -114,7 +115,7 @@ const Payment = () => {
           }
           setUploading(true)
           try {
-                  const url = await uploadFile(proofFile, `payments/${bookingId}/${proofFile.name}`)
+                  const url = await uploadToCloudinary(proofFile, 'payments')
                   await updateBooking(bookingId, {
                             status: 'waiting_confirmation',
                             paymentMethod: 'transfer',

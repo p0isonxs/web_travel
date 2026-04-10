@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, query, orderBy } from 'firebase/firestore';
-import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { db, storage } from '../../firebase/config';
+import { db } from '../../firebase/config';
+import { uploadMultiple } from '../../utils/cloudinary';
 import { Plus, Edit2, Trash2, X, Save, Eye, EyeOff, Search, Upload } from 'lucide-react';
 import { toast } from 'react-toastify';
 
@@ -49,13 +49,7 @@ export default function AdminPackages() {
                 // Upload new image files if any
                 let images = form.images || [];
                 if (imageFiles.length > 0) {
-                          const uploads = await Promise.all(
-                                    imageFiles.map(async (file) => {
-                                              const r = storageRef(storage, `packages/${Date.now()}_${file.name}`);
-                                              await uploadBytes(r, file);
-                                              return getDownloadURL(r);
-                                    })
-                          );
+                          const uploads = await uploadMultiple(imageFiles, 'packages');
                           images = [...images, ...uploads];
                 }
                 const data = {

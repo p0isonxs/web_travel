@@ -13,8 +13,7 @@ import {
                         serverTimestamp,
                           onSnapshot
                           } from 'firebase/firestore'
-                          import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage'
-                          import { db, storage } from './config'
+                          import { db } from './config'
 
                           // =================== PACKAGES ===================
                           export const packagesCollection = collection(db, 'packages')
@@ -187,15 +186,3 @@ import {
                                                                                                                                                                                         const docRef = doc(db, 'settings', 'general')
                                                                                                                                                                                           return await updateDoc(docRef, { ...data, updatedAt: serverTimestamp() })
                                                                                                                                                                                           }
-                                                                                                                                                                                          
-                                                                                                                                                                                          // =================== STORAGE ===================
-                                                                                                                                                                                          export const uploadFile = async (file, path) => {
-                                                                                                                                                                                            const storageRef = ref(storage, path)
-                                                                                                                                                                                              const snapshot = await uploadBytes(storageRef, file)
-                                                                                                                                                                                                return await getDownloadURL(snapshot.ref)
-                                                                                                                                                                                                }
-                                                                                                                                                                                                
-                                                                                                                                                                                                export const deleteFile = async (url) => {
-                                                                                                                                                                                                  const fileRef = ref(storage, url)
-                                                                                                                                                                                                    return await deleteObject(fileRef)
-                                                                                                                                                                                                    }

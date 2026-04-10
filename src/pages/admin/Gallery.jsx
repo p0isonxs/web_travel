@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { collection, getDocs, addDoc, deleteDoc, doc, serverTimestamp, query, orderBy } from 'firebase/firestore';
-import { ref as storageRef, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
-import { db, storage } from '../../firebase/config';
+import { db } from '../../firebase/config';
+import { uploadToCloudinary } from '../../utils/cloudinary';
 import { Plus, Trash2, X, Upload, Image } from 'lucide-react';
 import { toast } from 'react-toastify';
 
@@ -36,9 +36,7 @@ export default function AdminGallery() {
         try {
                 let imageUrl = form.imageUrl;
                 if (file) {
-                          const r = storageRef(storage, `gallery/${Date.now()}_${file.name}`);
-                          await uploadBytes(r, file);
-                          imageUrl = await getDownloadURL(r);
+                          imageUrl = await uploadToCloudinary(file, 'gallery');
                 }
                 if (!imageUrl) { toast.error('Pilih foto atau masukkan URL foto'); setUploading(false); return; }
                 await addDoc(collection(db, 'gallery'), { ...form, imageUrl, createdAt: serverTimestamp() });
@@ -55,13 +53,6 @@ export default function AdminGallery() {
         if (!confirm('Hapus foto ini?')) return;
         try {
                 await deleteDoc(doc(db, 'gallery', photo.id));
-                // Try to delete from storage if it's a Firebase URL
-          if (photo.imageUrl?.includes('firebasestorage')) {
-                    try {
-                                const r = storageRef(storage, photo.imageUrl);
-                                await deleteObject(r);
-                    } catch {}
-          }
                 toast.success('Foto dihapus');
                 fetchPhotos();
         } catch { toast.error('Gagal menghapus foto'); }
