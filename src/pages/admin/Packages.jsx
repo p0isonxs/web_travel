@@ -298,4 +298,4 @@ export default function AdminPackages() {
               )}
         </div>
       );
-}</div>
+}
