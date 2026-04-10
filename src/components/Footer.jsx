@@ -1,8 +1,10 @@
 import { Link } from 'react-router-dom'
-import { FaPlane, FaInstagram, FaWhatsapp, FaYoutube, FaTiktok, FaMapMarkerAlt, FaPhone, FaEnvelope } from 'react-icons/fa'
+import { FaPlane, FaInstagram, FaWhatsapp, FaYoutube, FaTiktok, FaMapMarkerAlt, FaPhone, FaEnvelope, FaFacebook } from 'react-icons/fa'
+import { useSettings } from '../contexts/SettingsContext'
 
 const Footer = () => {
     const currentYear = new Date().getFullYear()
+    const settings = useSettings()
 
     return (
           <footer className="bg-gray-900 text-gray-300">
@@ -24,22 +26,34 @@ const Footer = () => {
                                                             Jasa travel terpercaya untuk pengalaman wisata open trip dan private trip yang tak terlupakan di seluruh Indonesia.
                                               </p>
                                               <div className="flex gap-3">
-                                                            <a href="https://instagram.com" target="_blank" rel="noopener noreferrer"
-                                                                              className="bg-gray-800 hover:bg-pink-600 p-2.5 rounded-lg transition-colors">
-                                                                            <FaInstagram size={16} />
-                                                            </a>
-                                                            <a href="https://wa.me/6281234567890" target="_blank" rel="noopener noreferrer"
-                                                                              className="bg-gray-800 hover:bg-green-600 p-2.5 rounded-lg transition-colors">
-                                                                            <FaWhatsapp size={16} />
-                                                            </a>
-                                                            <a href="https://youtube.com" target="_blank" rel="noopener noreferrer"
-                                                                              className="bg-gray-800 hover:bg-red-600 p-2.5 rounded-lg transition-colors">
-                                                                            <FaYoutube size={16} />
-                                                            </a>
-                                                            <a href="https://tiktok.com" target="_blank" rel="noopener noreferrer"
-                                                                              className="bg-gray-800 hover:bg-gray-600 p-2.5 rounded-lg transition-colors">
-                                                                            <FaTiktok size={16} />
-                                                            </a>
+                                                {settings.instagram && (
+                                                  <a href={settings.instagram} target="_blank" rel="noopener noreferrer"
+                                                    className="bg-gray-800 hover:bg-pink-600 p-2.5 rounded-lg transition-colors">
+                                                    <FaInstagram size={16} />
+                                                  </a>
+                                                )}
+                                                <a href={`https://wa.me/${settings.phone}`} target="_blank" rel="noopener noreferrer"
+                                                  className="bg-gray-800 hover:bg-green-600 p-2.5 rounded-lg transition-colors">
+                                                  <FaWhatsapp size={16} />
+                                                </a>
+                                                {settings.facebook && (
+                                                  <a href={settings.facebook} target="_blank" rel="noopener noreferrer"
+                                                    className="bg-gray-800 hover:bg-blue-700 p-2.5 rounded-lg transition-colors">
+                                                    <FaFacebook size={16} />
+                                                  </a>
+                                                )}
+                                                {settings.youtube && (
+                                                  <a href={settings.youtube} target="_blank" rel="noopener noreferrer"
+                                                    className="bg-gray-800 hover:bg-red-600 p-2.5 rounded-lg transition-colors">
+                                                    <FaYoutube size={16} />
+                                                  </a>
+                                                )}
+                                                {settings.tiktok && (
+                                                  <a href={settings.tiktok} target="_blank" rel="noopener noreferrer"
+                                                    className="bg-gray-800 hover:bg-gray-600 p-2.5 rounded-lg transition-colors">
+                                                    <FaTiktok size={16} />
+                                                  </a>
+                                                )}
                                               </div>
                                   </div>
                         
@@ -87,18 +101,18 @@ const Footer = () => {
                                               <ul className="space-y-3">
                                                             <li className="flex items-start gap-3 text-sm text-gray-400">
                                                                             <FaMapMarkerAlt className="text-emerald-500 mt-0.5 shrink-0" />
-                                                                            <span>Jl. Contoh No. 123, Jakarta, Indonesia</span>
+                                                                            <span>{settings.address}</span>
                                                             </li>
                                                             <li className="flex items-center gap-3 text-sm text-gray-400">
                                                                             <FaPhone className="text-emerald-500 shrink-0" />
-                                                                            <a href="tel:+6281234567890" className="hover:text-emerald-400 transition-colors">
-                                                                                              +62 812-3456-7890
+                                                                            <a href={`tel:+${settings.phone}`} className="hover:text-emerald-400 transition-colors">
+                                                                                              +{settings.phone}
                                                                             </a>
                                                             </li>
                                                             <li className="flex items-center gap-3 text-sm text-gray-400">
                                                                             <FaEnvelope className="text-emerald-500 shrink-0" />
-                                                                            <a href="mailto:info@liburanterus.com" className="hover:text-emerald-400 transition-colors">
-                                                                                              info@liburanterus.com
+                                                                            <a href={`mailto:${settings.email}`} className="hover:text-emerald-400 transition-colors">
+                                                                                              {settings.email}
                                                                             </a>
                                                             </li>
                                               </ul>
@@ -121,4 +135,4 @@ const Footer = () => {
         )
 }
   
-  export default Footer</footer>
+  export default Footer

@@ -4,10 +4,12 @@ import { MapPin, Phone, Mail, Clock, MessageCircle, Send } from 'lucide-react';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { toast } from 'react-toastify';
+import { useSettings } from '../contexts/SettingsContext';
 
 export default function Contact() {
     const [form, setForm] = useState({ name: '', email: '', phone: '', subject: '', message: '' });
     const [submitting, setSubmitting] = useState(false);
+    const settings = useSettings();
 
   useEffect(() => { window.scrollTo(0, 0); }, []);
 
@@ -25,9 +27,9 @@ export default function Contact() {
   };
 
   const contactInfo = [
-    { icon: <MapPin className="w-6 h-6" />, label: 'Alamat', value: 'Jl. Wisata Indah No. 123, Jakarta Selatan, 12345', color: 'emerald' },
-    { icon: <Phone className="w-6 h-6" />, label: 'Telepon / WhatsApp', value: '+62 812-3456-7890', color: 'teal', link: 'https://wa.me/6281234567890' },
-    { icon: <Mail className="w-6 h-6" />, label: 'Email', value: 'info@liburanterus.com', color: 'blue', link: 'mailto:info@liburanterus.com' },
+    { icon: <MapPin className="w-6 h-6" />, label: 'Alamat', value: settings.address, color: 'emerald' },
+    { icon: <Phone className="w-6 h-6" />, label: 'Telepon / WhatsApp', value: `+${settings.phone}`, color: 'teal', link: `https://wa.me/${settings.phone}` },
+    { icon: <Mail className="w-6 h-6" />, label: 'Email', value: settings.email, color: 'blue', link: `mailto:${settings.email}` },
     { icon: <Clock className="w-6 h-6" />, label: 'Jam Operasional', value: 'Senin - Sabtu: 08.00 - 20.00 WIB\nMinggu: 09.00 - 17.00 WIB', color: 'purple' },
       ];
 
@@ -76,7 +78,7 @@ export default function Contact() {
                                                           <h3 className="font-bold text-green-800 text-lg mb-2">Butuh Respon Cepat?</h3>
                                                           <p className="text-green-700 mb-4">Chat langsung via WhatsApp untuk mendapatkan balasan lebih cepat dari tim kami!</p>
                                                           <a
-                                                                            href="https://wa.me/6281234567890?text=Halo Liburan Terus! Saya ingin bertanya mengenai paket wisata."
+                                                                            href={`https://wa.me/${settings.phone}?text=Halo ${settings.siteName}! Saya ingin bertanya mengenai paket wisata.`}
                                                                             target="_blank" rel="noopener noreferrer"
                                                                             className="inline-flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white font-bold px-6 py-3 rounded-xl transition-colors"
                                                                           >

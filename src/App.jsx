@@ -4,6 +4,7 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 import { AuthProvider } from './contexts/AuthContext';
+import { SettingsProvider } from './contexts/SettingsContext';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import WhatsAppButton from './components/WhatsAppButton';
@@ -51,6 +52,7 @@ export default function App() {
   return (
     <HelmetProvider>
       <AuthProvider>
+        <SettingsProvider>
         <BrowserRouter>
           <Routes>
             {/* Admin Routes - no navbar/footer */}
@@ -101,6 +103,7 @@ export default function App() {
             pauseOnHover
           />
         </BrowserRouter>
+        </SettingsProvider>
       </AuthProvider>
     </HelmetProvider>
   );

@@ -2,18 +2,20 @@ import { useEffect } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { CheckCircle, Home, MessageCircle, Calendar, User, Package } from 'lucide-react';
+import { useSettings } from '../contexts/SettingsContext';
 
 export default function PaymentSuccess() {
     const location = useLocation();
     const navigate = useNavigate();
     const booking = location.state?.booking || {};
+    const settings = useSettings();
 
   useEffect(() => {
         window.scrollTo(0, 0);
   }, []);
 
   const whatsappMessage = encodeURIComponent(
-        `Halo Liburan Terus! Saya baru saja melakukan pemesanan paket wisata.\n\nNama: ${booking.name || '-'}\nPaket: ${booking.packageName || '-'}\nTanggal: ${booking.date || '-'}\nID Booking: ${booking.id || '-'}\n\nMohon konfirmasi pemesanan saya. Terima kasih!`
+        `Halo ${settings.siteName}! Saya baru saja melakukan pemesanan paket wisata.\n\nNama: ${booking.name || '-'}\nPaket: ${booking.packageName || '-'}\nTanggal: ${booking.date || '-'}\nID Booking: ${booking.id || '-'}\n\nMohon konfirmasi pemesanan saya. Terima kasih!`
       );
 
   return (
@@ -107,7 +109,7 @@ export default function PaymentSuccess() {
                                               {/* CTA Buttons */}
                                                           <div className="space-y-3">
                                                                           <a
-                                                                                              href={`https://wa.me/6281234567890?text=${whatsappMessage}`}
+                                                                                              href={`https://wa.me/${settings.phone}?text=${whatsappMessage}`}
                                                                                               target="_blank"
                                                                                               rel="noopener noreferrer"
                                                                                               className="flex items-center justify-center gap-3 w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-6 rounded-xl transition-colors"
@@ -129,8 +131,8 @@ export default function PaymentSuccess() {
                         {/* Footer note */}
                                 <p className="text-center text-sm text-gray-500 mt-6">
                                             Ada pertanyaan? Hubungi kami di{' '}
-                                            <a href="mailto:info@liburanterus.com" className="text-emerald-600 hover:underline">
-                                                          info@liburanterus.com
+                                            <a href={`mailto:${settings.email}`} className="text-emerald-600 hover:underline">
+                                                          {settings.email}
                                             </a>
                                 </p>
                       </div>

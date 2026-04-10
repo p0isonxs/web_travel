@@ -1,17 +1,17 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
-import Navbar from '../components/Navbar'
-import Footer from '../components/Footer'
 import { getBookingById, updateBooking, uploadFile } from '../firebase/firestore'
 import { FaCreditCard, FaUniversity, FaCheckCircle, FaUpload, FaArrowLeft } from 'react-icons/fa'
 import { toast } from 'react-toastify'
+import { useSettings } from '../contexts/SettingsContext'
 
-const MIDTRANS_CLIENT_KEY = import.meta.env.VITE_MIDTRANS_CLIENT_KEY || 'your-midtrans-client-key'
+const MIDTRANS_CLIENT_KEY = import.meta.env.VITE_MIDTRANS_CLIENT_KEY || ''
 
 const Payment = () => {
     const { bookingId } = useParams()
     const navigate = useNavigate()
+    const settings = useSettings()
     const [booking, setBooking] = useState(null)
     const [loading, setLoading] = useState(true)
     const [paymentMethod, setPaymentMethod] = useState('midtrans')
@@ -134,11 +134,9 @@ const Payment = () => {
     if (loading) {
           return (
                   <>
-                          <Navbar />
                           <div className="min-h-screen flex items-center justify-center pt-20">
                                     <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
                           </div>
-                          <Footer />
                   </>
                 )
     }
@@ -146,11 +144,9 @@ const Payment = () => {
     if (!booking) {
           return (
                   <>
-                          <Navbar />
                           <div className="min-h-screen flex items-center justify-center pt-20 text-center">
                                     <p className="text-gray-500">Booking tidak ditemukan</p>
                           </div>
-                          <Footer />
                   </>
                 )
     }
@@ -161,7 +157,6 @@ const Payment = () => {
                         <title>Pembayaran - Liburan Terus</title>
                         <meta name="robots" content="noindex" />
                 </Helmet>
-                <Navbar />
           
                 <div className="pt-20 min-h-screen bg-gray-50">
                   {/* Header */}
@@ -244,15 +239,15 @@ const Payment = () => {
                                                                         <div className="space-y-2 text-sm">
                                                                                                 <div className="flex justify-between">
                                                                                                                           <span className="text-gray-500">Bank</span>
-                                                                                                                          <span className="font-semibold text-gray-800">BCA</span>
+                                                                                                                          <span className="font-semibold text-gray-800">{settings.bankName}</span>
                                                                                                   </div>
                                                                                                 <div className="flex justify-between">
                                                                                                                           <span className="text-gray-500">No. Rekening</span>
-                                                                                                                          <span className="font-semibold text-gray-800 font-mono">1234-5678-90</span>
+                                                                                                                          <span className="font-semibold text-gray-800 font-mono">{settings.bankAccount}</span>
                                                                                                   </div>
                                                                                                 <div className="flex justify-between">
                                                                                                                           <span className="text-gray-500">Atas Nama</span>
-                                                                                                                          <span className="font-semibold text-gray-800">PT Liburan Terus</span>
+                                                                                                                          <span className="font-semibold text-gray-800">{settings.bankAccountName}</span>
                                                                                                   </div>
                                                                                                 <div className="flex justify-between border-t pt-2 mt-2">
                                                                                                                           <span className="text-gray-500 font-semibold">Jumlah Transfer</span>
@@ -342,9 +337,8 @@ const Payment = () => {
                         </div>
                 </div>
           
-                <Footer />
           </>
         )
 }
   
-  export default Payment</></></></></>
+  export default Payment

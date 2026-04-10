@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, query, orderBy } from 'firebase/firestore';
-import { db } from '../../firebase/config';
-import { Plus, Edit2, Trash2, X, Save, Eye, EyeOff, Search } from 'lucide-react';
+import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { db, storage } from '../../firebase/config';
+import { Plus, Edit2, Trash2, X, Save, Eye, EyeOff, Search, Upload } from 'lucide-react';
 import { toast } from 'react-toastify';
 
 const emptyForm = {
@@ -19,6 +20,8 @@ export default function AdminPackages() {
     const [saving, setSaving] = useState(false);
     const [search, setSearch] = useState('');
     const [filterType, setFilterType] = useState('semua');
+    const [imageFiles, setImageFiles] = useState([]);
+    const [imagePreviews, setImagePreviews] = useState([]);
 
   useEffect(() => { fetchPackages(); }, []);
 
@@ -29,16 +32,35 @@ export default function AdminPackages() {
         setLoading(false);
   };
 
-  const openCreate = () => { setForm(emptyForm); setEditId(null); setShowForm(true); };
-    const openEdit = (pkg) => { setForm({ ...emptyForm, ...pkg, images: pkg.images || [] }); setEditId(pkg.id); setShowForm(true); };
-    const closeForm = () => { setShowForm(false); setEditId(null); setForm(emptyForm); };
+  const openCreate = () => { setForm(emptyForm); setEditId(null); setImageFiles([]); setImagePreviews([]); setShowForm(true); };
+    const openEdit = (pkg) => { setForm({ ...emptyForm, ...pkg, images: pkg.images || [] }); setEditId(pkg.id); setImageFiles([]); setImagePreviews([]); setShowForm(true); };
+    const closeForm = () => { setShowForm(false); setEditId(null); setForm(emptyForm); setImageFiles([]); setImagePreviews([]); };
+
+  const handleImageFiles = (e) => {
+        const files = Array.from(e.target.files);
+        setImageFiles(files);
+        setImagePreviews(files.map(f => URL.createObjectURL(f)));
+  };
 
   const handleSave = async (e) => {
         e.preventDefault();
         setSaving(true);
         try {
+                // Upload new image files if any
+                let images = form.images || [];
+                if (imageFiles.length > 0) {
+                          const uploads = await Promise.all(
+                                    imageFiles.map(async (file) => {
+                                              const r = storageRef(storage, `packages/${Date.now()}_${file.name}`);
+                                              await uploadBytes(r, file);
+                                              return getDownloadURL(r);
+                                    })
+                          );
+                          images = [...images, ...uploads];
+                }
                 const data = {
                           ...form,
+                          images,
                           price: Number(form.price),
                           originalPrice: Number(form.originalPrice) || null,
                           maxParticipants: Number(form.maxParticipants),
@@ -207,8 +229,39 @@ export default function AdminPackages() {
                                                                                         <input type="number" value={form.originalPrice} onChange={e => setForm({...form, originalPrice: e.target.value})} className={inputClass} placeholder="2000000" />
                                                                       </div>
                                                                       <div className="col-span-2">
-                                                                                        <label className={labelClass}>URL Foto (pisahkan dengan koma)</label>
-                                                                                        <input type="text" value={form.images?.join(', ')} onChange={e => setForm({...form, images: e.target.value.split(',').map(s => s.trim()).filter(Boolean)})} className={inputClass} placeholder="https://..." />
+                                                                                        <label className={labelClass}>Foto Paket</label>
+                                                                                        <div className="space-y-2">
+                                                                                          <div className="flex items-center gap-2">
+                                                                                            <label className="flex items-center gap-2 cursor-pointer bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                                                                                              <Upload className="w-4 h-4" />
+                                                                                              Upload Foto
+                                                                                              <input type="file" multiple accept="image/*" onChange={handleImageFiles} className="hidden" />
+                                                                                            </label>
+                                                                                            {imageFiles.length > 0 && <span className="text-xs text-gray-500">{imageFiles.length} file dipilih</span>}
+                                                                                          </div>
+                                                                                          {imagePreviews.length > 0 && (
+                                                                                            <div className="flex gap-2 flex-wrap">
+                                                                                              {imagePreviews.map((p, i) => (
+                                                                                                <img key={i} src={p} alt="" className="w-16 h-16 object-cover rounded-lg border" />
+                                                                                              ))}
+                                                                                            </div>
+                                                                                          )}
+                                                                                          {form.images?.length > 0 && (
+                                                                                            <div>
+                                                                                              <p className="text-xs text-gray-500 mb-1">Foto tersimpan ({form.images.length}):</p>
+                                                                                              <div className="flex gap-2 flex-wrap">
+                                                                                                {form.images.map((url, i) => (
+                                                                                                  <div key={i} className="relative">
+                                                                                                    <img src={url} alt="" className="w-16 h-16 object-cover rounded-lg border" />
+                                                                                                    <button type="button" onClick={() => setForm({...form, images: form.images.filter((_, idx) => idx !== i)})}
+                                                                                                      className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center text-xs">×</button>
+                                                                                                  </div>
+                                                                                                ))}
+                                                                                              </div>
+                                                                                            </div>
+                                                                                          )}
+                                                                                          <input type="url" value={''} onChange={e => { if(e.target.value) setForm({...form, images: [...(form.images||[]), e.target.value]}); e.target.value=''; }} className={inputClass} placeholder="Atau tambah via URL (tekan Enter)" onKeyDown={e => { if(e.key==='Enter'){e.preventDefault(); if(e.target.value) { setForm({...form, images: [...(form.images||[]), e.target.value]}); e.target.value=''; }}}} />
+                                                                                        </div>
                                                                       </div>
                                                                       <div className="col-span-2">
                                                                                         <label className={labelClass}>Deskripsi</label>

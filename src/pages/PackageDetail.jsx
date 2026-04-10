@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
-import Navbar from '../components/Navbar'
-import Footer from '../components/Footer'
 import { getPackageById } from '../firebase/firestore'
 import { FaMapMarkerAlt, FaClock, FaUsers, FaStar, FaCheck, FaTimes, FaChevronLeft, FaChevronRight, FaWhatsapp, FaCalendar } from 'react-icons/fa'
 
@@ -45,14 +43,12 @@ const PackageDetail = () => {
     if (loading) {
           return (
                   <>
-                          <Navbar />
                           <div className="min-h-screen flex items-center justify-center pt-20">
                                     <div className="text-center">
                                                 <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
                                                 <p className="text-gray-500">Memuat detail paket...</p>
                                     </div>
                           </div>
-                          <Footer />
                   </>
                 )
     }
@@ -60,7 +56,6 @@ const PackageDetail = () => {
     if (!pkg) {
           return (
                   <>
-                          <Navbar />
                           <div className="min-h-screen flex items-center justify-center pt-20">
                                     <div className="text-center">
                                                 <div className="text-6xl mb-4">😕</div>
@@ -68,7 +63,6 @@ const PackageDetail = () => {
                                                 <Link to="/open-trip" className="text-emerald-600 hover:underline">Kembali ke Open Trip</Link>
                                     </div>
                           </div>
-                          <Footer />
                   </>
                 )
     }
@@ -100,7 +94,6 @@ const PackageDetail = () => {
                                   }
                       })}</script>
                             </Helmet>
-                            <Navbar />
                       
                             <div className="pt-20 min-h-screen bg-gray-50">
                               {/* Breadcrumb */}
@@ -331,9 +324,8 @@ const PackageDetail = () => {
                                     </div>
                             </div>
                       
-                            <Footer />
                       </>
                     )
 }
   
-  export default PackageDetail</></></></>
+  export default PackageDetail

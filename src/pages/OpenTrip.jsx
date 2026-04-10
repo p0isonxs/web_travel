@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
-import Navbar from '../components/Navbar'
-import Footer from '../components/Footer'
 import { getPackages } from '../firebase/firestore'
 import { FaSearch, FaMapMarkerAlt, FaClock, FaUsers, FaStar, FaFilter } from 'react-icons/fa'
 
@@ -54,7 +52,6 @@ const OpenTrip = () => {
                         <meta property="og:title" content="Open Trip - Liburan Terus" />
                         <meta property="og:description" content="Paket open trip terbaik dengan harga terjangkau." />
                 </Helmet>
-                <Navbar />
           
             {/* Hero */}
                 <section className="relative pt-20 pb-16 bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-700 overflow-hidden">
@@ -222,9 +219,8 @@ const OpenTrip = () => {
                         </div>
                 </section>
           
-                <Footer />
           </>
         )
 }
   
-  export default OpenTrip</>
+  export default OpenTrip

@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
-import Navbar from '../components/Navbar'
-import Footer from '../components/Footer'
 import { getPackages } from '../firebase/firestore'
 import { FaSearch, FaMapMarkerAlt, FaClock, FaUserFriends, FaStar, FaFilter, FaCheck } from 'react-icons/fa'
 
@@ -63,7 +61,6 @@ const PrivateTrip = () => {
                         <meta property="og:title" content="Private Trip - Liburan Terus" />
                         <meta property="og:description" content="Wisata eksklusif bersama orang-orang tersayang." />
                 </Helmet>
-                <Navbar />
           
             {/* Hero */}
                 <section className="relative pt-20 pb-16 bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-700 overflow-hidden">
@@ -236,9 +233,8 @@ const PrivateTrip = () => {
                         </div>
                 </section>
           
-                <Footer />
           </>
         )
 }
   
-  export default PrivateTrip</>
+  export default PrivateTrip

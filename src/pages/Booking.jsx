@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
-import Navbar from '../components/Navbar'
-import Footer from '../components/Footer'
 import { getPackageById, addBooking } from '../firebase/firestore'
 import { FaUser, FaEnvelope, FaPhone, FaCalendar, FaUsers, FaArrowLeft } from 'react-icons/fa'
 import { toast } from 'react-toastify'
@@ -85,11 +83,9 @@ const Booking = () => {
     if (loading) {
           return (
                   <>
-                          <Navbar />
                           <div className="min-h-screen flex items-center justify-center pt-20">
                                     <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
                           </div>
-                          <Footer />
                   </>
                 )
     }
@@ -97,14 +93,12 @@ const Booking = () => {
     if (!pkg) {
           return (
                   <>
-                          <Navbar />
                           <div className="min-h-screen flex items-center justify-center pt-20 text-center">
                                     <div>
                                                 <p className="text-gray-500 mb-4">Paket tidak ditemukan</p>
                                                 <Link to="/open-trip" className="text-emerald-600 hover:underline">Kembali</Link>
                                     </div>
                           </div>
-                          <Footer />
                   </>
                 )
     }
@@ -117,7 +111,6 @@ const Booking = () => {
                             <title>Form Booking - {pkg.title} | Liburan Terus</title>
                             <meta name="robots" content="noindex" />
                     </Helmet>
-                    <Navbar />
               
                     <div className="pt-20 min-h-screen bg-gray-50">
                       {/* Header */}
@@ -307,9 +300,8 @@ const Booking = () => {
                             </div>
                     </div>
               
-                    <Footer />
               </>
             )
 }
   
-  export default Booking</></></></>
+  export default Booking

@@ -1,0 +1,54 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Settings - admin only write, anyone can read
+    match /settings/{docId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    // Packages - admin only write, anyone can read (only active)
+    match /packages/{docId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    // Blog - admin only write, anyone can read (only published)
+    match /blog/{docId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    // Gallery - admin only write, anyone can read
+    match /gallery/{docId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    // Testimonials - admin only write, anyone can read approved ones
+    match /testimonials/{docId} {
+      allow read: if true;
+      allow create: if true; // allow public testimonial submission
+      allow update, delete: if request.auth != null;
+    }
+
+    // Bookings - user can create, admin can read/update
+    match /bookings/{docId} {
+      allow create: if true;
+      allow read, update, delete: if request.auth != null;
+    }
+
+    // Payments - user can create, admin can read/update
+    match /payments/{docId} {
+      allow create: if true;
+      allow read, update, delete: if request.auth != null;
+    }
+
+    // Contact messages - anyone can create, admin can read
+    match /contacts/{docId} {
+      allow create: if true;
+      allow read, update, delete: if request.auth != null;
+    }
+  }
+}

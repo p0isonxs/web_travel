@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { MessageCircle, X } from 'lucide-react';
+import { useSettings } from '../contexts/SettingsContext';
 
 export default function WhatsAppButton() {
     const [showTooltip, setShowTooltip] = useState(false);
+    const settings = useSettings();
     const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -10,8 +12,8 @@ export default function WhatsAppButton() {
         return () => clearTimeout(timer);
   }, []);
 
-  const waNumber = '6281234567890';
-    const waMessage = encodeURIComponent('Halo Liburan Terus! Saya ingin bertanya mengenai paket wisata. 🏖️');
+  const waNumber = settings.phone || '6281234567890';
+    const waMessage = encodeURIComponent(`Halo ${settings.siteName}! Saya ingin bertanya mengenai paket wisata. 🏖️`);
     const waUrl = `https://wa.me/${waNumber}?text=${waMessage}`;
 
   if (!visible) return null;
@@ -32,7 +34,7 @@ export default function WhatsAppButton() {
                                                       🌴
                                         </div>
                                         <div>
-                                                      <p className="font-bold text-gray-900 text-sm">Liburan Terus</p>
+                                                      <p className="font-bold text-gray-900 text-sm">{settings.siteName}</p>
                                                       <p className="text-xs text-green-600">● Online sekarang</p>
                                         </div>
                             </div>
