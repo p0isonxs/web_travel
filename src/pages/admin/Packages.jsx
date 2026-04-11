@@ -9,7 +9,7 @@ import { useAuth } from '../../contexts/AuthContext';
 const emptyForm = {
     title: '', type: 'open-trip', location: '', duration: '', price: '', originalPrice: '',
     description: '', itinerary: '', include: '', exclude: '', maxParticipants: 15,
-    images: [], active: true, featured: false,
+    departureDates: '', images: [], active: true, featured: false,
 };
 
 const FIRESTORE_TIMEOUT_MS = 15000;
@@ -83,6 +83,15 @@ function formatListForTextarea(value) {
   return value || '';
 }
 
+function normalizeDepartureDates(value) {
+  const dates = Array.isArray(value) ? value : splitList(value);
+  return [...new Set(
+    dates
+      .map(item => typeof item === 'string' ? item.trim() : '')
+      .filter(Boolean)
+  )].sort();
+}
+
 function formatItineraryForTextarea(value) {
   if (!Array.isArray(value)) return value || '';
   return value
@@ -120,7 +129,7 @@ export default function AdminPackages() {
   };
 
   const openCreate = () => { setForm(emptyForm); setEditId(null); setImageFiles([]); setImagePreviews([]); setSaveStatus(''); setShowForm(true); };
-    const openEdit = (pkg) => { setForm({ ...emptyForm, ...pkg, images: pkg.images || [], itinerary: formatItineraryForTextarea(pkg.itinerary), include: formatListForTextarea(pkg.includes ?? pkg.include), exclude: formatListForTextarea(pkg.excludes ?? pkg.exclude) }); setEditId(pkg.id); setImageFiles([]); setImagePreviews([]); setSaveStatus(''); setShowForm(true); };
+    const openEdit = (pkg) => { setForm({ ...emptyForm, ...pkg, images: pkg.images || [], itinerary: formatItineraryForTextarea(pkg.itinerary), include: formatListForTextarea(pkg.includes ?? pkg.include), exclude: formatListForTextarea(pkg.excludes ?? pkg.exclude), departureDates: formatListForTextarea(pkg.departureDates) }); setEditId(pkg.id); setImageFiles([]); setImagePreviews([]); setSaveStatus(''); setShowForm(true); };
     const closeForm = () => { setShowForm(false); setEditId(null); setForm(emptyForm); setImageFiles([]); setImagePreviews([]); setSaveStatus(''); };
 
   const handleImageFiles = (e) => {
@@ -161,6 +170,7 @@ export default function AdminPackages() {
                           itinerary: parseItinerary(form.itinerary),
                           includes: splitList(form.include),
                           excludes: splitList(form.exclude),
+                          departureDates: form.type === 'open-trip' ? normalizeDepartureDates(form.departureDates) : [],
                           price: Number(form.price),
                           originalPrice: Number(form.originalPrice) || null,
                           maxParticipants: Number(form.maxParticipants),
@@ -378,6 +388,19 @@ export default function AdminPackages() {
                                                                                         <label className={labelClass}>Itinerary (format: Hari 1: ..., Hari 2: ...)</label>
                                                                                         <textarea rows={4} value={form.itinerary} onChange={e => setForm({...form, itinerary: e.target.value})} className={inputClass} />
                                                                       </div>
+                                                                      {form.type === 'open-trip' && (
+                                                                        <div className="col-span-2">
+                                                                                          <label className={labelClass}>Jadwal Keberangkatan Open Trip</label>
+                                                                                          <textarea
+                                                                                            rows={3}
+                                                                                            value={form.departureDates}
+                                                                                            onChange={e => setForm({...form, departureDates: e.target.value})}
+                                                                                            className={inputClass}
+                                                                                            placeholder={`Satu tanggal per baris, contoh:\n2026-05-10\n2026-05-24\n2026-06-07`}
+                                                                                          />
+                                                                                          <p className="mt-1 text-xs text-gray-500">Tanggal ini yang bisa dipilih user saat memesan open trip.</p>
+                                                                        </div>
+                                                                      )}
                                                                       <div>
                                                                                         <label className={labelClass}>Include (pisahkan dengan koma)</label>
                                                                                         <textarea rows={3} value={form.include} onChange={e => setForm({...form, include: e.target.value})} className={inputClass} placeholder="Tiket masuk, Penginapan, Makan..." />

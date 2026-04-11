@@ -178,7 +178,7 @@ export default function Home() {
                                                                                                     </span>
                                                                                                     <span className="inline-flex items-center gap-1.5 rounded-full bg-gray-50 px-3 py-1.5">
                                                                                                                       <Users className="w-3.5 h-3.5 text-teal-500" />
-                                                                                                                      <span>{pkg.maxParticipants || 15} orang</span>
+                                                                                                                      <span>{pkg.maxParticipants || 15} peserta</span>
                                                                                                     </span>
                                                                               </div>
                                                                               <div className="flex items-end justify-between gap-4 border-t border-gray-100 pt-4">

@@ -59,6 +59,8 @@ export default function AdminBookings() {
         return matchStatus && matchSearch;
   });
 
+  const tripDateLabel = (booking) => booking.date || booking.tripDate || '-';
+
   return (
         <div className="space-y-6">
               <div className="flex items-center justify-between">
@@ -108,7 +110,7 @@ export default function AdminBookings() {
                                                             </td>
                                                             <td className="px-4 py-3">
                                                                                   <p className="text-gray-800 line-clamp-1">{b.packageName || '-'}</p>
-                                                                                  <p className="text-xs text-gray-500">{b.tripDate || '-'}</p>
+                                                                                  <p className="text-xs text-gray-500">{tripDateLabel(b)}</p>
                                                             </td>
                                                             <td className="px-4 py-3 text-gray-600">{formatDate(b.createdAt)}</td>
                                                             <td className="px-4 py-3 text-gray-600">{b.participants || 1} orang</td>
@@ -150,7 +152,7 @@ export default function AdminBookings() {
                                                                       <p><span className="font-medium">Email:</span> {detail.email}</p>
                                                                       <p><span className="font-medium">No. HP:</span> {detail.phone}</p>
                                                                       <p><span className="font-medium">Paket:</span> {detail.packageName}</p>
-                                                                      <p><span className="font-medium">Tanggal Trip:</span> {detail.tripDate}</p>
+                                                                      <p><span className="font-medium">Tanggal Trip:</span> {tripDateLabel(detail)}</p>
                                                                       <p><span className="font-medium">Jumlah Peserta:</span> {detail.participants} orang</p>
                                                         {detail.emergencyContact && <p><span className="font-medium">Kontak Darurat:</span> {detail.emergencyContact}</p>}
                                                         {detail.notes && <p><span className="font-medium">Catatan:</span> {detail.notes}</p>}

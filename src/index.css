@@ -88,3 +88,26 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+
+.booking-schedule-scroll {
+  scrollbar-color: #10b981 #ecfdf5;
+  scrollbar-width: thin;
+}
+
+.booking-schedule-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.booking-schedule-scroll::-webkit-scrollbar-track {
+  background: #ecfdf5;
+  border-radius: 9999px;
+}
+
+.booking-schedule-scroll::-webkit-scrollbar-thumb {
+  background: #10b981;
+  border-radius: 9999px;
+}
+
+.booking-schedule-scroll::-webkit-scrollbar-thumb:hover {
+  background: #059669;
+}

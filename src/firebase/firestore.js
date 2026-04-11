@@ -90,12 +90,20 @@ import {
                           const normalizePackage = (data) => {
                             if (!data) return data
 
+                            const departureDates = Array.isArray(data.departureDates)
+                              ? data.departureDates
+                              : splitList(data.departureDates)
+
                             return {
                               ...data,
                               images: Array.isArray(data.images) ? data.images.filter(Boolean) : (data.image ? [data.image] : []),
                               itinerary: normalizeItinerary(data.itinerary),
                               includes: splitList(data.includes ?? data.include),
                               excludes: splitList(data.excludes ?? data.exclude),
+                              departureDates: departureDates
+                                .map(item => typeof item === 'string' ? item.trim() : '')
+                                .filter(Boolean)
+                                .sort(),
                             }
                           }
 
@@ -140,11 +148,28 @@ export const getPackages = async (type = null) => {
                                                           // =================== BOOKINGS ===================
                                                           export const bookingsCollection = collection(db, 'bookings')
 
-                                                          export const getBookings = async () => {
-                                                            const q = query(bookingsCollection, orderBy('createdAt', 'desc'))
-                                                              const snapshot = await getDocs(q)
-                                                                return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
-                                                                }
+export const getBookings = async () => {
+  const q = query(bookingsCollection, orderBy('createdAt', 'desc'))
+    const snapshot = await getDocs(q)
+      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+      }
+
+      export const getOpenTripSlotUsage = async (packageId) => {
+        const q = query(bookingsCollection, where('packageId', '==', packageId))
+          const snapshot = await getDocs(q)
+            return snapshot.docs.reduce((acc, bookingDoc) => {
+              const booking = bookingDoc.data()
+              const bookingDate = booking.date || booking.tripDate
+              const bookingStatus = booking.status || 'pending'
+
+              if (!bookingDate || bookingStatus === 'cancelled') {
+                return acc
+              }
+
+              acc[bookingDate] = (acc[bookingDate] || 0) + (Number(booking.participants) || 1)
+              return acc
+            }, {})
+            }
 
                                                                 export const getBookingById = async (id) => {
                                                                   const docRef = doc(db, 'bookings', id)

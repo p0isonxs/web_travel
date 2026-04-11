@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
-import { getPackageById } from '../firebase/firestore'
+import { getPackageById, getOpenTripSlotUsage } from '../firebase/firestore'
 import { FaMapMarkerAlt, FaClock, FaUsers, FaStar, FaCheck, FaTimes, FaChevronLeft, FaChevronRight, FaWhatsapp, FaCalendar } from 'react-icons/fa'
 import Seo from '../components/Seo'
 
@@ -14,12 +14,26 @@ const PackageDetail = () => {
     const [activeImage, setActiveImage] = useState(0)
     const [selectedDate, setSelectedDate] = useState('')
     const [participants, setParticipants] = useState(1)
+    const [slotUsage, setSlotUsage] = useState({})
 
     useEffect(() => {
           const fetchPackage = async () => {
                   try {
                             const data = await getPackageById(id)
                             setPkg(data)
+                            if (data?.type === 'open-trip') {
+                                    const usage = await getOpenTripSlotUsage(id)
+                                    setSlotUsage(usage)
+                                    if (data.departureDates?.length > 0) {
+                                            const firstAvailableDate = data.departureDates.find((date) => {
+                                                      const capacity = Number(data.maxParticipants) || 15
+                                                      return Math.max(0, capacity - (usage[date] || 0)) > 0
+                                            })
+                                            setSelectedDate(firstAvailableDate || data.departureDates[0])
+                                    }
+                            } else if (data?.departureDates?.length > 0) {
+                                    setSelectedDate(data.departureDates[0])
+                            }
                   } catch (error) {
                             console.error('Error fetching package:', error)
                   } finally {
@@ -34,13 +48,34 @@ const PackageDetail = () => {
     }
 
     const isGeneratedScheduleLabel = (value) => /^Kegiatan\s+\d+$/i.test((value || '').trim())
+    const formatDepartureDate = (value) => {
+          if (!value) return '-'
+          const parsed = new Date(`${value}T00:00:00`)
+          if (Number.isNaN(parsed.getTime())) return value
+          return parsed.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
+    }
+
+    const formatDepartureDay = (value) => {
+          if (!value) return ''
+          const parsed = new Date(`${value}T00:00:00`)
+          if (Number.isNaN(parsed.getTime())) return value
+          return parsed.toLocaleDateString('id-ID', { weekday: 'long' })
+    }
 
     const handleBooking = () => {
-          if (!selectedDate) {
+          if (isOpenTrip && !selectedDate) {
                   alert('Pilih tanggal keberangkatan terlebih dahulu!')
                   return
           }
-          navigate(`/booking/${id}?date=${selectedDate}&participants=${participants}`)
+          if (isOpenTrip && selectedRemainingSlots < participants) {
+                  alert(selectedRemainingSlots > 0 ? `Slot tersisa hanya ${selectedRemainingSlots} peserta untuk tanggal ini.` : 'Jadwal ini sudah penuh. Pilih tanggal lain.')
+                  return
+          }
+          const params = new URLSearchParams({ participants: String(participants) })
+          if (selectedDate) {
+                  params.set('date', selectedDate)
+          }
+          navigate(`/booking/${id}?${params.toString()}`)
     }
 
     if (loading) {
@@ -73,6 +108,8 @@ const PackageDetail = () => {
     const images = pkg.images?.length > 0 ? pkg.images : [pkg.image || 'https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?w=800']
         const isOpenTrip = pkg.type === 'open-trip'
             const accentColor = isOpenTrip ? 'emerald' : 'purple'
+            const capacityPerDate = Number(pkg.maxParticipants) || 15
+            const selectedRemainingSlots = selectedDate ? Math.max(0, capacityPerDate - (slotUsage[selectedDate] || 0)) : capacityPerDate
               
                 return (
                       <>
@@ -225,30 +262,46 @@ const PackageDetail = () => {
                                                                                         
                                                                                           {activeTab === 'fasilitas' && (
                                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                                                                  <div>
-                                                                                          <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                                                                                                                    <FaCheck className="text-green-500" /> Sudah Termasuk
-                                                                                            </h3>
-                                                                                          <ul className="space-y-2">
+                                                                  <div className="rounded-[28px] border border-gray-200 bg-white p-6 shadow-[0_18px_45px_-28px_rgba(15,23,42,0.18)]">
+                                                                                          <div className="mb-4 flex items-start gap-3">
+                                                                                                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
+                                                                                                              <FaCheck className="text-xs" />
+                                                                                                            </div>
+                                                                                                            <div>
+                                                                                                                              <h3 className="text-base font-semibold tracking-[0.01em] text-gray-900">Sudah Termasuk</h3>
+                                                                                                                              <p className="mt-1 text-sm leading-6 text-gray-500">Fasilitas yang sudah termasuk dalam harga paket.</p>
+                                                                                                            </div>
+                                                                                          </div>
+                                                                                          <ul className="space-y-3">
                                                                                             {pkg.includes?.length > 0 ? pkg.includes.map((item, i) => (
-                                                                          <li key={i} className="flex items-start gap-2 text-sm text-gray-600">
-                                                                                                        <FaCheck className="text-green-500 mt-0.5 shrink-0 text-xs" />
-                                                                            {item}
+                                                                          <li key={i} className="flex items-start gap-3 rounded-2xl border border-gray-100 bg-gray-50/70 px-4 py-3.5 text-sm leading-6 text-gray-700">
+                                                                                                        <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white text-emerald-600 ring-1 ring-emerald-100">
+                                                                                                          <FaCheck className="text-[9px]" />
+                                                                                                        </span>
+                                                                            <span>{item}</span>
                                                                             </li>
-                                                                        )) : <li className="text-gray-400 text-sm">-</li>}
+                                                                        )) : <li className="rounded-2xl border border-dashed border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-400">Belum ada fasilitas yang dicantumkan.</li>}
                                                                                             </ul>
                                                                   </div>
-                                                                  <div>
-                                                                                          <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                                                                                                                    <FaTimes className="text-red-500" /> Tidak Termasuk
-                                                                                            </h3>
-                                                                                          <ul className="space-y-2">
+                                                                  <div className="rounded-[28px] border border-gray-200 bg-white p-6 shadow-[0_18px_45px_-28px_rgba(15,23,42,0.18)]">
+                                                                                          <div className="mb-4 flex items-start gap-3">
+                                                                                                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-rose-50 text-rose-500">
+                                                                                                              <FaTimes className="text-xs" />
+                                                                                                            </div>
+                                                                                                            <div>
+                                                                                                                              <h3 className="text-base font-semibold tracking-[0.01em] text-gray-900">Tidak Termasuk</h3>
+                                                                                                                              <p className="mt-1 text-sm leading-6 text-gray-500">Biaya atau kebutuhan yang perlu disiapkan sendiri.</p>
+                                                                                                            </div>
+                                                                                          </div>
+                                                                                          <ul className="space-y-3">
                                                                                             {pkg.excludes?.length > 0 ? pkg.excludes.map((item, i) => (
-                                                                          <li key={i} className="flex items-start gap-2 text-sm text-gray-600">
-                                                                                                        <FaTimes className="text-red-400 mt-0.5 shrink-0 text-xs" />
-                                                                            {item}
+                                                                          <li key={i} className="flex items-start gap-3 rounded-2xl border border-gray-100 bg-gray-50/70 px-4 py-3.5 text-sm leading-6 text-gray-700">
+                                                                                                        <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white text-rose-500 ring-1 ring-rose-100">
+                                                                                                          <FaTimes className="text-[9px]" />
+                                                                                                        </span>
+                                                                            <span>{item}</span>
                                                                             </li>
-                                                                        )) : <li className="text-gray-400 text-sm">-</li>}
+                                                                        )) : <li className="rounded-2xl border border-dashed border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-400">Belum ada pengecualian yang dicantumkan.</li>}
                                                                                             </ul>
                                                                   </div>
                                             </div>
@@ -261,27 +314,91 @@ const PackageDetail = () => {
                                                           <div className="lg:col-span-1">
                                                                         <div className="bg-white rounded-2xl shadow-sm p-6 sticky top-24">
                                                                           {/* Price */}
-                                                                                        <div className="mb-6">
+                                                                                        <div className="mb-6 rounded-2xl border border-gray-100 bg-gray-50 px-5 py-4">
                                                                                           {pkg.originalPrice && pkg.originalPrice > pkg.price && (
-                                            <p className="text-gray-400 line-through text-sm">{formatPrice(pkg.originalPrice)}</p>
-                                                                                                          )}
-                                                                                                          <p className={`text-3xl font-bold text-${accentColor}-600`}>{formatPrice(pkg.price)}</p>
-                                                                                                          <p className="text-gray-400 text-sm">per orang</p>
+                                                                                            <p className="text-sm text-gray-400 line-through">{formatPrice(pkg.originalPrice)}</p>
+                                                                                          )}
+                                                                                          <div className="mt-1 flex items-end gap-2">
+                                                                                            <p className={`text-3xl font-bold leading-none text-${accentColor}-600`}>{formatPrice(pkg.price)}</p>
+                                                                                            <span className="pb-0.5 text-sm text-gray-500">/ pax</span>
                                                                                           </div>
+                                                                                        </div>
                                                                         
                                                                           {/* Select Date */}
                                                                                         <div className="mb-4">
                                                                                                           <label className="block text-sm font-medium text-gray-700 mb-1.5">
                                                                                                                               <FaCalendar className={`inline mr-1.5 text-${accentColor}-500`} />
-                                                                                                                              Tanggal Keberangkatan
+                                                                                                                              {isOpenTrip ? 'Pilih Jadwal Open Trip' : 'Tanggal Keberangkatan'}
                                                                                                             </label>
-                                                                                                          <input
-                                                                                                                                type="date"
-                                                                                                                                value={selectedDate}
-                                                                                                                                onChange={e => setSelectedDate(e.target.value)}
-                                                                                                                                min={new Date().toISOString().split('T')[0]}
-                                                                                                                                className={`w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-${accentColor}-500`}
-                                                                                                                              />
+                                                                                                          {isOpenTrip ? (
+                                                                                                            pkg.departureDates?.length > 0 ? (
+                                                                                                              <div className="space-y-3">
+                                                                                                                <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                                                                                                                  {pkg.departureDates.map((date) => {
+                                                                                                                    const isSelected = selectedDate === date
+                                                                                                                    const booked = slotUsage[date] || 0
+                                                                                                                    const remaining = Math.max(0, capacityPerDate - booked)
+                                                                                                                    const isFull = remaining <= 0
+                                                                                                                    return (
+                                                                                                                      <button
+                                                                                                                        key={date}
+                                                                                                                        type="button"
+                                                                                                                        onClick={() => !isFull && setSelectedDate(date)}
+                                                                                                                        disabled={isFull}
+                                                                                                                        className={`min-w-[168px] shrink-0 rounded-2xl border px-4 py-3 text-left transition-all ${
+                                                                                                                          isFull
+                                                                                                                            ? 'cursor-not-allowed border-gray-200 bg-gray-100 opacity-70'
+                                                                                                                            : isSelected
+                                                                                                                            ? isOpenTrip
+                                                                                                                              ? 'border-emerald-500 bg-emerald-50 shadow-sm shadow-emerald-100'
+                                                                                                                              : 'border-purple-500 bg-purple-50 shadow-sm shadow-purple-100'
+                                                                                                                            : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50'
+                                                                                                                        }`}
+                                                                                                                      >
+                                                                                                                        <div className="flex items-start justify-between gap-3">
+                                                                                                                          <div>
+                                                                                                                            <p className={`text-xs font-semibold uppercase tracking-[0.22em] ${isOpenTrip ? 'text-emerald-600' : 'text-purple-600'}`}>
+                                                                                                                              {formatDepartureDay(date)}
+                                                                                                                            </p>
+                                                                                                                            <p className="mt-1 text-sm font-semibold text-gray-800">
+                                                                                                                              {formatDepartureDate(date)}
+                                                                                                                            </p>
+                                                                                                                            <p className={`mt-2 text-xs font-medium ${isFull ? 'text-red-500' : isOpenTrip ? 'text-emerald-600' : 'text-purple-600'}`}>
+                                                                                                                              {isFull ? 'Slot penuh' : `${remaining} slot tersisa`}
+                                                                                                                            </p>
+                                                                                                                          </div>
+                                                                                                                          <span className={`mt-0.5 h-5 w-5 rounded-full border-2 transition-colors ${
+                                                                                                                            isFull
+                                                                                                                              ? 'border-gray-300 bg-gray-200'
+                                                                                                                              : isSelected
+                                                                                                                              ? isOpenTrip
+                                                                                                                                ? 'border-emerald-500 bg-emerald-500'
+                                                                                                                                : 'border-purple-500 bg-purple-500'
+                                                                                                                              : 'border-gray-300 bg-white'
+                                                                                                                          }`} />
+                                                                                                                        </div>
+                                                                                                                      </button>
+                                                                                                                    )
+                                                                                                                  })}
+                                                                                                                </div>
+                                                                                                                <div className={`rounded-2xl px-4 py-3 text-sm ${isOpenTrip ? 'bg-emerald-50 text-emerald-700' : 'bg-purple-50 text-purple-700'}`}>
+                                                                                                                  Geser ke samping bila pilihan tanggal banyak. Jadwal hanya tersedia sesuai yang dibuka admin.
+                                                                                                                </div>
+                                                                                                              </div>
+                                                                                                            ) : (
+                                                                                                              <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-4 text-sm text-gray-500">
+                                                                                                                Jadwal open trip belum tersedia. Hubungi admin untuk info keberangkatan terbaru.
+                                                                                                              </div>
+                                                                                                            )
+                                                                                                          ) : (
+                                                                                                            <input
+                                                                                                              type="date"
+                                                                                                              value={selectedDate}
+                                                                                                              onChange={e => setSelectedDate(e.target.value)}
+                                                                                                              min={new Date().toISOString().split('T')[0]}
+                                                                                                              className={`w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-${accentColor}-500`}
+                                                                                                            />
+                                                                                                          )}
                                                                                           </div>
                                                                         
                                                                           {/* Participants */}
@@ -296,11 +413,16 @@ const PackageDetail = () => {
                                                                                                                                                     -
                                                                                                                                 </button>
                                                                                                                               <span className="flex-1 text-center font-semibold text-gray-800">{participants}</span>
-                                                                                                                              <button onClick={() => setParticipants(p => Math.min(pkg.maxParticipants || 99, p + 1))}
+                                                                                                                              <button onClick={() => setParticipants(p => Math.min(isOpenTrip ? Math.max(1, selectedRemainingSlots) : (pkg.maxParticipants || 99), p + 1))}
                                                                                                                                                       className={`w-7 h-7 bg-${accentColor}-100 text-${accentColor}-600 rounded-full flex items-center justify-center font-bold text-lg hover:bg-${accentColor}-200 transition-colors`}>
                                                                                                                                                     +
                                                                                                                                 </button>
                                                                                                             </div>
+                                                                                                          {isOpenTrip && selectedDate && (
+                                                                                                            <p className={`mt-2 text-xs ${selectedRemainingSlots > 0 ? 'text-gray-500' : 'text-red-500'}`}>
+                                                                                                              {selectedRemainingSlots > 0 ? `Tersisa ${selectedRemainingSlots} slot untuk tanggal ini.` : 'Tanggal ini sudah penuh. Pilih jadwal lain.'}
+                                                                                                            </p>
+                                                                                                          )}
                                                                                           </div>
                                                                         
                                                                           {/* Total */}
@@ -316,8 +438,9 @@ const PackageDetail = () => {
                                                                         
                                                                           {/* Book Button */}
                                                                                         <button onClick={handleBooking}
+                                                                                                            disabled={isOpenTrip && selectedRemainingSlots <= 0}
                                                                                                             className={`w-full bg-gradient-to-r ${isOpenTrip ? 'from-emerald-500 to-teal-600' : 'from-violet-500 to-purple-600'} text-white py-4 rounded-xl font-bold hover:shadow-lg hover:scale-[1.02] transition-all duration-200 mb-3`}>
-                                                                                                          Pesan Sekarang
+                                                                                                          {isOpenTrip && selectedRemainingSlots <= 0 ? 'Jadwal Penuh' : 'Pesan Sekarang'}
                                                                                           </button>
                                                                         
                                                                           {/* WhatsApp */}

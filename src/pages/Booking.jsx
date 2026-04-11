@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
-import { getPackageById, addBooking } from '../firebase/firestore'
+import { getPackageById, addBooking, getOpenTripSlotUsage } from '../firebase/firestore'
 import { FaUser, FaEnvelope, FaPhone, FaCalendar, FaUsers, FaArrowLeft } from 'react-icons/fa'
 import { toast } from 'react-toastify'
 
@@ -12,6 +12,7 @@ const Booking = () => {
     const [pkg, setPkg] = useState(null)
     const [loading, setLoading] = useState(true)
     const [submitting, setSubmitting] = useState(false)
+    const [slotUsage, setSlotUsage] = useState({})
 
     const preDate = searchParams.get('date') || ''
     const preParticipants = parseInt(searchParams.get('participants')) || 1
@@ -32,6 +33,19 @@ const Booking = () => {
                   try {
                             const data = await getPackageById(id)
                             setPkg(data)
+                            if (data?.type === 'open-trip') {
+                                    const usage = await getOpenTripSlotUsage(id)
+                                    setSlotUsage(usage)
+                                    if (!preDate && data.departureDates?.length > 0) {
+                                            const firstAvailableDate = data.departureDates.find((date) => {
+                                                      const capacity = Number(data.maxParticipants) || 15
+                                                      return Math.max(0, capacity - (usage[date] || 0)) > 0
+                                            })
+                                            if (firstAvailableDate) {
+                                                      setForm(prev => ({ ...prev, date: firstAvailableDate }))
+                                            }
+                                    }
+                            }
                   } catch (error) {
                             console.error('Error:', error)
                   } finally {
@@ -45,15 +59,45 @@ const Booking = () => {
           return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(price)
     }
 
+    const formatDisplayDate = (value) => {
+          if (!value) return '-'
+          const parsed = new Date(`${value}T00:00:00`)
+          if (Number.isNaN(parsed.getTime())) return value
+          return parsed.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
+    }
+
+    const formatDisplayDay = (value) => {
+          if (!value) return ''
+          const parsed = new Date(`${value}T00:00:00`)
+          if (Number.isNaN(parsed.getTime())) return value
+          return parsed.toLocaleDateString('id-ID', { weekday: 'long' })
+    }
+
+    const isOpenTrip = pkg?.type === 'open-trip'
+    const requiresUserDate = pkg?.type === 'private-trip'
+    const availableDepartureDates = Array.isArray(pkg?.departureDates) ? pkg.departureDates : []
+    const capacityPerDate = Number(pkg?.maxParticipants) || 15
+    const selectedRemainingSlots = form.date ? Math.max(0, capacityPerDate - (slotUsage[form.date] || 0)) : capacityPerDate
+
     const handleChange = (e) => {
           const { name, value } = e.target
-          setForm(prev => ({ ...prev, [name]: value }))
+          setForm(prev => {
+                if (name === 'participants') {
+                        const maxParticipants = isOpenTrip ? Math.max(1, selectedRemainingSlots) : (pkg?.maxParticipants || 99)
+                        return { ...prev, [name]: String(Math.min(maxParticipants, Math.max(1, Number(value) || 1))) }
+                }
+                return { ...prev, [name]: value }
+          })
     }
 
     const handleSubmit = async (e) => {
           e.preventDefault()
-          if (!form.name || !form.email || !form.phone || !form.date) {
+          if (!form.name || !form.email || !form.phone || (requiresUserDate && !form.date) || (isOpenTrip && !form.date)) {
                   toast.error('Mohon lengkapi semua field yang wajib diisi!')
+                  return
+          }
+          if (isOpenTrip && selectedRemainingSlots < Number(form.participants)) {
+                  toast.error(selectedRemainingSlots > 0 ? `Slot tersisa hanya ${selectedRemainingSlots} peserta untuk tanggal ini.` : 'Jadwal yang dipilih sudah penuh.')
                   return
           }
           setSubmitting(true)
@@ -193,14 +237,64 @@ const Booking = () => {
                                                                                                   
                                                                                                                       <div>
                                                                                                                                             <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                                                                                                                                                                    Tanggal Berangkat <span className="text-red-500">*</span>
+                                                                                                                                                                    {isOpenTrip ? 'Jadwal Open Trip' : 'Tanggal Berangkat'} <span className="text-red-500">*</span>
                                                                                                                                               </label>
+                                                                                                                                            {isOpenTrip ? (
+                                                                                                                                              <div className="space-y-2">
+                                                                                                                                                                    {availableDepartureDates.length > 0 ? (
+                                                                                                                                                                      <div className="booking-schedule-scroll max-h-40 space-y-2 overflow-y-auto rounded-xl border border-gray-200 bg-gray-50 p-2 pr-1">
+                                                                                                                                                                      {availableDepartureDates.map((date) => {
+                                                                                                                                                                          const isSelected = form.date === date
+                                                                                                                                                                          const booked = slotUsage[date] || 0
+                                                                                                                                                                          const remaining = Math.max(0, capacityPerDate - booked)
+                                                                                                                                                                          const isFull = remaining <= 0
+                                                                                                                                                                          return (
+                                                                                                                                                                            <button
+                                                                                                                                                                              key={date}
+                                                                                                                                                                              type="button"
+                                                                                                                                                                              onClick={() => !isFull && setForm(prev => ({ ...prev, date }))}
+                                                                                                                                                                              disabled={isFull}
+                                                                                                                                                                              className={`w-full rounded-lg border px-3 py-3 text-left transition-all ${
+                                                                                                                                                                                isFull
+                                                                                                                                                                                  ? 'cursor-not-allowed border-gray-200 bg-gray-100 opacity-70'
+                                                                                                                                                                                  : isSelected
+                                                                                                                                                                                  ? 'border-emerald-500 bg-white'
+                                                                                                                                                                                  : 'border-transparent bg-white hover:border-gray-200'
+                                                                                                                                                                              }`}
+                                                                                                                                                                            >
+                                                                                                                                                                              <div className="flex items-start justify-between gap-3">
+                                                                                                                                                                                <div>
+                                                                                                                                                                                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-600">
+                                                                                                                                                                                    {formatDisplayDay(date)}
+                                                                                                                                                                                  </p>
+                                                                                                                                                                                  <p className="mt-1 text-sm font-semibold text-gray-800">
+                                                                                                                                                                                    {formatDisplayDate(date)}
+                                                                                                                                                                                  </p>
+                                                                                                                                                                                  <p className={`mt-1.5 text-xs font-medium ${isFull ? 'text-red-500' : 'text-gray-500'}`}>
+                                                                                                                                                                                    {isFull ? 'Slot penuh' : `${remaining} slot tersisa`}
+                                                                                                                                                                                  </p>
+                                                                                                                                                                                </div>
+                                                                                                                                                                                <span className={`mt-0.5 h-4 w-4 rounded-full border-2 transition-colors ${isFull ? 'border-gray-300 bg-gray-200' : isSelected ? 'border-emerald-500 bg-emerald-500' : 'border-gray-300 bg-white'}`} />
+                                                                                                                                                                              </div>
+                                                                                                                                                                            </button>
+                                                                                                                                                                          )
+                                                                                                                                                                        })}
+                                                                                                                                                                      </div>
+                                                                                                                                                                    ) : (
+                                                                                                                                                                      <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-4 text-sm text-gray-500">
+                                                                                                                                                                        Jadwal open trip belum tersedia. Hubungi admin untuk info keberangkatan terbaru.
+                                                                                                                                                                      </div>
+                                                                                                                                                                    )}
+                                                                                                                                                                    <p className="text-xs text-gray-500">Tanggal open trip ditentukan admin pengelola paket. Pilih salah satu jadwal yang tersedia.</p>
+                                                                                                                                              </div>
+                                                                                                                                           ) : (
                                                                                                                                             <div className="relative">
                                                                                                                                                                     <FaCalendar className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
-                                                                                                                                                                    <input type="date" name="date" value={form.date} onChange={handleChange} required
+                                                                                                                                                                    <input type="date" name="date" value={form.date} onChange={handleChange} required={requiresUserDate}
                                                                                                                                                                                                 min={new Date().toISOString().split('T')[0]}
                                                                                                                                                                                                 className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm bg-gray-50" />
                                                                                                                                               </div>
+                                                                                                                                            )}
                                                                                                                         </div>
                                                                                                   
                                                                                                                       <div>
@@ -210,9 +304,14 @@ const Booking = () => {
                                                                                                                                             <div className="relative">
                                                                                                                                                                     <FaUsers className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
                                                                                                                                                                     <input type="number" name="participants" value={form.participants} onChange={handleChange}
-                                                                                                                                                                                                min="1" max={pkg.maxParticipants || 99} required
+                                                                                                                                                                                                min="1" max={isOpenTrip ? Math.max(1, selectedRemainingSlots) : (pkg.maxParticipants || 99)} required
                                                                                                                                                                                                 className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm bg-gray-50" />
                                                                                                                                               </div>
+                                                                                                                                              {isOpenTrip && form.date && (
+                                                                                                                                                <p className={`mt-2 text-xs ${selectedRemainingSlots > 0 ? 'text-gray-500' : 'text-red-500'}`}>
+                                                                                                                                                  {selectedRemainingSlots > 0 ? `Tersisa ${selectedRemainingSlots} slot pada tanggal ini.` : 'Tanggal ini sudah penuh. Pilih jadwal lain.'}
+                                                                                                                                                </p>
+                                                                                                                                              )}
                                                                                                                         </div>
                                                                                                     </div>
                                                                                 </div>
@@ -279,7 +378,7 @@ const Booking = () => {
                                                                                   {form.date && (
                                     <div className="flex justify-between text-gray-600">
                                                           <span>Tanggal</span>
-                                                          <span className="font-medium">{new Date(form.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                                                          <span className="font-medium">{formatDisplayDate(form.date)}</span>
                                     </div>
                                                                                                   )}
                                                                                                   <div className="flex justify-between text-gray-600">
