@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { getPackages } from '../firebase/firestore'
 import { FaSearch, FaMapMarkerAlt, FaClock, FaUsers, FaStar, FaFilter } from 'react-icons/fa'
 import Seo from '../components/Seo'
+import { useLanguage } from '../contexts/LanguageContext'
 
 const OpenTrip = () => {
     const [packages, setPackages] = useState([])
@@ -10,6 +11,7 @@ const OpenTrip = () => {
     const [loading, setLoading] = useState(true)
     const [search, setSearch] = useState('')
     const [sortBy, setSortBy] = useState('newest')
+    const { t, localize } = useLanguage()
 
     useEffect(() => {
           const fetchPackages = async () => {
@@ -30,8 +32,8 @@ const OpenTrip = () => {
           let result = [...packages]
           if (search) {
                   result = result.filter(p =>
-                            p.title?.toLowerCase().includes(search.toLowerCase()) ||
-                            p.location?.toLowerCase().includes(search.toLowerCase())
+                            localize(p.title)?.toLowerCase().includes(search.toLowerCase()) ||
+                            localize(p.location)?.toLowerCase().includes(search.toLowerCase())
                                                )
           }
           if (sortBy === 'price-asc') result.sort((a, b) => (a.price || 0) - (b.price || 0))
@@ -46,8 +48,8 @@ const OpenTrip = () => {
     return (
           <>
                 <Seo
-                  title="Open Trip - Liburan Terus | Paket Wisata Bersama"
-                  description="Temukan berbagai paket open trip seru bersama Liburan Terus. Harga terjangkau, pemandu berpengalaman, dan pengalaman tak terlupakan."
+                  title={t('openTrip.seoTitle')}
+                  description={t('openTrip.seoDescription')}
                 />
           
             {/* Hero */}
@@ -59,13 +61,13 @@ const OpenTrip = () => {
                         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
                                   <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white text-sm px-4 py-2 rounded-full mb-4">
                                               <FaUsers size={12} />
-                                              <span>Bergabung bersama ribuan traveler</span>
+                                              <span>{t('openTrip.heroBadge')}</span>
                                   </div>
                                   <h1 className="text-3xl md:text-5xl font-bold text-white mb-4">
-                                              Open Trip <span className="text-emerald-200">Seru & Terjangkau</span>
+                                              {t('openTrip.heroTitle')} <span className="text-emerald-200">{t('openTrip.heroHighlight')}</span>
                                   </h1>
                                   <p className="text-emerald-100 text-lg max-w-2xl mx-auto mb-8">
-                                              Kenalan dengan teman baru, jelajahi destinasi impian, dengan biaya yang bersahabat di kantong.
+                                              {t('openTrip.heroDescription')}
                                   </p>
                         
                           {/* Search Bar */}
@@ -77,12 +79,12 @@ const OpenTrip = () => {
                                                                                                 type="text"
                                                                                                 value={search}
                                                                                                 onChange={e => setSearch(e.target.value)}
-                                                                                                placeholder="Cari destinasi atau paket trip..."
+                                                                                                placeholder={t('openTrip.searchPlaceholder')}
                                                                                                 className="w-full pl-10 pr-4 py-3 rounded-xl text-gray-700 focus:outline-none text-sm"
                                                                                               />
                                                             </div>
                                                             <button className="bg-gradient-to-r from-emerald-500 to-teal-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all text-sm">
-                                                                            Cari
+                                                                            {t('openTrip.searchButton')}
                                                             </button>
                                               </div>
                                   </div>
@@ -96,9 +98,9 @@ const OpenTrip = () => {
                                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
                                               <div>
                                                             <h2 className="text-xl font-bold text-gray-800">
-                                                              {loading ? 'Memuat...' : `${filtered.length} Paket Open Trip`}
+                                                              {loading ? t('openTrip.loading') : `${filtered.length} ${t('openTrip.packagesCount')}`}
                                                             </h2>
-                                                            <p className="text-gray-500 text-sm">Tersedia untuk kamu</p>
+                                                            <p className="text-gray-500 text-sm">{t('openTrip.availableForYou')}</p>
                                               </div>
                                               <div className="flex items-center gap-3">
                                                             <FaFilter className="text-gray-400" />
@@ -107,9 +109,9 @@ const OpenTrip = () => {
                                                                               onChange={e => setSortBy(e.target.value)}
                                                                               className="border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
                                                                             >
-                                                                            <option value="newest">Terbaru</option>
-                                                                            <option value="price-asc">Harga: Terendah</option>
-                                                                            <option value="price-desc">Harga: Tertinggi</option>
+                                                                            <option value="newest">{t('openTrip.newest')}</option>
+                                                                            <option value="price-asc">{t('openTrip.lowestPrice')}</option>
+                                                                            <option value="price-desc">{t('openTrip.highestPrice')}</option>
                                                             </select>
                                               </div>
                                   </div>
@@ -134,33 +136,37 @@ const OpenTrip = () => {
                           {!loading && filtered.length === 0 && (
                         <div className="text-center py-20">
                                       <div className="text-6xl mb-4">🏝️</div>
-                                      <h3 className="text-xl font-semibold text-gray-700 mb-2">Paket tidak ditemukan</h3>
-                                      <p className="text-gray-500">Coba kata kunci lain atau hapus filter</p>
+                                      <h3 className="text-xl font-semibold text-gray-700 mb-2">{t('openTrip.notFoundTitle')}</h3>
+                                      <p className="text-gray-500">{t('openTrip.notFoundDescription')}</p>
                         </div>
                                   )}
                         
                           {/* Grid */}
                           {!loading && filtered.length > 0 && (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                          {filtered.map((pkg) => (
+                          {filtered.map((pkg) => {
+                                          const title = localize(pkg.title)
+                                          const location = localize(pkg.location)
+                                          const duration = localize(pkg.duration)
+                                          return (
                                           <Link key={pkg.id} to={`/paket/${pkg.id}`} className="group">
                                                             <div className="bg-white rounded-[28px] overflow-hidden border border-gray-100 shadow-[0_18px_50px_-30px_rgba(15,23,42,0.35)] hover:shadow-[0_24px_60px_-28px_rgba(16,185,129,0.28)] transition-all duration-300 hover:-translate-y-1">
                                                               {/* Image */}
                                                                                 <div className="relative h-52 overflow-hidden">
                                                                                                       <img
                                                                                                                                 src={pkg.images?.[0] || pkg.image || 'https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?w=600'}
-                                                                                                                                alt={pkg.title}
+                                                                                                                                alt={title}
                                                                                                                                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                                                                                                                               />
                                                                                                       <div className="absolute top-3 left-3">
                                                                                                                               <span className="bg-emerald-500 text-white text-xs font-semibold px-3 py-1 rounded-full">
-                                                                                                                                                        Open Trip
+                                                                                                                                                        {t('common.openTrip')}
                                                                                                                                 </span>
                                                                                                         </div>
                                                                                   {pkg.originalPrice && pkg.originalPrice > pkg.price && (
                                                                     <div className="absolute top-3 right-3">
                                                                                               <span className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
-                                                                                                                          DISKON
+                                                                                                                          {t('openTrip.discount')}
                                                                                                 </span>
                                                                     </div>
                                                                                                       )}
@@ -178,27 +184,27 @@ const OpenTrip = () => {
                                                                                                       </div>
 
                                                                                                       <h3 className="font-bold text-gray-900 text-lg leading-snug mb-3 line-clamp-2 group-hover:text-emerald-600 transition-colors">
-                                                                                                        {pkg.title}
+                                                                                                        {title}
                                                                                                         </h3>
                                                                                 
                                                                                                       <div className="flex items-center gap-2 text-gray-500 text-sm mb-4">
                                                                                                                               <FaMapMarkerAlt className="text-emerald-500" size={12} />
-                                                                                                                              <span className="line-clamp-1">{pkg.location || 'Indonesia'}</span>
+                                                                                                                              <span className="line-clamp-1">{location || t('openTrip.locationFallback')}</span>
                                                                                                         </div>
                                                                                 
                                                                                                       <div className="grid grid-cols-2 gap-3 mb-5">
                                                                                                                               <div className="rounded-2xl bg-gray-50 px-3.5 py-3">
-                                                                                                                                                <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-gray-400 mb-1">Durasi</p>
+                                                                                                                                                <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-gray-400 mb-1">{t('openTrip.duration')}</p>
                                                                                                                                                 <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-700">
                                                                                                                                                 <FaClock className="text-teal-500" size={11} />
-                                                                                                                                                <span>{pkg.duration || '1 Hari'}</span>
+                                                                                                                                                <span>{duration || t('openTrip.durationFallback')}</span>
                                                                                                                                                 </span>
                                                                                                                               </div>
                                                                                                                               <div className="rounded-2xl bg-gray-50 px-3.5 py-3">
-                                                                                                                                                <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-gray-400 mb-1">Peserta</p>
+                                                                                                                                                <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-gray-400 mb-1">{t('openTrip.participants')}</p>
                                                                                                                                                 <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-700">
                                                                                                                                                 <FaUsers className="text-teal-500" size={11} />
-                                                                                                                                                <span>{pkg.maxParticipants || 15} peserta</span>
+                                                                                                                                                <span>{pkg.maxParticipants || 15} {t('openTrip.participantUnit')}</span>
                                                                                                                                                 </span>
                                                                                                                               </div>
                                                                                                         </div>
@@ -210,16 +216,16 @@ const OpenTrip = () => {
                                                                         <p className="text-xs text-gray-400 line-through">{formatPrice(pkg.originalPrice)}</p>
                                                                                                                                                         )}
                                                                                                                                                         <p className="text-emerald-600 font-bold text-xl">{formatPrice(pkg.price)}</p>
-                                                                                                                                                        <p className="text-gray-400 text-xs uppercase tracking-[0.18em]">per orang</p>
+                                                                                                                                                        <p className="text-gray-400 text-xs uppercase tracking-[0.18em]">{t('openTrip.perPerson')}</p>
                                                                                                                                 </div>
                                                                                                                               <span className="inline-flex items-center rounded-full border border-emerald-200 bg-white px-4 py-2 text-xs font-semibold text-emerald-700 transition-colors group-hover:bg-emerald-500 group-hover:border-emerald-500 group-hover:text-white">
-                                                                                                                                                        Lihat Detail
+                                                                                                                                                        {t('openTrip.viewDetail')}
                                                                                                                                 </span>
                                                                                                         </div>
                                                                                   </div>
                                                             </div>
                                           </Link>
-                                        ))}
+                                        )})}
                         </div>
                                   )}
                         </div>

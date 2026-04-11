@@ -4,9 +4,35 @@ import { db } from '../../firebase/config';
 import { Plus, Edit2, Trash2, X, Save, Search, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'react-toastify';
 
-const emptyForm = { title: '', slug: '', category: 'tips wisata', excerpt: '', content: '', coverImage: '', author: 'Admin', published: false, readTime: 5 };
+const emptyForm = {
+  titleId: '', titleEn: '', slug: '', category: 'tips wisata',
+  excerptId: '', excerptEn: '', contentId: '', contentEn: '',
+  coverImage: '', author: 'Admin', published: false, readTime: 5,
+};
 
 const categories = ['tips wisata', 'destinasi', 'kuliner', 'open trip', 'private trip', 'lainnya'];
+
+function normalizeLocalizedField(value) {
+  if (value && typeof value === 'object' && !Array.isArray(value) && ('id' in value || 'en' in value)) {
+    return {
+      id: value.id || '',
+      en: value.en || '',
+    };
+  }
+
+  return {
+    id: value || '',
+    en: '',
+  };
+}
+
+function getLocalizedText(value, preferred = 'id') {
+  if (typeof value === 'string') return value;
+  if (value && typeof value === 'object' && !Array.isArray(value)) {
+    return value[preferred] || value.id || value.en || '';
+  }
+  return '';
+}
 
 export default function AdminBlog() {
     const [posts, setPosts] = useState([]);
@@ -29,14 +55,50 @@ export default function AdminBlog() {
   const generateSlug = (title) => title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 
   const openCreate = () => { setForm(emptyForm); setEditId(null); setShowForm(true); };
-    const openEdit = (p) => { setForm({ ...emptyForm, ...p }); setEditId(p.id); setShowForm(true); };
+    const openEdit = (p) => {
+      const title = normalizeLocalizedField(p.title);
+      const excerpt = normalizeLocalizedField(p.excerpt);
+      const content = normalizeLocalizedField(p.content);
+      setForm({
+        ...emptyForm,
+        ...p,
+        titleId: title.id,
+        titleEn: title.en,
+        excerptId: excerpt.id,
+        excerptEn: excerpt.en,
+        contentId: content.id,
+        contentEn: content.en,
+      });
+      setEditId(p.id);
+      setShowForm(true);
+    };
     const closeForm = () => { setShowForm(false); setEditId(null); };
 
   const handleSave = async (e) => {
         e.preventDefault();
         setSaving(true);
         try {
-                const data = { ...form, slug: form.slug || generateSlug(form.title), updatedAt: serverTimestamp() };
+                const data = {
+                  slug: form.slug || generateSlug(form.titleId),
+                  category: form.category,
+                  title: {
+                    id: form.titleId.trim(),
+                    en: form.titleEn.trim(),
+                  },
+                  excerpt: {
+                    id: form.excerptId.trim(),
+                    en: form.excerptEn.trim(),
+                  },
+                  content: {
+                    id: form.contentId.trim(),
+                    en: form.contentEn.trim(),
+                  },
+                  coverImage: form.coverImage,
+                  author: form.author,
+                  published: form.published,
+                  readTime: Number(form.readTime) || 5,
+                  updatedAt: serverTimestamp(),
+                };
                 if (editId) {
                           await updateDoc(doc(db, 'blog', editId), data);
                           toast.success('Artikel diperbarui!');
@@ -68,7 +130,11 @@ export default function AdminBlog() {
         return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
   };
 
-  const filtered = posts.filter(p => p.title?.toLowerCase().includes(search.toLowerCase()));
+  const filtered = posts.filter((p) => {
+        const titleId = getLocalizedText(p.title, 'id').toLowerCase();
+        const titleEn = getLocalizedText(p.title, 'en').toLowerCase();
+        return titleId.includes(search.toLowerCase()) || titleEn.includes(search.toLowerCase());
+  });
     const inputClass = 'w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500';
     const labelClass = 'block text-sm font-medium text-gray-700 mb-1';
 
@@ -109,7 +175,7 @@ export default function AdminBlog() {
                                                 <td className="px-4 py-3">
                                                                       <div className="flex items-center gap-3">
                                                                         {p.coverImage && <img src={p.coverImage} alt="" className="w-10 h-10 rounded-lg object-cover" />}
-                                                                                              <span className="font-medium text-gray-900 line-clamp-1">{p.title}</span>
+                                                                                              <span className="font-medium text-gray-900 line-clamp-1">{getLocalizedText(p.title)}</span>
                                                                       </div>
                                                 </td>
                                                 <td className="px-4 py-3"><span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-full capitalize">{p.category}</span></td>
@@ -122,7 +188,7 @@ export default function AdminBlog() {
                                                 <td className="px-4 py-3">
                                                                       <div className="flex gap-2">
                                                                                               <button onClick={() => openEdit(p)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"><Edit2 className="w-4 h-4" /></button>
-                                                                                              <button onClick={() => handleDelete(p.id, p.title)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg"><Trash2 className="w-4 h-4" /></button>
+                                                                                              <button onClick={() => handleDelete(p.id, getLocalizedText(p.title))} className="p-2 text-red-500 hover:bg-red-50 rounded-lg"><Trash2 className="w-4 h-4" /></button>
                                                                       </div>
                                                 </td>
                             </tr>
@@ -142,9 +208,15 @@ export default function AdminBlog() {
                                                       <button onClick={closeForm}><X className="w-6 h-6 text-gray-400" /></button>
                                         </div>
                                         <form onSubmit={handleSave} className="p-6 space-y-4">
-                                                      <div>
-                                                                      <label className={labelClass}>Judul *</label>
-                                                                      <input type="text" required value={form.title} onChange={e => setForm({...form, title: e.target.value, slug: generateSlug(e.target.value)})} className={inputClass} placeholder="Judul artikel..." />
+                                                      <div className="grid grid-cols-2 gap-4">
+                                                                      <div>
+                                                                                        <label className={labelClass}>Judul Indonesia *</label>
+                                                                                        <input type="text" required value={form.titleId} onChange={e => setForm({...form, titleId: e.target.value, slug: generateSlug(e.target.value)})} className={inputClass} placeholder="Judul artikel..." />
+                                                                      </div>
+                                                                      <div>
+                                                                                        <label className={labelClass}>Title English</label>
+                                                                                        <input type="text" value={form.titleEn} onChange={e => setForm({...form, titleEn: e.target.value})} className={inputClass} placeholder="Article title..." />
+                                                                      </div>
                                                       </div>
                                                       <div className="grid grid-cols-2 gap-4">
                                                                       <div>
@@ -171,12 +243,20 @@ export default function AdminBlog() {
                                                                       <input type="url" value={form.coverImage} onChange={e => setForm({...form, coverImage: e.target.value})} className={inputClass} placeholder="https://..." />
                                                       </div>
                                                       <div>
-                                                                      <label className={labelClass}>Ringkasan (Excerpt)</label>
-                                                                      <textarea rows={2} value={form.excerpt} onChange={e => setForm({...form, excerpt: e.target.value})} className={inputClass} placeholder="Ringkasan singkat artikel..." />
+                                                                      <label className={labelClass}>Ringkasan Indonesia</label>
+                                                                      <textarea rows={2} value={form.excerptId} onChange={e => setForm({...form, excerptId: e.target.value})} className={inputClass} placeholder="Ringkasan singkat artikel..." />
                                                       </div>
                                                       <div>
-                                                                      <label className={labelClass}>Konten (HTML/Teks)</label>
-                                                                      <textarea rows={8} value={form.content} onChange={e => setForm({...form, content: e.target.value})} className={inputClass} placeholder="Isi konten artikel..." />
+                                                                      <label className={labelClass}>Excerpt English</label>
+                                                                      <textarea rows={2} value={form.excerptEn} onChange={e => setForm({...form, excerptEn: e.target.value})} className={inputClass} placeholder="Short article excerpt..." />
+                                                      </div>
+                                                      <div>
+                                                                      <label className={labelClass}>Konten Indonesia (HTML/Teks)</label>
+                                                                      <textarea rows={8} value={form.contentId} onChange={e => setForm({...form, contentId: e.target.value})} className={inputClass} placeholder="Isi konten artikel..." />
+                                                      </div>
+                                                      <div>
+                                                                      <label className={labelClass}>Content English (HTML/Text)</label>
+                                                                      <textarea rows={8} value={form.contentEn} onChange={e => setForm({...form, contentEn: e.target.value})} className={inputClass} placeholder="Article content..." />
                                                       </div>
                                                       <label className="flex items-center gap-2 cursor-pointer">
                                                                       <input type="checkbox" checked={form.published} onChange={e => setForm({...form, published: e.target.checked})} className="w-4 h-4 text-emerald-600 rounded" />

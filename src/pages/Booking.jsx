@@ -4,6 +4,7 @@ import { Helmet } from 'react-helmet-async'
 import { getPackageById, addBooking, getOpenTripSlotUsage } from '../firebase/firestore'
 import { FaUser, FaEnvelope, FaPhone, FaCalendar, FaUsers, FaArrowLeft } from 'react-icons/fa'
 import { toast } from 'react-toastify'
+import { useLanguage } from '../contexts/LanguageContext'
 
 const Booking = () => {
     const { id } = useParams()
@@ -13,6 +14,7 @@ const Booking = () => {
     const [loading, setLoading] = useState(true)
     const [submitting, setSubmitting] = useState(false)
     const [slotUsage, setSlotUsage] = useState({})
+    const { t, language, localize } = useLanguage()
 
     const preDate = searchParams.get('date') || ''
     const preParticipants = parseInt(searchParams.get('participants')) || 1
@@ -63,14 +65,14 @@ const Booking = () => {
           if (!value) return '-'
           const parsed = new Date(`${value}T00:00:00`)
           if (Number.isNaN(parsed.getTime())) return value
-          return parsed.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
+          return parsed.toLocaleDateString(language === 'en' ? 'en-US' : 'id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
     }
 
     const formatDisplayDay = (value) => {
           if (!value) return ''
           const parsed = new Date(`${value}T00:00:00`)
           if (Number.isNaN(parsed.getTime())) return value
-          return parsed.toLocaleDateString('id-ID', { weekday: 'long' })
+          return parsed.toLocaleDateString(language === 'en' ? 'en-US' : 'id-ID', { weekday: 'long' })
     }
 
     const isOpenTrip = pkg?.type === 'open-trip'
@@ -93,19 +95,19 @@ const Booking = () => {
     const handleSubmit = async (e) => {
           e.preventDefault()
           if (!form.name || !form.email || !form.phone || (requiresUserDate && !form.date) || (isOpenTrip && !form.date)) {
-                  toast.error('Mohon lengkapi semua field yang wajib diisi!')
+                  toast.error(t('booking.incompleteFields'))
                   return
           }
           if (isOpenTrip && selectedRemainingSlots < Number(form.participants)) {
-                  toast.error(selectedRemainingSlots > 0 ? `Slot tersisa hanya ${selectedRemainingSlots} peserta untuk tanggal ini.` : 'Jadwal yang dipilih sudah penuh.')
+                  toast.error(selectedRemainingSlots > 0 ? t('booking.slotsLeftOnly', { count: selectedRemainingSlots }) : t('booking.selectedScheduleFull'))
                   return
           }
           setSubmitting(true)
           try {
                   const bookingData = {
                             packageId: id,
-                            packageTitle: pkg.title,
-                            packageName: pkg.title,
+                            packageTitle: localize(pkg.title, 'id'),
+                            packageName: localize(pkg.title, 'id'),
                             packageType: pkg.type,
                             packageImage: pkg.images?.[0] || pkg.image || '',
                             pricePerPerson: pkg.price,
@@ -115,11 +117,11 @@ const Booking = () => {
                             status: 'pending',
                   }
                   const docRef = await addBooking(bookingData)
-                  toast.success('Booking berhasil! Lanjutkan ke pembayaran.')
+                  toast.success(t('booking.bookingSuccess'))
                   navigate(`/payment/${docRef.id}`)
           } catch (error) {
                   console.error('Error:', error)
-                  toast.error('Gagal membuat booking. Coba lagi.')
+                  toast.error(t('booking.bookingFailed'))
           } finally {
                   setSubmitting(false)
           }
@@ -140,8 +142,8 @@ const Booking = () => {
                   <>
                           <div className="min-h-screen flex items-center justify-center pt-20 text-center">
                                     <div>
-                                                <p className="text-gray-500 mb-4">Paket tidak ditemukan</p>
-                                                <Link to="/open-trip" className="text-emerald-600 hover:underline">Kembali</Link>
+                                                <p className="text-gray-500 mb-4">{t('booking.packageNotFound')}</p>
+                                                <Link to="/open-trip" className="text-emerald-600 hover:underline">{t('booking.back')}</Link>
                                     </div>
                           </div>
                   </>
@@ -149,11 +151,13 @@ const Booking = () => {
     }
   
     const totalPrice = pkg.price * form.participants
+    const packageTitle = localize(pkg.title)
+    const packageLocation = localize(pkg.location)
       
         return (
               <>
                     <Helmet>
-                            <title>Form Booking - {pkg.title} | Liburan Terus</title>
+                            <title>{t('booking.seoTitle')} - {packageTitle} | Liburan Terus</title>
                             <meta name="robots" content="noindex" />
                     </Helmet>
               
@@ -163,7 +167,7 @@ const Booking = () => {
                                       <div className="max-w-5xl mx-auto px-4 py-4">
                                                   <Link to={`/paket/${id}`} className="inline-flex items-center gap-2 text-gray-500 hover:text-emerald-600 transition-colors text-sm">
                                                                 <FaArrowLeft size={12} />
-                                                                Kembali ke detail paket
+                                                                {t('booking.backToPackage')}
                                                   </Link>
                                       </div>
                             </div>
@@ -174,17 +178,17 @@ const Booking = () => {
                                                   <div className="flex items-center gap-4">
                                                                 <div className="flex items-center gap-2">
                                                                                 <div className="w-8 h-8 bg-emerald-500 text-white rounded-full flex items-center justify-center text-sm font-bold">1</div>
-                                                                                <span className="text-sm font-medium text-emerald-600">Data Peserta</span>
+                                                                                <span className="text-sm font-medium text-emerald-600">{t('booking.stepTraveler')}</span>
                                                                 </div>
                                                                 <div className="flex-1 h-0.5 bg-gray-200"></div>
                                                                 <div className="flex items-center gap-2">
                                                                                 <div className="w-8 h-8 bg-gray-200 text-gray-500 rounded-full flex items-center justify-center text-sm font-bold">2</div>
-                                                                                <span className="text-sm text-gray-500">Pembayaran</span>
+                                                                                <span className="text-sm text-gray-500">{t('booking.stepPayment')}</span>
                                                                 </div>
                                                                 <div className="flex-1 h-0.5 bg-gray-200"></div>
                                                                 <div className="flex items-center gap-2">
                                                                                 <div className="w-8 h-8 bg-gray-200 text-gray-500 rounded-full flex items-center justify-center text-sm font-bold">3</div>
-                                                                                <span className="text-sm text-gray-500">Konfirmasi</span>
+                                                                                <span className="text-sm text-gray-500">{t('booking.stepConfirmation')}</span>
                                                                 </div>
                                                   </div>
                                       </div>
@@ -197,47 +201,47 @@ const Booking = () => {
                                                                 <form onSubmit={handleSubmit} className="space-y-6">
                                                                   {/* Data Pribadi */}
                                                                                 <div className="bg-white rounded-2xl p-6 shadow-sm">
-                                                                                                  <h2 className="text-lg font-bold text-gray-800 mb-5">Data Peserta Utama</h2>
+                                                                                                  <h2 className="text-lg font-bold text-gray-800 mb-5">{t('booking.primaryTravelerTitle')}</h2>
                                                                                                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                                                                                                                       <div className="sm:col-span-2">
                                                                                                                                             <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                                                                                                                                                                    Nama Lengkap <span className="text-red-500">*</span>
+                                                                                                                                                                    {t('booking.fullName')} <span className="text-red-500">*</span>
                                                                                                                                               </label>
                                                                                                                                             <div className="relative">
                                                                                                                                                                     <FaUser className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
                                                                                                                                                                     <input type="text" name="name" value={form.name} onChange={handleChange} required
-                                                                                                                                                                                                placeholder="Masukkan nama lengkap"
+                                                                                                                                                                                                placeholder={t('booking.fullNamePlaceholder')}
                                                                                                                                                                                                 className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm bg-gray-50" />
                                                                                                                                               </div>
                                                                                                                         </div>
                                                                                                   
                                                                                                                       <div>
                                                                                                                                             <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                                                                                                                                                                    Email <span className="text-red-500">*</span>
+                                                                                                                                                                    {t('booking.email')} <span className="text-red-500">*</span>
                                                                                                                                               </label>
                                                                                                                                             <div className="relative">
                                                                                                                                                                     <FaEnvelope className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
                                                                                                                                                                     <input type="email" name="email" value={form.email} onChange={handleChange} required
-                                                                                                                                                                                                placeholder="email@contoh.com"
+                                                                                                                                                                                                placeholder={t('booking.emailPlaceholder')}
                                                                                                                                                                                                 className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm bg-gray-50" />
                                                                                                                                               </div>
                                                                                                                         </div>
                                                                                                   
                                                                                                                       <div>
                                                                                                                                             <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                                                                                                                                                                    No. WhatsApp <span className="text-red-500">*</span>
+                                                                                                                                                                    {t('booking.whatsapp')} <span className="text-red-500">*</span>
                                                                                                                                               </label>
                                                                                                                                             <div className="relative">
                                                                                                                                                                     <FaPhone className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
                                                                                                                                                                     <input type="tel" name="phone" value={form.phone} onChange={handleChange} required
-                                                                                                                                                                                                placeholder="081234567890"
+                                                                                                                                                                                                placeholder={t('booking.phonePlaceholder')}
                                                                                                                                                                                                 className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm bg-gray-50" />
                                                                                                                                               </div>
                                                                                                                         </div>
                                                                                                   
                                                                                                                       <div>
                                                                                                                                             <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                                                                                                                                                                    {isOpenTrip ? 'Jadwal Open Trip' : 'Tanggal Berangkat'} <span className="text-red-500">*</span>
+                                                                                                                                                                    {isOpenTrip ? t('booking.openTripSchedule') : t('booking.departureDate')} <span className="text-red-500">*</span>
                                                                                                                                               </label>
                                                                                                                                             {isOpenTrip ? (
                                                                                                                                               <div className="space-y-2">
@@ -271,7 +275,7 @@ const Booking = () => {
                                                                                                                                                                                     {formatDisplayDate(date)}
                                                                                                                                                                                   </p>
                                                                                                                                                                                   <p className={`mt-1.5 text-xs font-medium ${isFull ? 'text-red-500' : 'text-gray-500'}`}>
-                                                                                                                                                                                    {isFull ? 'Slot penuh' : `${remaining} slot tersisa`}
+                                                                                                                                                                                    {isFull ? t('booking.scheduleFull') : `${remaining} ${t('booking.slotsLeft')}`}
                                                                                                                                                                                   </p>
                                                                                                                                                                                 </div>
                                                                                                                                                                                 <span className={`mt-0.5 h-4 w-4 rounded-full border-2 transition-colors ${isFull ? 'border-gray-300 bg-gray-200' : isSelected ? 'border-emerald-500 bg-emerald-500' : 'border-gray-300 bg-white'}`} />
@@ -282,10 +286,10 @@ const Booking = () => {
                                                                                                                                                                       </div>
                                                                                                                                                                     ) : (
                                                                                                                                                                       <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-4 text-sm text-gray-500">
-                                                                                                                                                                        Jadwal open trip belum tersedia. Hubungi admin untuk info keberangkatan terbaru.
+                                                                                                                                                                        {t('booking.scheduleUnavailable')}
                                                                                                                                                                       </div>
                                                                                                                                                                     )}
-                                                                                                                                                                    <p className="text-xs text-gray-500">Tanggal open trip ditentukan admin pengelola paket. Pilih salah satu jadwal yang tersedia.</p>
+                                                                                                                                                                    <p className="text-xs text-gray-500">{t('booking.scheduleHint')}</p>
                                                                                                                                               </div>
                                                                                                                                            ) : (
                                                                                                                                             <div className="relative">
@@ -299,7 +303,7 @@ const Booking = () => {
                                                                                                   
                                                                                                                       <div>
                                                                                                                                             <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                                                                                                                                                                    Jumlah Peserta <span className="text-red-500">*</span>
+                                                                                                                                                                    {t('booking.participants')} <span className="text-red-500">*</span>
                                                                                                                                               </label>
                                                                                                                                             <div className="relative">
                                                                                                                                                                     <FaUsers className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
@@ -309,7 +313,7 @@ const Booking = () => {
                                                                                                                                               </div>
                                                                                                                                               {isOpenTrip && form.date && (
                                                                                                                                                 <p className={`mt-2 text-xs ${selectedRemainingSlots > 0 ? 'text-gray-500' : 'text-red-500'}`}>
-                                                                                                                                                  {selectedRemainingSlots > 0 ? `Tersisa ${selectedRemainingSlots} slot pada tanggal ini.` : 'Tanggal ini sudah penuh. Pilih jadwal lain.'}
+                                                                                                                                                  {selectedRemainingSlots > 0 ? t('booking.slotsLeftOnDate', { count: selectedRemainingSlots }) : t('booking.fullDateChooseOther')}
                                                                                                                                                 </p>
                                                                                                                                               )}
                                                                                                                         </div>
@@ -318,18 +322,18 @@ const Booking = () => {
                                                                 
                                                                   {/* Kontak Darurat */}
                                                                                 <div className="bg-white rounded-2xl p-6 shadow-sm">
-                                                                                                  <h2 className="text-lg font-bold text-gray-800 mb-5">Kontak Darurat</h2>
+                                                                                                  <h2 className="text-lg font-bold text-gray-800 mb-5">{t('booking.emergencyTitle')}</h2>
                                                                                                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                                                                                                                       <div>
-                                                                                                                                            <label className="block text-sm font-medium text-gray-700 mb-1.5">Nama Kontak Darurat</label>
+                                                                                                                                            <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('booking.emergencyName')}</label>
                                                                                                                                             <input type="text" name="emergencyContact" value={form.emergencyContact} onChange={handleChange}
-                                                                                                                                                                      placeholder="Nama lengkap"
+                                                                                                                                                                      placeholder={t('booking.emergencyNamePlaceholder')}
                                                                                                                                                                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm bg-gray-50" />
                                                                                                                         </div>
                                                                                                                       <div>
-                                                                                                                                            <label className="block text-sm font-medium text-gray-700 mb-1.5">No. HP Kontak Darurat</label>
+                                                                                                                                            <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('booking.emergencyPhone')}</label>
                                                                                                                                             <input type="tel" name="emergencyPhone" value={form.emergencyPhone} onChange={handleChange}
-                                                                                                                                                                      placeholder="081234567890"
+                                                                                                                                                                      placeholder={t('booking.phonePlaceholder')}
                                                                                                                                                                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm bg-gray-50" />
                                                                                                                         </div>
                                                                                                     </div>
@@ -337,9 +341,9 @@ const Booking = () => {
                                                                 
                                                                   {/* Catatan */}
                                                                                 <div className="bg-white rounded-2xl p-6 shadow-sm">
-                                                                                                  <h2 className="text-lg font-bold text-gray-800 mb-5">Catatan Tambahan</h2>
+                                                                                                  <h2 className="text-lg font-bold text-gray-800 mb-5">{t('booking.notesTitle')}</h2>
                                                                                                   <textarea name="notes" value={form.notes} onChange={handleChange} rows={3}
-                                                                                                                        placeholder="Alergi makanan, kebutuhan khusus, atau pertanyaan lainnya..."
+                                                                                                                        placeholder={t('booking.notesPlaceholder')}
                                                                                                                         className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm bg-gray-50 resize-none" />
                                                                                 </div>
                                                                 
@@ -348,10 +352,10 @@ const Booking = () => {
                                                                                   {submitting ? (
                                                                                                                           <>
                                                                                                                                                 <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                                                                                                                                Memproses...
+                                                                                                                                                {t('booking.processing')}
                                                                                                                             </>
                                                                                                                         ) : (
-                                                                                                                          'Lanjutkan ke Pembayaran'
+                                                                                                                          t('booking.continuePayment')
                                                                                                                         )}
                                                                                 </button>
                                                                 </form>
@@ -360,16 +364,16 @@ const Booking = () => {
                                         {/* Order Summary */}
                                                   <div className="lg:col-span-1">
                                                                 <div className="bg-white rounded-2xl p-6 shadow-sm sticky top-24">
-                                                                                <h3 className="font-bold text-gray-800 mb-4">Ringkasan Pesanan</h3>
+                                                                                <h3 className="font-bold text-gray-800 mb-4">{t('booking.orderSummary')}</h3>
                                                                                 <div className="flex gap-3 mb-4">
                                                                                                   <img src={pkg.image || 'https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?w=200'}
-                                                                                                                        alt={pkg.title}
+                                                                                                                        alt={packageTitle}
                                                                                                                         className="w-20 h-16 object-cover rounded-xl shrink-0" />
                                                                                                   <div>
-                                                                                                                      <p className="font-semibold text-gray-800 text-sm line-clamp-2">{pkg.title}</p>
-                                                                                                                      <p className="text-gray-500 text-xs mt-1">{pkg.location}</p>
+                                                                                                                      <p className="font-semibold text-gray-800 text-sm line-clamp-2">{packageTitle}</p>
+                                                                                                                      <p className="text-gray-500 text-xs mt-1">{packageLocation}</p>
                                                                                                                       <span className={`text-xs px-2 py-0.5 rounded-full ${pkg.type === 'open-trip' ? 'bg-emerald-100 text-emerald-600' : 'bg-purple-100 text-purple-600'}`}>
-                                                                                                                        {pkg.type === 'open-trip' ? 'Open Trip' : 'Private Trip'}
+                                                                                                                        {pkg.type === 'open-trip' ? t('common.openTrip') : t('common.privateTrip')}
                                                                                                                         </span>
                                                                                                     </div>
                                                                                 </div>
@@ -377,20 +381,20 @@ const Booking = () => {
                                                                                 <div className="border-t pt-4 space-y-2.5 text-sm">
                                                                                   {form.date && (
                                     <div className="flex justify-between text-gray-600">
-                                                          <span>Tanggal</span>
+                                                          <span>{t('booking.date')}</span>
                                                           <span className="font-medium">{formatDisplayDate(form.date)}</span>
                                     </div>
                                                                                                   )}
                                                                                                   <div className="flex justify-between text-gray-600">
-                                                                                                                      <span>Peserta</span>
-                                                                                                                      <span className="font-medium">{form.participants} orang</span>
+                                                                                                                      <span>{t('booking.participantsLabel')}</span>
+                                                                                                                      <span className="font-medium">{form.participants} {t('booking.participantUnit')}</span>
                                                                                                     </div>
                                                                                                   <div className="flex justify-between text-gray-600">
-                                                                                                                      <span>Harga/orang</span>
+                                                                                                                      <span>{t('booking.pricePerPerson')}</span>
                                                                                                                       <span className="font-medium">{formatPrice(pkg.price)}</span>
                                                                                                     </div>
                                                                                                   <div className="border-t pt-2.5 flex justify-between font-bold text-gray-800">
-                                                                                                                      <span>Total</span>
+                                                                                                                      <span>{t('booking.total')}</span>
                                                                                                                       <span className="text-emerald-600">{formatPrice(totalPrice)}</span>
                                                                                                     </div>
                                                                                 </div>

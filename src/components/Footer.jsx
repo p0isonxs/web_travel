@@ -1,10 +1,12 @@
 import { Link } from 'react-router-dom'
 import { FaPlane, FaInstagram, FaWhatsapp, FaYoutube, FaTiktok, FaMapMarkerAlt, FaPhone, FaEnvelope, FaFacebook } from 'react-icons/fa'
 import { useSettings } from '../contexts/SettingsContext'
+import { useLanguage } from '../contexts/LanguageContext'
 
 const Footer = () => {
     const currentYear = new Date().getFullYear()
     const settings = useSettings()
+    const { t } = useLanguage()
 
     return (
           <footer className="bg-gray-900 text-gray-300">
@@ -19,11 +21,11 @@ const Footer = () => {
                                                             </div>
                                                             <div>
                                                                             <span className="font-bold text-lg text-white block">Liburan Terus</span>
-                                                                            <span className="text-xs text-emerald-400 block">Travel & Tour</span>
+                                                                            <span className="text-xs text-emerald-400 block">{t('common.brandTagline')}</span>
                                                             </div>
                                               </Link>
                                               <p className="text-sm leading-relaxed text-gray-400 mb-6">
-                                                            Jasa travel terpercaya untuk pengalaman wisata open trip dan private trip yang tak terlupakan di seluruh Indonesia.
+                                                            {t('footer.description')}
                                               </p>
                                               <div className="flex gap-3">
                                                 {settings.instagram && (
@@ -59,13 +61,13 @@ const Footer = () => {
                         
                           {/* Layanan */}
                                   <div>
-                                              <h3 className="text-white font-semibold text-sm uppercase tracking-wider mb-4">Layanan Kami</h3>
+                                              <h3 className="text-white font-semibold text-sm uppercase tracking-wider mb-4">{t('footer.services')}</h3>
                                               <ul className="space-y-2.5">
                                                 {[
-            { to: '/open-trip', label: 'Open Trip' },
-            { to: '/private-trip', label: 'Private Trip' },
-            { to: '/galeri', label: 'Galeri' },
-            { to: '/blog', label: 'Blog & Tips Travel' },
+            { to: '/open-trip', label: t('common.openTrip') },
+            { to: '/private-trip', label: t('common.privateTrip') },
+            { to: '/galeri', label: t('common.gallery') },
+            { to: '/blog', label: t('footer.blogTips') },
                           ].map(item => (
                                             <li key={item.to}>
                                                               <Link to={item.to}
@@ -79,11 +81,11 @@ const Footer = () => {
                         
                           {/* Informasi */}
                                   <div>
-                                              <h3 className="text-white font-semibold text-sm uppercase tracking-wider mb-4">Informasi</h3>
+                                              <h3 className="text-white font-semibold text-sm uppercase tracking-wider mb-4">{t('footer.information')}</h3>
                                               <ul className="space-y-2.5">
                                                 {[
-            { to: '/tentang-kami', label: 'Tentang Kami' },
-            { to: '/kontak', label: 'Hubungi Kami' },
+            { to: '/tentang-kami', label: t('common.about') },
+            { to: '/kontak', label: t('footer.contactUsLink') },
                           ].map(item => (
                                             <li key={item.to}>
                                                               <Link to={item.to}
@@ -97,7 +99,7 @@ const Footer = () => {
                         
                           {/* Kontak */}
                                   <div>
-                                              <h3 className="text-white font-semibold text-sm uppercase tracking-wider mb-4">Hubungi Kami</h3>
+                                              <h3 className="text-white font-semibold text-sm uppercase tracking-wider mb-4">{t('footer.contactUs')}</h3>
                                               <ul className="space-y-3">
                                                             <li className="flex items-start gap-3 text-sm text-gray-400">
                                                                             <FaMapMarkerAlt className="text-emerald-500 mt-0.5 shrink-0" />
@@ -124,10 +126,10 @@ const Footer = () => {
                 <div className="border-t border-gray-800">
                         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex flex-col sm:flex-row items-center justify-between gap-3">
                                   <p className="text-sm text-gray-500">
-                                              © {currentYear} Liburan Terus. All rights reserved.
+                                              © {currentYear} Liburan Terus. {t('footer.rights')}
                                   </p>
                                   <p className="text-sm text-gray-500">
-                                              Dibuat dengan ❤️ untuk para traveler Indonesia
+                                              {t('footer.madeFor')}
                                   </p>
                         </div>
                 </div>

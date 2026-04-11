@@ -6,6 +6,7 @@ import 'react-toastify/dist/ReactToastify.css';
 
 import { AuthProvider } from './contexts/AuthContext';
 import { SettingsProvider } from './contexts/SettingsContext';
+import { LanguageProvider } from './contexts/LanguageContext';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import WhatsAppButton from './components/WhatsAppButton';
@@ -65,6 +66,7 @@ export default function App() {
     <HelmetProvider>
       <AuthProvider>
         <SettingsProvider>
+        <LanguageProvider>
         <BrowserRouter>
           <Suspense fallback={<RouteLoading />}>
             <Routes>
@@ -117,6 +119,7 @@ export default function App() {
             pauseOnHover
           />
         </BrowserRouter>
+        </LanguageProvider>
         </SettingsProvider>
       </AuthProvider>
     </HelmetProvider>

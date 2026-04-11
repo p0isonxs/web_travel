@@ -4,6 +4,7 @@ import { Helmet } from 'react-helmet-async'
 import { getPackageById, getOpenTripSlotUsage } from '../firebase/firestore'
 import { FaMapMarkerAlt, FaClock, FaUsers, FaStar, FaCheck, FaTimes, FaChevronLeft, FaChevronRight, FaWhatsapp, FaCalendar } from 'react-icons/fa'
 import Seo from '../components/Seo'
+import { useLanguage } from '../contexts/LanguageContext'
 
 const PackageDetail = () => {
     const { id } = useParams()
@@ -15,6 +16,7 @@ const PackageDetail = () => {
     const [selectedDate, setSelectedDate] = useState('')
     const [participants, setParticipants] = useState(1)
     const [slotUsage, setSlotUsage] = useState({})
+    const { t, language, localize } = useLanguage()
 
     useEffect(() => {
           const fetchPackage = async () => {
@@ -52,23 +54,23 @@ const PackageDetail = () => {
           if (!value) return '-'
           const parsed = new Date(`${value}T00:00:00`)
           if (Number.isNaN(parsed.getTime())) return value
-          return parsed.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
+          return parsed.toLocaleDateString(language === 'en' ? 'en-US' : 'id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
     }
 
     const formatDepartureDay = (value) => {
           if (!value) return ''
           const parsed = new Date(`${value}T00:00:00`)
           if (Number.isNaN(parsed.getTime())) return value
-          return parsed.toLocaleDateString('id-ID', { weekday: 'long' })
+          return parsed.toLocaleDateString(language === 'en' ? 'en-US' : 'id-ID', { weekday: 'long' })
     }
 
     const handleBooking = () => {
           if (isOpenTrip && !selectedDate) {
-                  alert('Pilih tanggal keberangkatan terlebih dahulu!')
+                  alert(t('packageDetail.chooseDateAlert'))
                   return
           }
           if (isOpenTrip && selectedRemainingSlots < participants) {
-                  alert(selectedRemainingSlots > 0 ? `Slot tersisa hanya ${selectedRemainingSlots} peserta untuk tanggal ini.` : 'Jadwal ini sudah penuh. Pilih tanggal lain.')
+                  alert(selectedRemainingSlots > 0 ? t('packageDetail.slotsLeftAlert', { count: selectedRemainingSlots }) : t('packageDetail.scheduleFullAlert'))
                   return
           }
           const params = new URLSearchParams({ participants: String(participants) })
@@ -84,7 +86,7 @@ const PackageDetail = () => {
                           <div className="min-h-screen flex items-center justify-center pt-20">
                                     <div className="text-center">
                                                 <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                                                <p className="text-gray-500">Memuat detail paket...</p>
+                                                <p className="text-gray-500">{t('packageDetail.loading')}</p>
                                     </div>
                           </div>
                   </>
@@ -97,8 +99,8 @@ const PackageDetail = () => {
                           <div className="min-h-screen flex items-center justify-center pt-20">
                                     <div className="text-center">
                                                 <div className="text-6xl mb-4">😕</div>
-                                                <h2 className="text-2xl font-bold text-gray-800 mb-2">Paket tidak ditemukan</h2>
-                                                <Link to="/open-trip" className="text-emerald-600 hover:underline">Kembali ke Open Trip</Link>
+                                                <h2 className="text-2xl font-bold text-gray-800 mb-2">{t('packageDetail.packageNotFound')}</h2>
+                                                <Link to="/open-trip" className="text-emerald-600 hover:underline">{t('packageDetail.backToOpenTrip')}</Link>
                                     </div>
                           </div>
                   </>
@@ -110,20 +112,27 @@ const PackageDetail = () => {
             const accentColor = isOpenTrip ? 'emerald' : 'purple'
             const capacityPerDate = Number(pkg.maxParticipants) || 15
             const selectedRemainingSlots = selectedDate ? Math.max(0, capacityPerDate - (slotUsage[selectedDate] || 0)) : capacityPerDate
+            const packageTitle = localize(pkg.title)
+            const packageLocation = localize(pkg.location)
+            const packageDuration = localize(pkg.duration)
+            const packageDescription = localize(pkg.description)
+            const packageItinerary = localize(pkg.itinerary) || []
+            const packageIncludes = localize(pkg.includes) || []
+            const packageExcludes = localize(pkg.excludes) || []
               
                 return (
                       <>
                             <Seo
-                              title={`${pkg.title} - Liburan Terus`}
-                              description={pkg.description?.substring(0, 160) || `Paket ${pkg.type} ${pkg.title} di ${pkg.location}`}
+                              title={`${packageTitle} - Liburan Terus`}
+                              description={packageDescription?.substring(0, 160) || `${t(isOpenTrip ? 'packageDetail.openTrip' : 'packageDetail.privateTrip')} ${packageTitle} di ${packageLocation}`}
                               image={images[0]}
                             />
                             <Helmet>
                                     <script type="application/ld+json">{JSON.stringify({
                                   "@context": "https://schema.org",
                                   "@type": "TouristTrip",
-                                  "name": pkg.title,
-                                  "description": pkg.description,
+                                  "name": packageTitle,
+                                  "description": packageDescription,
                                   "touristType": pkg.type,
                                   "image": images[0],
                                   "offers": {
@@ -139,13 +148,13 @@ const PackageDetail = () => {
                                     <div className="bg-white border-b">
                                               <div className="max-w-7xl mx-auto px-4 py-3">
                                                           <div className="flex items-center gap-2 text-sm text-gray-500">
-                                                                        <Link to="/" className="hover:text-emerald-600">Home</Link>
+                                                                        <Link to="/" className="hover:text-emerald-600">{t('packageDetail.home')}</Link>
                                                                         <span>/</span>
                                                                         <Link to={isOpenTrip ? '/open-trip' : '/private-trip'} className="hover:text-emerald-600">
-                                                                          {isOpenTrip ? 'Open Trip' : 'Private Trip'}
+                                                                          {t(isOpenTrip ? 'packageDetail.openTrip' : 'packageDetail.privateTrip')}
                                                                         </Link>
                                                                         <span>/</span>
-                                                                        <span className="text-gray-800 truncate max-w-xs">{pkg.title}</span>
+                                                                        <span className="text-gray-800 truncate max-w-xs">{packageTitle}</span>
                                                           </div>
                                               </div>
                                     </div>
@@ -159,7 +168,7 @@ const PackageDetail = () => {
                                                                                         <div className="relative aspect-[16/9] overflow-hidden">
                                                                                                           <img
                                                                                                                                 src={images[activeImage]}
-                                                                                                                                alt={pkg.title}
+                                                                                                                                alt={packageTitle}
                                                                                                                                 className="w-full h-full object-cover"
                                                                                                                               />
                                                                                           {images.length > 1 && (
@@ -175,7 +184,7 @@ const PackageDetail = () => {
                                             </>
                                           )}
                                                                                                           <div className={`absolute top-4 left-4 ${isOpenTrip ? 'bg-emerald-500' : 'bg-purple-600'} text-white text-sm font-semibold px-3 py-1 rounded-full`}>
-                                                                                                            {isOpenTrip ? 'Open Trip' : 'Private Trip'}
+                                                                                                            {t(isOpenTrip ? 'packageDetail.openTrip' : 'packageDetail.privateTrip')}
                                                                                                             </div>
                                                                                           </div>
                                                                           {images.length > 1 && (
@@ -192,26 +201,26 @@ const PackageDetail = () => {
                                                           
                                                             {/* Title & Info */}
                                                                         <div className="bg-white rounded-2xl p-6 shadow-sm">
-                                                                                        <h1 className="text-2xl font-bold text-gray-800 mb-3">{pkg.title}</h1>
+                                                                                        <h1 className="text-2xl font-bold text-gray-800 mb-3">{packageTitle}</h1>
                                                                                         <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500 mb-4">
                                                                                                           <span className="flex items-center gap-1.5">
                                                                                                                               <FaMapMarkerAlt className={`text-${accentColor}-500`} />
-                                                                                                            {pkg.location || 'Indonesia'}
+                                                                                                            {packageLocation || t('packageDetail.locationFallback')}
                                                                                                             </span>
                                                                                                           <span className="flex items-center gap-1.5">
                                                                                                                               <FaClock className={`text-${accentColor}-500`} />
-                                                                                                            {pkg.duration || '1 Hari'}
+                                                                                                            {packageDuration || t('packageDetail.durationFallback')}
                                                                                                             </span>
                                                                                           {isOpenTrip && (
                                             <span className="flex items-center gap-1.5">
                                                                   <FaUsers className={`text-${accentColor}-500`} />
-                                                                  Maks. {pkg.maxParticipants || 15} peserta
+                                                                  {t('packageDetail.maxParticipants')} {pkg.maxParticipants || 15} {t('packageDetail.participantUnit')}
                                             </span>
                                                                                                           )}
                                                                                           {pkg.rating && (
                                             <span className="flex items-center gap-1.5">
                                                                   <FaStar className="text-yellow-400" />
-                                              {pkg.rating} ({pkg.reviewCount || 0} ulasan)
+                                              {pkg.rating} ({pkg.reviewCount || 0} {t('packageDetail.reviews')})
                                             </span>
                                                                                                           )}
                                                                                           </div>
@@ -223,7 +232,7 @@ const PackageDetail = () => {
                                                                                           {['deskripsi', 'jadwal', 'fasilitas'].map(tab => (
                                             <button key={tab} onClick={() => setActiveTab(tab)}
                                                                     className={`flex-1 py-4 text-sm font-medium capitalize transition-colors ${activeTab === tab ? `text-${accentColor}-600 border-b-2 border-${accentColor}-500` : 'text-gray-500 hover:text-gray-700'}`}>
-                                              {tab === 'deskripsi' ? 'Deskripsi' : tab === 'jadwal' ? 'Jadwal Kegiatan' : 'Fasilitas'}
+                                              {tab === 'deskripsi' ? t('packageDetail.descriptionTab') : tab === 'jadwal' ? t('packageDetail.itineraryTab') : t('packageDetail.facilitiesTab')}
                                             </button>
                                           ))}
                                                                                           </div>
@@ -231,17 +240,17 @@ const PackageDetail = () => {
                                                                                         <div className="p-6">
                                                                                           {activeTab === 'deskripsi' && (
                                             <div className="prose prose-sm max-w-none text-gray-600 leading-relaxed">
-                                                                  <p>{pkg.description || 'Deskripsi paket akan segera tersedia.'}</p>
+                                                                  <p>{packageDescription || t('packageDetail.descriptionFallback')}</p>
                                             </div>
                                                                                                           )}
                                                                                         
                                                                                           {activeTab === 'jadwal' && (
                                             <div className="space-y-5">
-                                              {pkg.itinerary?.length > 0 ? pkg.itinerary.map((item, i) => (
+                                              {packageItinerary.length > 0 ? packageItinerary.map((item, i) => (
                                                                       <div key={i} className="relative flex gap-4 pl-2">
                                                                                                 <div className="relative flex flex-col items-center shrink-0">
                                                                                                                   <div className={`w-3 h-3 rounded-full border-2 border-white shadow-sm ${isOpenTrip ? 'bg-emerald-500' : 'bg-purple-600'}`} />
-                                                                                                  {i !== pkg.itinerary.length - 1 && (
+                                                                                                  {i !== packageItinerary.length - 1 && (
                                                                                                     <div className="mt-2 w-px flex-1 bg-gradient-to-b from-gray-300 to-gray-100" />
                                                                                                   )}
                                                                                                 </div>
@@ -255,7 +264,7 @@ const PackageDetail = () => {
                                                                                                   </div>
                                                                       </div>
                                                                     )) : (
-                                                                      <p className="text-gray-500 text-sm">Jadwal kegiatan akan segera tersedia.</p>
+                                                                      <p className="text-gray-500 text-sm">{t('packageDetail.itineraryFallback')}</p>
                                                                   )}
                                             </div>
                                                                                                           )}
@@ -268,19 +277,19 @@ const PackageDetail = () => {
                                                                                                               <FaCheck className="text-xs" />
                                                                                                             </div>
                                                                                                             <div>
-                                                                                                                              <h3 className="text-base font-semibold tracking-[0.01em] text-gray-900">Sudah Termasuk</h3>
-                                                                                                                              <p className="mt-1 text-sm leading-6 text-gray-500">Fasilitas yang sudah termasuk dalam harga paket.</p>
+                                                                                                                              <h3 className="text-base font-semibold tracking-[0.01em] text-gray-900">{t('packageDetail.includedTitle')}</h3>
+                                                                                                                              <p className="mt-1 text-sm leading-6 text-gray-500">{t('packageDetail.includedDescription')}</p>
                                                                                                             </div>
                                                                                           </div>
                                                                                           <ul className="space-y-3">
-                                                                                            {pkg.includes?.length > 0 ? pkg.includes.map((item, i) => (
+                                                                                            {packageIncludes.length > 0 ? packageIncludes.map((item, i) => (
                                                                           <li key={i} className="flex items-start gap-3 rounded-2xl border border-gray-100 bg-gray-50/70 px-4 py-3.5 text-sm leading-6 text-gray-700">
                                                                                                         <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white text-emerald-600 ring-1 ring-emerald-100">
                                                                                                           <FaCheck className="text-[9px]" />
                                                                                                         </span>
                                                                             <span>{item}</span>
                                                                             </li>
-                                                                        )) : <li className="rounded-2xl border border-dashed border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-400">Belum ada fasilitas yang dicantumkan.</li>}
+                                                                        )) : <li className="rounded-2xl border border-dashed border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-400">{t('packageDetail.includedFallback')}</li>}
                                                                                             </ul>
                                                                   </div>
                                                                   <div className="rounded-[28px] border border-gray-200 bg-white p-6 shadow-[0_18px_45px_-28px_rgba(15,23,42,0.18)]">
@@ -289,19 +298,19 @@ const PackageDetail = () => {
                                                                                                               <FaTimes className="text-xs" />
                                                                                                             </div>
                                                                                                             <div>
-                                                                                                                              <h3 className="text-base font-semibold tracking-[0.01em] text-gray-900">Tidak Termasuk</h3>
-                                                                                                                              <p className="mt-1 text-sm leading-6 text-gray-500">Biaya atau kebutuhan yang perlu disiapkan sendiri.</p>
+                                                                                                                              <h3 className="text-base font-semibold tracking-[0.01em] text-gray-900">{t('packageDetail.excludedTitle')}</h3>
+                                                                                                                              <p className="mt-1 text-sm leading-6 text-gray-500">{t('packageDetail.excludedDescription')}</p>
                                                                                                             </div>
                                                                                           </div>
                                                                                           <ul className="space-y-3">
-                                                                                            {pkg.excludes?.length > 0 ? pkg.excludes.map((item, i) => (
+                                                                                            {packageExcludes.length > 0 ? packageExcludes.map((item, i) => (
                                                                           <li key={i} className="flex items-start gap-3 rounded-2xl border border-gray-100 bg-gray-50/70 px-4 py-3.5 text-sm leading-6 text-gray-700">
                                                                                                         <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white text-rose-500 ring-1 ring-rose-100">
                                                                                                           <FaTimes className="text-[9px]" />
                                                                                                         </span>
                                                                             <span>{item}</span>
                                                                             </li>
-                                                                        )) : <li className="rounded-2xl border border-dashed border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-400">Belum ada pengecualian yang dicantumkan.</li>}
+                                                                        )) : <li className="rounded-2xl border border-dashed border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-400">{t('packageDetail.excludedFallback')}</li>}
                                                                                             </ul>
                                                                   </div>
                                             </div>
@@ -320,7 +329,7 @@ const PackageDetail = () => {
                                                                                           )}
                                                                                           <div className="mt-1 flex items-end gap-2">
                                                                                             <p className={`text-3xl font-bold leading-none text-${accentColor}-600`}>{formatPrice(pkg.price)}</p>
-                                                                                            <span className="pb-0.5 text-sm text-gray-500">/ pax</span>
+                                                                                            <span className="pb-0.5 text-sm text-gray-500">{t('packageDetail.perPax')}</span>
                                                                                           </div>
                                                                                         </div>
                                                                         
@@ -328,7 +337,7 @@ const PackageDetail = () => {
                                                                                         <div className="mb-4">
                                                                                                           <label className="block text-sm font-medium text-gray-700 mb-1.5">
                                                                                                                               <FaCalendar className={`inline mr-1.5 text-${accentColor}-500`} />
-                                                                                                                              {isOpenTrip ? 'Pilih Jadwal Open Trip' : 'Tanggal Keberangkatan'}
+                                                                                                                              {isOpenTrip ? t('packageDetail.selectOpenTripSchedule') : t('packageDetail.departureDate')}
                                                                                                             </label>
                                                                                                           {isOpenTrip ? (
                                                                                                             pkg.departureDates?.length > 0 ? (
@@ -364,7 +373,7 @@ const PackageDetail = () => {
                                                                                                                               {formatDepartureDate(date)}
                                                                                                                             </p>
                                                                                                                             <p className={`mt-2 text-xs font-medium ${isFull ? 'text-red-500' : isOpenTrip ? 'text-emerald-600' : 'text-purple-600'}`}>
-                                                                                                                              {isFull ? 'Slot penuh' : `${remaining} slot tersisa`}
+                                                                                                                              {isFull ? t('packageDetail.scheduleFull') : `${remaining} ${t('packageDetail.slotsLeft')}`}
                                                                                                                             </p>
                                                                                                                           </div>
                                                                                                                           <span className={`mt-0.5 h-5 w-5 rounded-full border-2 transition-colors ${
@@ -382,12 +391,12 @@ const PackageDetail = () => {
                                                                                                                   })}
                                                                                                                 </div>
                                                                                                                 <div className={`rounded-2xl px-4 py-3 text-sm ${isOpenTrip ? 'bg-emerald-50 text-emerald-700' : 'bg-purple-50 text-purple-700'}`}>
-                                                                                                                  Geser ke samping bila pilihan tanggal banyak. Jadwal hanya tersedia sesuai yang dibuka admin.
+                                                                                                                  {t('packageDetail.scheduleSwipeHint')}
                                                                                                                 </div>
                                                                                                               </div>
                                                                                                             ) : (
                                                                                                               <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-4 text-sm text-gray-500">
-                                                                                                                Jadwal open trip belum tersedia. Hubungi admin untuk info keberangkatan terbaru.
+                                                                                                                {t('packageDetail.scheduleUnavailable')}
                                                                                                               </div>
                                                                                                             )
                                                                                                           ) : (
@@ -405,7 +414,7 @@ const PackageDetail = () => {
                                                                                         <div className="mb-6">
                                                                                                           <label className="block text-sm font-medium text-gray-700 mb-1.5">
                                                                                                                               <FaUsers className={`inline mr-1.5 text-${accentColor}-500`} />
-                                                                                                                              Jumlah Peserta
+                                                                                                                              {t('packageDetail.participantsLabel')}
                                                                                                             </label>
                                                                                                           <div className="flex items-center gap-3 border border-gray-200 rounded-xl px-4 py-3">
                                                                                                                               <button onClick={() => setParticipants(p => Math.max(1, p - 1))}
@@ -420,7 +429,7 @@ const PackageDetail = () => {
                                                                                                             </div>
                                                                                                           {isOpenTrip && selectedDate && (
                                                                                                             <p className={`mt-2 text-xs ${selectedRemainingSlots > 0 ? 'text-gray-500' : 'text-red-500'}`}>
-                                                                                                              {selectedRemainingSlots > 0 ? `Tersisa ${selectedRemainingSlots} slot untuk tanggal ini.` : 'Tanggal ini sudah penuh. Pilih jadwal lain.'}
+                                                                                                              {selectedRemainingSlots > 0 ? t('packageDetail.slotsLeftForDate', { count: selectedRemainingSlots }) : t('packageDetail.dateFullChooseOther')}
                                                                                                             </p>
                                                                                                           )}
                                                                                           </div>
@@ -428,10 +437,10 @@ const PackageDetail = () => {
                                                                           {/* Total */}
                                                                                         <div className={`bg-${accentColor}-50 rounded-xl p-4 mb-5`}>
                                                                                                           <div className="flex justify-between text-sm text-gray-600 mb-1">
-                                                                                                                              <span>{formatPrice(pkg.price)} x {participants} orang</span>
+                                                                                                                              <span>{formatPrice(pkg.price)} x {participants} {t('packageDetail.personUnit')}</span>
                                                                                                             </div>
                                                                                                           <div className="flex justify-between font-bold text-gray-800">
-                                                                                                                              <span>Total</span>
+                                                                                                                              <span>{t('packageDetail.total')}</span>
                                                                                                                               <span className={`text-${accentColor}-600`}>{formatPrice(pkg.price * participants)}</span>
                                                                                                             </div>
                                                                                           </div>
@@ -440,15 +449,15 @@ const PackageDetail = () => {
                                                                                         <button onClick={handleBooking}
                                                                                                             disabled={isOpenTrip && selectedRemainingSlots <= 0}
                                                                                                             className={`w-full bg-gradient-to-r ${isOpenTrip ? 'from-emerald-500 to-teal-600' : 'from-violet-500 to-purple-600'} text-white py-4 rounded-xl font-bold hover:shadow-lg hover:scale-[1.02] transition-all duration-200 mb-3`}>
-                                                                                                          {isOpenTrip && selectedRemainingSlots <= 0 ? 'Jadwal Penuh' : 'Pesan Sekarang'}
+                                                                                                          {isOpenTrip && selectedRemainingSlots <= 0 ? t('packageDetail.scheduleFullButton') : t('packageDetail.bookNow')}
                                                                                           </button>
                                                                         
                                                                           {/* WhatsApp */}
-                                                                                        <a href={`https://wa.me/6281234567890?text=Halo, saya ingin bertanya tentang paket ${pkg.title}`}
+                                                                                        <a href={`https://wa.me/6281234567890?text=Halo, saya ingin bertanya tentang paket ${packageTitle}`}
                                                                                                             target="_blank" rel="noopener noreferrer"
                                                                                                             className="w-full flex items-center justify-center gap-2 bg-green-50 text-green-600 border border-green-200 py-3 rounded-xl font-semibold hover:bg-green-100 transition-colors text-sm">
                                                                                                           <FaWhatsapp size={16} />
-                                                                                                          Tanya via WhatsApp
+                                                                                                          {t('packageDetail.askWhatsapp')}
                                                                                           </a>
                                                                         </div>
                                                           </div>

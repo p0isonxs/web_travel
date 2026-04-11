@@ -5,6 +5,26 @@ import { collection, getDocs, query, where, limit } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { Calendar, User, Tag, ArrowLeft, Share2, Facebook, Twitter } from 'lucide-react';
 import Seo from '../components/Seo';
+import { useLanguage } from '../contexts/LanguageContext';
+
+function getCategoryLabel(category, t) {
+  switch ((category || '').toLowerCase()) {
+    case 'tips wisata':
+      return t('blog.tips');
+    case 'destinasi':
+      return t('blog.destination');
+    case 'kuliner':
+      return t('blog.culinary');
+    case 'open trip':
+      return t('blog.openTrip');
+    case 'private trip':
+      return t('blog.privateTrip');
+    case 'lainnya':
+      return t('common.more');
+    default:
+      return category;
+  }
+}
 
 export default function BlogDetail() {
     const { slug } = useParams();
@@ -12,6 +32,7 @@ export default function BlogDetail() {
     const [post, setPost] = useState(null);
     const [related, setRelated] = useState([]);
     const [loading, setLoading] = useState(true);
+    const { t, language, localize } = useLanguage();
 
   useEffect(() => {
         fetchPost();
@@ -56,7 +77,7 @@ export default function BlogDetail() {
   const formatDate = (ts) => {
         if (!ts) return '';
         const d = ts.toDate ? ts.toDate() : new Date(ts);
-        return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+        return d.toLocaleDateString(language === 'en' ? 'en-US' : 'id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
   };
 
   const shareUrl = window.location.href;
@@ -72,17 +93,21 @@ export default function BlogDetail() {
     if (!post) {
           return (
                   <div className="min-h-screen flex flex-col items-center justify-center pt-16 text-gray-500">
-                          <p className="text-2xl mb-4">Artikel tidak ditemukan</p>
-                          <Link to="/blog" className="text-emerald-600 hover:underline">Kembali ke Blog</Link>
+                          <p className="text-2xl mb-4">{t('blogDetail.notFound')}</p>
+                          <Link to="/blog" className="text-emerald-600 hover:underline">{t('blogDetail.backToBlog')}</Link>
                   </div>
                 );
     }
+
+    const title = localize(post.title);
+    const excerpt = localize(post.excerpt);
+    const content = localize(post.content);
   
     return (
           <>
                 <Seo
-                  title={`${post.title} - Liburan Terus`}
-                  description={post.excerpt || post.title}
+                  title={`${title} - Liburan Terus`}
+                  description={excerpt || title}
                   image={post.coverImage}
                   type="article"
                 />
@@ -90,8 +115,8 @@ export default function BlogDetail() {
                         <script type="application/ld+json">{JSON.stringify({
                       "@context": "https://schema.org",
                       "@type": "BlogPosting",
-                      "headline": post.title,
-                      "description": post.excerpt,
+                      "headline": title,
+                      "description": excerpt,
                       "image": post.coverImage,
                       "author": { "@type": "Person", "name": post.author || "Liburan Terus" },
                       "publisher": { "@type": "Organization", "name": "Liburan Terus" },
@@ -103,36 +128,36 @@ export default function BlogDetail() {
                   {/* Cover */}
                   {post.coverImage && (
                       <div className="w-full h-72 md:h-96 overflow-hidden">
-                                  <img src={post.coverImage} alt={post.title} className="w-full h-full object-cover" />
+                                  <img src={post.coverImage} alt={title} className="w-full h-full object-cover" />
                       </div>
                         )}
                 
                         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-12">
                           {/* Back */}
                                   <Link to="/blog" className="inline-flex items-center gap-2 text-emerald-600 hover:text-emerald-700 mb-6 font-medium">
-                                              <ArrowLeft className="w-4 h-4" /> Kembali ke Blog
+                                              <ArrowLeft className="w-4 h-4" /> {t('blogDetail.backToBlog')}
                                   </Link>
                         
                           {/* Article */}
                                   <article className="bg-white rounded-3xl shadow-sm overflow-hidden">
                                               <div className="p-8 md:p-12">
-                                                {post.category && (
+                                                {post.category && post.category.toLowerCase() !== 'tips wisata' && (
                             <span className="inline-flex items-center gap-1 bg-emerald-100 text-emerald-700 text-sm font-semibold px-3 py-1 rounded-full mb-4 capitalize">
-                                              <Tag className="w-4 h-4" />{post.category}
+                                              <Tag className="w-4 h-4" />{getCategoryLabel(post.category, t)}
                             </span>
                                                             )}
-                                                            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">{post.title}</h1>
+                                                            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">{title}</h1>
                                               
                                                             <div className="flex flex-wrap items-center gap-4 text-gray-500 text-sm mb-8 pb-8 border-b border-gray-100">
                                                                             <span className="flex items-center gap-1"><Calendar className="w-4 h-4" />{formatDate(post.createdAt)}</span>
                                                               {post.author && <span className="flex items-center gap-1"><User className="w-4 h-4" />{post.author}</span>}
-                                                              {post.readTime && <span>{post.readTime} menit baca</span>}
+                                                              {post.readTime && <span>{post.readTime} {t('blogDetail.readTime')}</span>}
                                                             </div>
                                               
                                                 {/* Content */}
                                                             <div
                                                                               className="prose prose-lg max-w-none prose-headings:text-gray-900 prose-p:text-gray-600 prose-a:text-emerald-600 prose-img:rounded-2xl"
-                                                                              dangerouslySetInnerHTML={{ __html: post.content || '<p>' + (post.excerpt || '') + '</p>' }}
+                                                                              dangerouslySetInnerHTML={{ __html: content || '<p>' + (excerpt || '') + '</p>' }}
                                                                             />
                                               
                                                 {/* Share */}
@@ -143,8 +168,8 @@ export default function BlogDetail() {
                                                                                                                                   <Share2 className="w-4 h-4 text-gray-600" />
                                                                                                                 </div>
                                                                                                                 <div>
-                                                                                                                                  <p className="text-sm font-semibold text-gray-900">Bagikan artikel ini</p>
-                                                                                                                                  <p className="text-sm text-gray-500">Kirim ke teman atau simpan untuk dibaca nanti.</p>
+                                                                                                                                  <p className="text-sm font-semibold text-gray-900">{t('blogDetail.shareTitle')}</p>
+                                                                                                                                  <p className="text-sm text-gray-500">{t('blogDetail.shareDescription')}</p>
                                                                                                                 </div>
                                                                                               </div>
                                                                                               <div className="flex items-center gap-2">
@@ -152,16 +177,16 @@ export default function BlogDetail() {
                                                                                                                                   href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`}
                                                                                                                                   target="_blank"
                                                                                                                                   rel="noopener noreferrer"
-                                                                                                                                  aria-label="Bagikan ke Facebook"
+                                                                                                                                  aria-label={t('blogDetail.shareFacebook')}
                                                                                                                                   className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 transition-colors hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600"
                                                                                                                 >
                                                                                                                                   <Facebook className="w-4 h-4" />
                                                                                                                 </a>
                                                                                                                 <a
-                                                                                                                                  href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(post.title)}`}
+                                                                                                                                  href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(title)}`}
                                                                                                                                   target="_blank"
                                                                                                                                   rel="noopener noreferrer"
-                                                                                                                                  aria-label="Bagikan ke Twitter"
+                                                                                                                                  aria-label={t('blogDetail.shareTwitter')}
                                                                                                                                   className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 transition-colors hover:border-sky-200 hover:bg-sky-50 hover:text-sky-600"
                                                                                                                 >
                                                                                                                                   <Twitter className="w-4 h-4" />
@@ -175,21 +200,23 @@ export default function BlogDetail() {
                           {/* Related */}
                           {related.length > 0 && (
                         <div className="mt-12">
-                                      <h2 className="text-2xl font-bold text-gray-900 mb-6">Artikel Terkait</h2>
+                                      <h2 className="text-2xl font-bold text-gray-900 mb-6">{t('blogDetail.relatedArticles')}</h2>
                                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        {related.slice(0, 2).map(p => (
+                                        {related.slice(0, 2).map(p => {
+                                          const relatedTitle = localize(p.title);
+                                          return (
                                             <Link key={p.id} to={`/blog/${p.slug || p.id}`} className="bg-white rounded-2xl overflow-hidden shadow hover:shadow-lg transition-all group flex gap-4 p-4">
                                               {p.coverImage && (
                                                                     <div className="w-24 h-24 shrink-0 rounded-xl overflow-hidden">
-                                                                                            <img src={p.coverImage} alt={p.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                                                                                            <img src={p.coverImage} alt={relatedTitle} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
                                                                     </div>
                                                                 )}
                                                                 <div>
                                                                                       <p className="text-xs text-gray-400 mb-1">{formatDate(p.createdAt)}</p>
-                                                                                      <h3 className="font-semibold text-gray-900 line-clamp-2 group-hover:text-emerald-600 transition-colors">{p.title}</h3>
+                                                                                      <h3 className="font-semibold text-gray-900 line-clamp-2 group-hover:text-emerald-600 transition-colors">{relatedTitle}</h3>
                                                                 </div>
                                             </Link>
-                                          ))}
+                                          )})}
                                       </div>
                         </div>
                                   )}

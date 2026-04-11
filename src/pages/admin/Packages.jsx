@@ -7,8 +7,8 @@ import { toast } from 'react-toastify';
 import { useAuth } from '../../contexts/AuthContext';
 
 const emptyForm = {
-    title: '', type: 'open-trip', location: '', duration: '', price: '', originalPrice: '',
-    description: '', itinerary: '', include: '', exclude: '', maxParticipants: 15,
+    titleId: '', titleEn: '', type: 'open-trip', locationId: '', locationEn: '', durationId: '', durationEn: '', price: '', originalPrice: '',
+    descriptionId: '', descriptionEn: '', itineraryId: '', itineraryEn: '', includeId: '', includeEn: '', excludeId: '', excludeEn: '', maxParticipants: 15,
     departureDates: '', images: [], active: true, featured: false,
 };
 
@@ -105,6 +105,28 @@ function formatItineraryForTextarea(value) {
     .join('\n');
 }
 
+function normalizeLocalizedField(value, formatter) {
+  if (value && typeof value === 'object' && !Array.isArray(value) && ('id' in value || 'en' in value)) {
+    return {
+      id: formatter(value.id),
+      en: formatter(value.en),
+    };
+  }
+
+  return {
+    id: formatter(value),
+    en: '',
+  };
+}
+
+function getLocalizedText(value, preferred = 'id') {
+  if (typeof value === 'string') return value;
+  if (value && typeof value === 'object' && !Array.isArray(value)) {
+    return value[preferred] || value.id || value.en || '';
+  }
+  return '';
+}
+
 export default function AdminPackages() {
     const [packages, setPackages] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -129,7 +151,41 @@ export default function AdminPackages() {
   };
 
   const openCreate = () => { setForm(emptyForm); setEditId(null); setImageFiles([]); setImagePreviews([]); setSaveStatus(''); setShowForm(true); };
-    const openEdit = (pkg) => { setForm({ ...emptyForm, ...pkg, images: pkg.images || [], itinerary: formatItineraryForTextarea(pkg.itinerary), include: formatListForTextarea(pkg.includes ?? pkg.include), exclude: formatListForTextarea(pkg.excludes ?? pkg.exclude), departureDates: formatListForTextarea(pkg.departureDates) }); setEditId(pkg.id); setImageFiles([]); setImagePreviews([]); setSaveStatus(''); setShowForm(true); };
+    const openEdit = (pkg) => {
+      const title = normalizeLocalizedField(pkg.title, value => value || '');
+      const location = normalizeLocalizedField(pkg.location, value => value || '');
+      const duration = normalizeLocalizedField(pkg.duration, value => value || '');
+      const description = normalizeLocalizedField(pkg.description, value => value || '');
+      const itinerary = normalizeLocalizedField(pkg.itinerary, formatItineraryForTextarea);
+      const includes = normalizeLocalizedField(pkg.includes ?? pkg.include, formatListForTextarea);
+      const excludes = normalizeLocalizedField(pkg.excludes ?? pkg.exclude, formatListForTextarea);
+
+      setForm({
+        ...emptyForm,
+        ...pkg,
+        titleId: title.id,
+        titleEn: title.en,
+        locationId: location.id,
+        locationEn: location.en,
+        durationId: duration.id,
+        durationEn: duration.en,
+        descriptionId: description.id,
+        descriptionEn: description.en,
+        itineraryId: itinerary.id,
+        itineraryEn: itinerary.en,
+        includeId: includes.id,
+        includeEn: includes.en,
+        excludeId: excludes.id,
+        excludeEn: excludes.en,
+        images: pkg.images || [],
+        departureDates: formatListForTextarea(pkg.departureDates),
+      });
+      setEditId(pkg.id);
+      setImageFiles([]);
+      setImagePreviews([]);
+      setSaveStatus('');
+      setShowForm(true);
+    };
     const closeForm = () => { setShowForm(false); setEditId(null); setForm(emptyForm); setImageFiles([]); setImagePreviews([]); setSaveStatus(''); };
 
   const handleImageFiles = (e) => {
@@ -164,12 +220,39 @@ export default function AdminPackages() {
                 }
                 setSaveStatus('Menyimpan data paket ke database...');
                 const data = {
-                          ...form,
+                          type: form.type,
+                          title: {
+                            id: form.titleId.trim(),
+                            en: form.titleEn.trim(),
+                          },
+                          location: {
+                            id: form.locationId.trim(),
+                            en: form.locationEn.trim(),
+                          },
+                          duration: {
+                            id: form.durationId.trim(),
+                            en: form.durationEn.trim(),
+                          },
+                          description: {
+                            id: form.descriptionId.trim(),
+                            en: form.descriptionEn.trim(),
+                          },
+                          itinerary: {
+                            id: parseItinerary(form.itineraryId),
+                            en: parseItinerary(form.itineraryEn),
+                          },
+                          includes: {
+                            id: splitList(form.includeId),
+                            en: splitList(form.includeEn),
+                          },
+                          excludes: {
+                            id: splitList(form.excludeId),
+                            en: splitList(form.excludeEn),
+                          },
+                          active: form.active,
+                          featured: form.featured,
                           images,
                           image: images[0] || '',
-                          itinerary: parseItinerary(form.itinerary),
-                          includes: splitList(form.include),
-                          excludes: splitList(form.exclude),
                           departureDates: form.type === 'open-trip' ? normalizeDepartureDates(form.departureDates) : [],
                           price: Number(form.price),
                           originalPrice: Number(form.originalPrice) || null,
@@ -218,7 +301,7 @@ export default function AdminPackages() {
 
   const filtered = packages.filter(p => {
         const matchType = filterType === 'semua' || p.type === filterType;
-        const matchSearch = p.title?.toLowerCase().includes(search.toLowerCase()) || p.location?.toLowerCase().includes(search.toLowerCase());
+        const matchSearch = getLocalizedText(p.title).toLowerCase().includes(search.toLowerCase()) || getLocalizedText(p.location).toLowerCase().includes(search.toLowerCase());
         return matchType && matchSearch;
   });
 
@@ -275,7 +358,7 @@ export default function AdminPackages() {
                                                             <td className="px-4 py-3">
                                                                                   <div className="flex items-center gap-3">
                                                                                     {pkg.images?.[0] && <img src={pkg.images[0]} alt="" className="w-10 h-10 rounded-lg object-cover" />}
-                                                                                                          <span className="font-medium text-gray-900 line-clamp-1">{pkg.title}</span>
+                                                                                                          <span className="font-medium text-gray-900 line-clamp-1">{getLocalizedText(pkg.title)}</span>
                                                                                     </div>
                                                             </td>
                                                             <td className="px-4 py-3">
@@ -283,7 +366,7 @@ export default function AdminPackages() {
                                                                                     {pkg.type}
                                                                                     </span>
                                                             </td>
-                                                            <td className="px-4 py-3 text-gray-600">{pkg.location || '-'}</td>
+                                                            <td className="px-4 py-3 text-gray-600">{getLocalizedText(pkg.location) || '-'}</td>
                                                             <td className="px-4 py-3 text-emerald-600 font-semibold">{formatPrice(pkg.price)}</td>
                                                             <td className="px-4 py-3">
                                                                                   <button onClick={() => toggleActive(pkg.id, pkg.active)} className={`text-xs font-semibold px-2 py-1 rounded-full ${pkg.active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
@@ -293,7 +376,7 @@ export default function AdminPackages() {
                                                             <td className="px-4 py-3">
                                                                                   <div className="flex items-center gap-2">
                                                                                                           <button onClick={() => openEdit(pkg)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"><Edit2 className="w-4 h-4" /></button>
-                                                                                                          <button onClick={() => handleDelete(pkg.id, pkg.title)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"><Trash2 className="w-4 h-4" /></button>
+                                                                                                          <button onClick={() => handleDelete(pkg.id, getLocalizedText(pkg.title))} className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"><Trash2 className="w-4 h-4" /></button>
                                                                                     </div>
                                                             </td>
                                         </tr>
@@ -314,9 +397,13 @@ export default function AdminPackages() {
                                         </div>
                                         <form onSubmit={handleSave} className="p-6 space-y-5">
                                                       <div className="grid grid-cols-2 gap-4">
-                                                                      <div className="col-span-2">
-                                                                                        <label className={labelClass}>Judul Paket *</label>
-                                                                                        <input type="text" required value={form.title} onChange={e => setForm({...form, title: e.target.value})} className={inputClass} placeholder="Contoh: Open Trip Labuan Bajo 3D2N" />
+                                                                      <div>
+                                                                                        <label className={labelClass}>Judul Paket Indonesia *</label>
+                                                                                        <input type="text" required value={form.titleId} onChange={e => setForm({...form, titleId: e.target.value})} className={inputClass} placeholder="Contoh: Open Trip Labuan Bajo 3D2N" />
+                                                                      </div>
+                                                                      <div>
+                                                                                        <label className={labelClass}>Package Title English</label>
+                                                                                        <input type="text" value={form.titleEn} onChange={e => setForm({...form, titleEn: e.target.value})} className={inputClass} placeholder="Example: Labuan Bajo Open Trip 3D2N" />
                                                                       </div>
                                                                       <div>
                                                                                         <label className={labelClass}>Tipe Paket *</label>
@@ -326,12 +413,20 @@ export default function AdminPackages() {
                                                                                           </select>
                                                                       </div>
                                                                       <div>
-                                                                                        <label className={labelClass}>Lokasi *</label>
-                                                                                        <input type="text" required value={form.location} onChange={e => setForm({...form, location: e.target.value})} className={inputClass} placeholder="Labuan Bajo, NTT" />
+                                                                                        <label className={labelClass}>Lokasi Indonesia *</label>
+                                                                                        <input type="text" required value={form.locationId} onChange={e => setForm({...form, locationId: e.target.value})} className={inputClass} placeholder="Labuan Bajo, NTT" />
                                                                       </div>
                                                                       <div>
-                                                                                        <label className={labelClass}>Durasi</label>
-                                                                                        <input type="text" value={form.duration} onChange={e => setForm({...form, duration: e.target.value})} className={inputClass} placeholder="3D2N" />
+                                                                                        <label className={labelClass}>Location English</label>
+                                                                                        <input type="text" value={form.locationEn} onChange={e => setForm({...form, locationEn: e.target.value})} className={inputClass} placeholder="Labuan Bajo, East Nusa Tenggara" />
+                                                                      </div>
+                                                                      <div>
+                                                                                        <label className={labelClass}>Durasi Indonesia</label>
+                                                                                        <input type="text" value={form.durationId} onChange={e => setForm({...form, durationId: e.target.value})} className={inputClass} placeholder="3 Hari 2 Malam" />
+                                                                      </div>
+                                                                      <div>
+                                                                                        <label className={labelClass}>Duration English</label>
+                                                                                        <input type="text" value={form.durationEn} onChange={e => setForm({...form, durationEn: e.target.value})} className={inputClass} placeholder="3 Days 2 Nights" />
                                                                       </div>
                                                                       <div>
                                                                                         <label className={labelClass}>Max Peserta</label>
@@ -381,12 +476,20 @@ export default function AdminPackages() {
                                                                                         </div>
                                                                       </div>
                                                                       <div className="col-span-2">
-                                                                                        <label className={labelClass}>Deskripsi</label>
-                                                                                        <textarea rows={3} value={form.description} onChange={e => setForm({...form, description: e.target.value})} className={inputClass} placeholder="Deskripsi paket wisata..." />
+                                                                                        <label className={labelClass}>Deskripsi Indonesia</label>
+                                                                                        <textarea rows={3} value={form.descriptionId} onChange={e => setForm({...form, descriptionId: e.target.value})} className={inputClass} placeholder="Deskripsi paket wisata..." />
                                                                       </div>
                                                                       <div className="col-span-2">
-                                                                                        <label className={labelClass}>Itinerary (format: Hari 1: ..., Hari 2: ...)</label>
-                                                                                        <textarea rows={4} value={form.itinerary} onChange={e => setForm({...form, itinerary: e.target.value})} className={inputClass} />
+                                                                                        <label className={labelClass}>Description English</label>
+                                                                                        <textarea rows={3} value={form.descriptionEn} onChange={e => setForm({...form, descriptionEn: e.target.value})} className={inputClass} placeholder="Package description..." />
+                                                                      </div>
+                                                                      <div className="col-span-2">
+                                                                                        <label className={labelClass}>Itinerary Indonesia</label>
+                                                                                        <textarea rows={4} value={form.itineraryId} onChange={e => setForm({...form, itineraryId: e.target.value})} className={inputClass} placeholder="Format per baris, contoh: 08:00 - 09:00: Penjemputan peserta" />
+                                                                      </div>
+                                                                      <div className="col-span-2">
+                                                                                        <label className={labelClass}>Itinerary English</label>
+                                                                                        <textarea rows={4} value={form.itineraryEn} onChange={e => setForm({...form, itineraryEn: e.target.value})} className={inputClass} placeholder="One line per activity, example: 08:00 - 09:00: Participant pickup" />
                                                                       </div>
                                                                       {form.type === 'open-trip' && (
                                                                         <div className="col-span-2">
@@ -402,12 +505,20 @@ export default function AdminPackages() {
                                                                         </div>
                                                                       )}
                                                                       <div>
-                                                                                        <label className={labelClass}>Include (pisahkan dengan koma)</label>
-                                                                                        <textarea rows={3} value={form.include} onChange={e => setForm({...form, include: e.target.value})} className={inputClass} placeholder="Tiket masuk, Penginapan, Makan..." />
+                                                                                        <label className={labelClass}>Include Indonesia</label>
+                                                                                        <textarea rows={3} value={form.includeId} onChange={e => setForm({...form, includeId: e.target.value})} className={inputClass} placeholder="Tiket masuk, Penginapan, Makan..." />
                                                                       </div>
                                                                       <div>
-                                                                                        <label className={labelClass}>Exclude (pisahkan dengan koma)</label>
-                                                                                        <textarea rows={3} value={form.exclude} onChange={e => setForm({...form, exclude: e.target.value})} className={inputClass} placeholder="Tiket pesawat, Tips guide..." />
+                                                                                        <label className={labelClass}>Include English</label>
+                                                                                        <textarea rows={3} value={form.includeEn} onChange={e => setForm({...form, includeEn: e.target.value})} className={inputClass} placeholder="Entrance ticket, accommodation, meals..." />
+                                                                      </div>
+                                                                      <div>
+                                                                                        <label className={labelClass}>Exclude Indonesia</label>
+                                                                                        <textarea rows={3} value={form.excludeId} onChange={e => setForm({...form, excludeId: e.target.value})} className={inputClass} placeholder="Tiket pesawat, Tips guide..." />
+                                                                      </div>
+                                                                      <div>
+                                                                                        <label className={labelClass}>Exclude English</label>
+                                                                                        <textarea rows={3} value={form.excludeEn} onChange={e => setForm({...form, excludeEn: e.target.value})} className={inputClass} placeholder="Flight ticket, guide tips..." />
                                                                       </div>
                                                                       <div className="flex items-center gap-6">
                                                                                         <label className="flex items-center gap-2 cursor-pointer">

@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import { FaBars, FaTimes, FaPlane } from 'react-icons/fa'
+import { useLanguage } from '../contexts/LanguageContext'
 
 const Navbar = () => {
     const [isOpen, setIsOpen] = useState(false)
     const [scrolled, setScrolled] = useState(false)
     const location = useLocation()
+    const { language, setLanguage, t } = useLanguage()
 
     useEffect(() => {
           const handleScroll = () => setScrolled(window.scrollY > 20)
@@ -19,12 +21,12 @@ const Navbar = () => {
 
     const navLinks = [
       { to: '/', label: 'Home' },
-      { to: '/open-trip', label: 'Open Trip' },
-      { to: '/private-trip', label: 'Private Trip' },
-      { to: '/galeri', label: 'Galeri' },
-      { to: '/blog', label: 'Blog' },
-      { to: '/tentang-kami', label: 'Tentang Kami' },
-      { to: '/kontak', label: 'Kontak' },
+      { to: '/open-trip', label: t('common.openTrip') },
+      { to: '/private-trip', label: t('common.privateTrip') },
+      { to: '/galeri', label: t('common.gallery') },
+      { to: '/blog', label: t('common.blog') },
+      { to: '/tentang-kami', label: t('common.about') },
+      { to: '/kontak', label: t('common.contact') },
         ]
 
     const isHomePage = location.pathname === '/'
@@ -48,7 +50,7 @@ const Navbar = () => {
           }`}>Liburan Terus</span>
                                                               <span className={`text-xs leading-tight block ${
                             scrolled || !isHomePage ? 'text-emerald-600' : 'text-emerald-300'
-          }`}>Travel & Tour</span>
+          }`}>{t('common.brandTagline')}</span>
                                                 </div>
                                     </Link>
                           
@@ -76,11 +78,29 @@ const Navbar = () => {
                           
                             {/* CTA Button */}
                                     <div className="hidden lg:flex items-center gap-3">
+                                                <div className={`flex items-center rounded-full border px-1 py-1 ${scrolled || !isHomePage ? 'border-gray-200 bg-gray-50' : 'border-white/30 bg-white/10 backdrop-blur-sm'}`}>
+                                                              {['id', 'en'].map((lang) => (
+                                                                <button
+                                                                  key={lang}
+                                                                  type="button"
+                                                                  onClick={() => setLanguage(lang)}
+                                                                  className={`rounded-full px-3 py-1.5 text-xs font-semibold uppercase transition-colors ${
+                                                                    language === lang
+                                                                      ? 'bg-emerald-500 text-white'
+                                                                      : scrolled || !isHomePage
+                                                                        ? 'text-gray-600 hover:text-emerald-600'
+                                                                        : 'text-white/80 hover:text-white'
+                                                                  }`}
+                                                                >
+                                                                  {lang}
+                                                                </button>
+                                                              ))}
+                                                </div>
                                                 <Link
                                                                 to="/open-trip"
                                                                 className="bg-gradient-to-r from-emerald-500 to-teal-600 text-white px-5 py-2 rounded-xl text-sm font-semibold hover:shadow-lg hover:scale-105 transition-all duration-200"
                                                               >
-                                                              Booking Sekarang
+                                                              {t('common.bookNow')}
                                                 </Link>
                                     </div>
                           
@@ -123,8 +143,27 @@ const Navbar = () => {
                                                 to="/open-trip"
                                                 className="block w-full text-center bg-gradient-to-r from-emerald-500 to-teal-600 text-white px-4 py-3 rounded-xl text-sm font-semibold mt-2"
                                               >
-                                              Booking Sekarang
+                                              {t('common.bookNow')}
                                   </Link>
+                                  <div className="mt-3 flex items-center justify-between rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
+                                                <span className="text-sm font-medium text-gray-600">{t('navbar.languageLabel')}</span>
+                                                <div className="flex items-center gap-2">
+                                                              {['id', 'en'].map((lang) => (
+                                                                <button
+                                                                  key={lang}
+                                                                  type="button"
+                                                                  onClick={() => setLanguage(lang)}
+                                                                  className={`rounded-full px-3 py-1 text-xs font-semibold uppercase transition-colors ${
+                                                                    language === lang
+                                                                      ? 'bg-emerald-500 text-white'
+                                                                      : 'bg-white text-gray-600'
+                                                                  }`}
+                                                                >
+                                                                  {lang}
+                                                                </button>
+                                                              ))}
+                                                </div>
+                                  </div>
                         </div>
                 </div>
           </nav>

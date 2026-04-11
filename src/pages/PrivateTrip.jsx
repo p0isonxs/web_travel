@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { getPackages } from '../firebase/firestore'
 import { FaSearch, FaMapMarkerAlt, FaClock, FaUserFriends, FaStar, FaFilter, FaCheck } from 'react-icons/fa'
 import Seo from '../components/Seo'
+import { useLanguage } from '../contexts/LanguageContext'
 
 const PrivateTrip = () => {
     const [packages, setPackages] = useState([])
@@ -10,6 +11,7 @@ const PrivateTrip = () => {
     const [loading, setLoading] = useState(true)
     const [search, setSearch] = useState('')
     const [sortBy, setSortBy] = useState('newest')
+    const { t, localize } = useLanguage()
 
     useEffect(() => {
           const fetchPackages = async () => {
@@ -30,8 +32,8 @@ const PrivateTrip = () => {
           let result = [...packages]
           if (search) {
                   result = result.filter(p =>
-                            p.title?.toLowerCase().includes(search.toLowerCase()) ||
-                            p.location?.toLowerCase().includes(search.toLowerCase())
+                            localize(p.title)?.toLowerCase().includes(search.toLowerCase()) ||
+                            localize(p.location)?.toLowerCase().includes(search.toLowerCase())
                                                )
           }
           if (sortBy === 'price-asc') result.sort((a, b) => (a.price || 0) - (b.price || 0))
@@ -44,19 +46,19 @@ const PrivateTrip = () => {
     }
 
     const benefits = [
-          'Jadwal perjalanan sesuai keinginan Anda',
-          'Tidak bergabung dengan peserta lain',
-          'Harga menyesuaikan jumlah peserta',
-          'Pemandu wisata profesional & berpengalaman',
-          'Akomodasi premium pilihan Anda',
-          'Layanan jemputan dari lokasi Anda',
+          t('privateTrip.benefit1'),
+          t('privateTrip.benefit2'),
+          t('privateTrip.benefit3'),
+          t('privateTrip.benefit4'),
+          t('privateTrip.benefit5'),
+          t('privateTrip.benefit6'),
         ]
 
     return (
           <>
                 <Seo
-                  title="Private Trip - Liburan Terus | Wisata Eksklusif Rombongan"
-                  description="Nikmati wisata eksklusif bersama keluarga atau rombongan Anda dengan paket private trip Liburan Terus. Jadwal fleksibel, harga terjangkau."
+                  title={t('privateTrip.seoTitle')}
+                  description={t('privateTrip.seoDescription')}
                 />
           
             {/* Hero */}
@@ -68,13 +70,13 @@ const PrivateTrip = () => {
                         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
                                   <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white text-sm px-4 py-2 rounded-full mb-4">
                                               <FaUserFriends size={12} />
-                                              <span>Eksklusif untuk Anda & Rombongan</span>
+                                              <span>{t('privateTrip.heroBadge')}</span>
                                   </div>
                                   <h1 className="text-3xl md:text-5xl font-bold text-white mb-4">
-                                              Private Trip <span className="text-purple-200">Eksklusif & Fleksibel</span>
+                                              {t('privateTrip.heroTitle')} <span className="text-purple-200">{t('privateTrip.heroHighlight')}</span>
                                   </h1>
                                   <p className="text-purple-100 text-lg max-w-2xl mx-auto mb-8">
-                                              Nikmati pengalaman wisata premium bersama keluarga atau rombongan Anda. Jadwal, destinasi, dan fasilitas sesuai keinginan.
+                                              {t('privateTrip.heroDescription')}
                                   </p>
                                   <div className="max-w-2xl mx-auto">
                                               <div className="relative bg-white rounded-2xl shadow-xl p-2 flex gap-2">
@@ -84,12 +86,12 @@ const PrivateTrip = () => {
                                                                                                 type="text"
                                                                                                 value={search}
                                                                                                 onChange={e => setSearch(e.target.value)}
-                                                                                                placeholder="Cari paket private trip..."
+                                                                                                placeholder={t('privateTrip.searchPlaceholder')}
                                                                                                 className="w-full pl-10 pr-4 py-3 rounded-xl text-gray-700 focus:outline-none text-sm"
                                                                                               />
                                                             </div>
                                                             <button className="bg-gradient-to-r from-violet-500 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all text-sm">
-                                                                            Cari
+                                                                            {t('privateTrip.searchButton')}
                                                             </button>
                                               </div>
                                   </div>
@@ -99,7 +101,7 @@ const PrivateTrip = () => {
             {/* Benefits */}
                 <section className="py-12 bg-white border-b">
                         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                                  <h2 className="text-center text-xl font-bold text-gray-800 mb-8">Keunggulan Private Trip</h2>
+                                  <h2 className="text-center text-xl font-bold text-gray-800 mb-8">{t('privateTrip.benefitsTitle')}</h2>
                                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                                     {benefits.map((benefit, index) => (
                           <div key={index} className="flex items-start gap-3 p-4 bg-purple-50 rounded-xl">
@@ -119,9 +121,9 @@ const PrivateTrip = () => {
                                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
                                               <div>
                                                             <h2 className="text-xl font-bold text-gray-800">
-                                                              {loading ? 'Memuat...' : `${filtered.length} Paket Private Trip`}
+                                                              {loading ? t('privateTrip.loading') : `${filtered.length} ${t('privateTrip.packagesCount')}`}
                                                             </h2>
-                                                            <p className="text-gray-500 text-sm">Harga dapat disesuaikan dengan jumlah peserta</p>
+                                                            <p className="text-gray-500 text-sm">{t('privateTrip.priceAdjustable')}</p>
                                               </div>
                                               <div className="flex items-center gap-3">
                                                             <FaFilter className="text-gray-400" />
@@ -130,9 +132,9 @@ const PrivateTrip = () => {
                                                                               onChange={e => setSortBy(e.target.value)}
                                                                               className="border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
                                                                             >
-                                                                            <option value="newest">Terbaru</option>
-                                                                            <option value="price-asc">Harga: Terendah</option>
-                                                                            <option value="price-desc">Harga: Tertinggi</option>
+                                                                            <option value="newest">{t('privateTrip.newest')}</option>
+                                                                            <option value="price-asc">{t('privateTrip.lowestPrice')}</option>
+                                                                            <option value="price-desc">{t('privateTrip.highestPrice')}</option>
                                                             </select>
                                               </div>
                                   </div>
@@ -155,43 +157,47 @@ const PrivateTrip = () => {
                           {!loading && filtered.length === 0 && (
                         <div className="text-center py-20">
                                       <div className="text-6xl mb-4">🏔️</div>
-                                      <h3 className="text-xl font-semibold text-gray-700 mb-2">Paket tidak ditemukan</h3>
-                                      <p className="text-gray-500">Coba kata kunci lain atau hubungi kami untuk paket custom</p>
+                                      <h3 className="text-xl font-semibold text-gray-700 mb-2">{t('privateTrip.notFoundTitle')}</h3>
+                                      <p className="text-gray-500">{t('privateTrip.notFoundDescription')}</p>
                                       <Link to="/kontak" className="inline-block mt-4 bg-purple-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-purple-700 transition-colors">
-                                                      Hubungi Kami
+                                                      {t('privateTrip.contactUs')}
                                       </Link>
                         </div>
                                   )}
                         
                           {!loading && filtered.length > 0 && (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                          {filtered.map((pkg) => (
+                          {filtered.map((pkg) => {
+                                          const title = localize(pkg.title)
+                                          const location = localize(pkg.location)
+                                          const duration = localize(pkg.duration)
+                                          return (
                                           <Link key={pkg.id} to={`/paket/${pkg.id}`} className="group">
                                                             <div className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
                                                                                 <div className="relative h-52 overflow-hidden">
                                                                                                       <img
                                                                                                                                 src={pkg.images?.[0] || pkg.image || 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=600'}
-                                                                                                                                alt={pkg.title}
+                                                                                                                                alt={title}
                                                                                                                                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                                                                                                                               />
                                                                                                       <div className="absolute top-3 left-3">
                                                                                                                               <span className="bg-purple-600 text-white text-xs font-semibold px-3 py-1 rounded-full">
-                                                                                                                                                        Private Trip
+                                                                                                                                                        {t('privateTrip.privateBadge')}
                                                                                                                                 </span>
                                                                                                         </div>
                                                                                   </div>
                                                                                 <div className="p-5">
                                                                                                       <h3 className="font-bold text-gray-800 text-base mb-2 line-clamp-2 group-hover:text-purple-600 transition-colors">
-                                                                                                        {pkg.title}
+                                                                                                        {title}
                                                                                                         </h3>
                                                                                                       <div className="flex items-center gap-1.5 text-gray-500 text-sm mb-1">
                                                                                                                               <FaMapMarkerAlt className="text-purple-500" size={12} />
-                                                                                                                              <span>{pkg.location || 'Indonesia'}</span>
+                                                                                                                              <span>{location || t('privateTrip.locationFallback')}</span>
                                                                                                         </div>
                                                                                                       <div className="flex items-center gap-4 text-gray-500 text-xs mb-4">
                                                                                                                               <span className="flex items-center gap-1">
                                                                                                                                                         <FaClock className="text-purple-400" size={11} />
-                                                                                                                                {pkg.duration || '1 Hari'}
+                                                                                                                                {duration || t('privateTrip.durationFallback')}
                                                                                                                                 </span>
                                                                                                         {pkg.rating && (
                                                                       <span className="flex items-center gap-1">
@@ -202,18 +208,18 @@ const PrivateTrip = () => {
                                                                                                         </div>
                                                                                                       <div className="flex items-end justify-between">
                                                                                                                               <div>
-                                                                                                                                                        <p className="text-xs text-gray-400">Mulai dari</p>
+                                                                                                                                                        <p className="text-xs text-gray-400">{t('privateTrip.startingFrom')}</p>
                                                                                                                                                         <p className="text-purple-600 font-bold text-lg">{formatPrice(pkg.price)}</p>
-                                                                                                                                                        <p className="text-gray-400 text-xs">harga nego</p>
+                                                                                                                                                        <p className="text-gray-400 text-xs">{t('privateTrip.negotiablePrice')}</p>
                                                                                                                                 </div>
                                                                                                                               <span className="bg-purple-50 text-purple-600 text-xs font-semibold px-3 py-1.5 rounded-xl hover:bg-purple-600 hover:text-white transition-colors">
-                                                                                                                                                        Lihat Detail
+                                                                                                                                                        {t('privateTrip.viewDetail')}
                                                                                                                                 </span>
                                                                                                         </div>
                                                                                   </div>
                                                             </div>
                                           </Link>
-                                        ))}
+                                        )})}
                         </div>
                                   )}
                         </div>
@@ -222,10 +228,10 @@ const PrivateTrip = () => {
             {/* CTA Custom */}
                 <section className="py-16 bg-gradient-to-r from-violet-600 to-purple-700">
                         <div className="max-w-4xl mx-auto px-4 text-center">
-                                  <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">Tidak menemukan paket yang cocok?</h2>
-                                  <p className="text-purple-200 mb-8">Kami siap membuat itinerary custom sesuai keinginan Anda!</p>
+                                  <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">{t('privateTrip.customTitle')}</h2>
+                                  <p className="text-purple-200 mb-8">{t('privateTrip.customDescription')}</p>
                                   <Link to="/kontak" className="bg-white text-purple-600 px-8 py-4 rounded-xl font-bold hover:shadow-xl hover:scale-105 transition-all">
-                                              Hubungi Kami Sekarang
+                                              {t('privateTrip.contactNow')}
                                   </Link>
                         </div>
                 </section>

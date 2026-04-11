@@ -3,14 +3,22 @@ import { collection, getDocs, query, orderBy, where } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { X, ZoomIn } from 'lucide-react';
 import Seo from '../components/Seo';
+import { useLanguage } from '../contexts/LanguageContext';
 
 export default function Gallery() {
     const [photos, setPhotos] = useState([]);
     const [loading, setLoading] = useState(true);
     const [activeCategory, setActiveCategory] = useState('semua');
     const [lightbox, setLightbox] = useState(null);
+    const { t, language } = useLanguage();
 
-  const categories = ['semua', 'open trip', 'private trip', 'destinasi', 'kuliner'];
+  const categories = [
+    { value: 'semua', label: t('gallery.all') },
+    { value: 'open trip', label: t('gallery.openTrip') },
+    { value: 'private trip', label: t('gallery.privateTrip') },
+    { value: 'destinasi', label: t('gallery.destination') },
+    { value: 'kuliner', label: t('gallery.culinary') },
+  ];
 
   useEffect(() => {
         fetchGallery();
@@ -52,16 +60,16 @@ export default function Gallery() {
   return (
         <>
               <Seo
-                title="Galeri Foto - Liburan Terus | Dokumentasi Perjalanan Wisata"
-                description="Lihat koleksi foto perjalanan wisata bersama Liburan Terus. Dokumentasi open trip, private trip ke berbagai destinasi indah di Indonesia."
+                title={t('gallery.seoTitle')}
+                description={t('gallery.seoDescription')}
               />
         
           {/* Hero */}
               <div className="bg-gradient-to-r from-emerald-600 to-teal-700 py-20 mt-16">
                       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                                <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">Galeri Foto</h1>
+                                <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">{t('gallery.heroTitle')}</h1>
                                 <p className="text-emerald-100 text-lg max-w-2xl mx-auto">
-                                            Setiap foto menyimpan kenangan indah perjalanan bersama Liburan Terus
+                                            {t('gallery.heroDescription')}
                                 </p>
                       </div>
               </div>
@@ -71,15 +79,15 @@ export default function Gallery() {
                       <div className="flex flex-wrap gap-3 justify-center mb-10">
                         {categories.map(cat => (
                       <button
-                                      key={cat}
-                                      onClick={() => setActiveCategory(cat)}
+                                      key={cat.value}
+                                      onClick={() => setActiveCategory(cat.value)}
                                       className={`px-5 py-2 rounded-full font-medium capitalize transition-all ${
-                                                        activeCategory === cat
+                                                        activeCategory === cat.value
                                                           ? 'bg-emerald-600 text-white shadow-lg scale-105'
                                                           : 'bg-white text-gray-600 hover:bg-emerald-50 border border-gray-200'
                                       }`}
                                     >
-                        {cat}
+                        {cat.label}
                       </button>
                     ))}
                       </div>
@@ -93,7 +101,7 @@ export default function Gallery() {
                     </div>
                   ) : photos.length === 0 ? (
                     <div className="text-center py-20 text-gray-500">
-                                <p className="text-xl">Belum ada foto untuk kategori ini</p>
+                                <p className="text-xl">{t('gallery.empty')}</p>
                     </div>
                   ) : (
                     <div className="columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4">
@@ -105,7 +113,7 @@ export default function Gallery() {
                                                     >
                                                     <img
                                                                         src={photo.imageUrl}
-                                                                        alt={photo.caption || 'Galeri Liburan Terus'}
+                                                                        alt={photo.caption || t('gallery.imageAlt')}
                                                                         className="w-full object-cover group-hover:scale-105 transition-transform duration-300"
                                                                         loading="lazy"
                                                                       />

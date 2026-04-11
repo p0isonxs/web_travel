@@ -14,6 +14,7 @@ import {
                           onSnapshot
                           } from 'firebase/firestore'
                           import { db } from './config'
+                          import { toLocalizedField } from '../utils/localizedContent'
 
                           const splitList = (value) => {
                             if (Array.isArray(value)) return value.filter(Boolean)
@@ -87,6 +88,22 @@ import {
                               .filter(Boolean)
                           }
 
+                          const normalizeLocalizedText = (value) => {
+                            const localized = toLocalizedField(value, (item) => typeof item === 'string' ? item.trim() : '')
+                            return {
+                              id: localized.id || '',
+                              en: localized.en || '',
+                            }
+                          }
+
+                          const normalizeLocalizedList = (value, legacyValue) => {
+                            return toLocalizedField(value ?? legacyValue, splitList, [])
+                          }
+
+                          const normalizeLocalizedItinerary = (value) => {
+                            return toLocalizedField(value, normalizeItinerary, [])
+                          }
+
                           const normalizePackage = (data) => {
                             if (!data) return data
 
@@ -97,9 +114,14 @@ import {
                             return {
                               ...data,
                               images: Array.isArray(data.images) ? data.images.filter(Boolean) : (data.image ? [data.image] : []),
-                              itinerary: normalizeItinerary(data.itinerary),
-                              includes: splitList(data.includes ?? data.include),
-                              excludes: splitList(data.excludes ?? data.exclude),
+                              title: normalizeLocalizedText(data.title),
+                              location: normalizeLocalizedText(data.location),
+                              duration: normalizeLocalizedText(data.duration),
+                              description: normalizeLocalizedText(data.description),
+                              itinerary: normalizeLocalizedItinerary(data.itinerary),
+                              includes: normalizeLocalizedList(data.includes, data.include),
+                              excludes: normalizeLocalizedList(data.excludes, data.exclude),
+                              slug: normalizeLocalizedText(data.slug),
                               departureDates: departureDates
                                 .map(item => typeof item === 'string' ? item.trim() : '')
                                 .filter(Boolean)
