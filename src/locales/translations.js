@@ -58,6 +58,7 @@ export const translations = {
       ctaTitle: 'Siap Memulai Petualangan?',
       ctaDescription: 'Hubungi kami sekarang dan rencanakan liburan impian Anda bersama Liburan Terus',
       chatWhatsapp: 'Chat WhatsApp',
+      whatsappTemplate: 'Halo, saya ingin informasi paket wisata',
       viewAllPackages: 'Lihat Semua Paket',
       anonymous: 'Anonim',
       traveler: 'Wisatawan',
@@ -175,6 +176,7 @@ export const translations = {
       scheduleFullAlert: 'Jadwal ini sudah penuh. Pilih tanggal lain.',
       perPax: '/ pax',
       personUnit: 'orang',
+      whatsappTemplate: 'Halo, saya ingin bertanya tentang paket {{packageTitle}}',
     },
     booking: {
       seoTitle: 'Form Booking',
@@ -292,6 +294,7 @@ export const translations = {
       send: 'Kirim Pesan',
       success: 'Pesan Anda telah terkirim! Kami akan segera menghubungi Anda.',
       error: 'Gagal mengirim pesan. Silakan coba lagi.',
+      whatsappTemplate: 'Halo {{siteName}}! Saya ingin bertanya mengenai paket wisata.',
     },
     gallery: {
       seoTitle: 'Galeri Foto - Liburan Terus | Dokumentasi Perjalanan Wisata',
@@ -451,6 +454,7 @@ export const translations = {
       ctaTitle: 'Ready For Your Next Adventure?',
       ctaDescription: 'Contact us now and start planning your dream trip with Liburan Terus.',
       chatWhatsapp: 'Chat on WhatsApp',
+      whatsappTemplate: 'Hello, I would like more information about your travel packages',
       viewAllPackages: 'View All Packages',
       anonymous: 'Anonymous',
       traveler: 'Traveler',
@@ -568,6 +572,7 @@ export const translations = {
       scheduleFullAlert: 'This schedule is fully booked. Please choose another date.',
       perPax: '/ pax',
       personUnit: 'people',
+      whatsappTemplate: 'Hello, I would like to ask about the package {{packageTitle}}',
     },
     booking: {
       seoTitle: 'Booking Form',
@@ -685,6 +690,7 @@ export const translations = {
       send: 'Send Message',
       success: 'Your message has been sent! We will get back to you soon.',
       error: 'Failed to send your message. Please try again.',
+      whatsappTemplate: 'Hello {{siteName}}! I would like to ask about your travel packages.',
     },
     gallery: {
       seoTitle: 'Photo Gallery - Liburan Terus | Travel Documentation',

@@ -6,6 +6,7 @@ import { db } from '../firebase/config';
 import { MapPin, Users, Star, ChevronRight, Phone, CheckCircle, ArrowRight, Calendar } from 'lucide-react';
 import Seo from '../components/Seo';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useSettings } from '../contexts/SettingsContext';
 
 export default function Home() {
     const [openPackages, setOpenPackages] = useState([]);
@@ -13,6 +14,7 @@ export default function Home() {
     const [testimonials, setTestimonials] = useState([]);
     const [stats, setStats] = useState({ trips: 500, customers: 3000, destinations: 50, rating: 4.9 });
     const { t, language, localize } = useLanguage();
+    const settings = useSettings();
 
   useEffect(() => {
         fetchData();
@@ -37,6 +39,7 @@ export default function Home() {
   const formatPrice = (price) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(price);
 
   const whyUs = t('home.whyUsItems');
+  const homepageWhatsappMessage = encodeURIComponent(t('home.whatsappTemplate'));
 
   return (
         <>
@@ -51,7 +54,7 @@ export default function Home() {
                     "name": "Liburan Terus",
                     "description": language === 'en' ? "Trusted travel agency for open trips and private trips" : "Agen wisata terpercaya untuk open trip dan private trip",
                     "url": "https://liburanterus.com",
-                    "telephone": "+6281234567890",
+                    "telephone": `+${settings.phone}`,
                     "address": { "@type": "PostalAddress", "addressCountry": "ID" }
                 })}</script>
               </Helmet>
@@ -311,7 +314,7 @@ export default function Home() {
                                 <p className="text-emerald-100 text-lg mb-8">{t('home.ctaDescription')}</p>
                                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
                                             <a
-                                                            href="https://wa.me/6281234567890?text=Halo, saya ingin informasi paket wisata"
+                                                            href={`https://wa.me/${settings.phone}?text=${homepageWhatsappMessage}`}
                                                             target="_blank" rel="noopener noreferrer"
                                                             className="inline-flex items-center gap-2 bg-green-500 hover:bg-green-400 text-white font-bold px-8 py-4 rounded-xl text-lg transition-all hover:scale-105"
                                                           >

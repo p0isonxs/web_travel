@@ -5,6 +5,7 @@ import { getPackageById, getOpenTripSlotUsage } from '../firebase/firestore'
 import { FaMapMarkerAlt, FaClock, FaUsers, FaStar, FaCheck, FaTimes, FaChevronLeft, FaChevronRight, FaWhatsapp, FaCalendar } from 'react-icons/fa'
 import Seo from '../components/Seo'
 import { useLanguage } from '../contexts/LanguageContext'
+import { useSettings } from '../contexts/SettingsContext'
 
 const PackageDetail = () => {
     const { id } = useParams()
@@ -17,6 +18,7 @@ const PackageDetail = () => {
     const [participants, setParticipants] = useState(1)
     const [slotUsage, setSlotUsage] = useState({})
     const { t, language, localize } = useLanguage()
+    const settings = useSettings()
 
     useEffect(() => {
           const fetchPackage = async () => {
@@ -119,6 +121,9 @@ const PackageDetail = () => {
             const packageItinerary = localize(pkg.itinerary) || []
             const packageIncludes = localize(pkg.includes) || []
             const packageExcludes = localize(pkg.excludes) || []
+            const packageWhatsappMessage = encodeURIComponent(
+              t('packageDetail.whatsappTemplate', { packageTitle })
+            )
               
                 return (
                       <>
@@ -453,7 +458,7 @@ const PackageDetail = () => {
                                                                                           </button>
                                                                         
                                                                           {/* WhatsApp */}
-                                                                                        <a href={`https://wa.me/6281234567890?text=Halo, saya ingin bertanya tentang paket ${packageTitle}`}
+                                                                                        <a href={`https://wa.me/${settings.phone}?text=${packageWhatsappMessage}`}
                                                                                                             target="_blank" rel="noopener noreferrer"
                                                                                                             className="w-full flex items-center justify-center gap-2 bg-green-50 text-green-600 border border-green-200 py-3 rounded-xl font-semibold hover:bg-green-100 transition-colors text-sm">
                                                                                                           <FaWhatsapp size={16} />

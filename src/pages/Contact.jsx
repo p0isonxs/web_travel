@@ -12,6 +12,9 @@ export default function Contact() {
     const [submitting, setSubmitting] = useState(false);
     const settings = useSettings();
     const { t } = useLanguage();
+    const whatsappMessage = encodeURIComponent(
+      t('contact.whatsappTemplate', { siteName: settings.siteName })
+    );
 
   useEffect(() => { window.scrollTo(0, 0); }, []);
 
@@ -80,7 +83,7 @@ export default function Contact() {
                                                           <h3 className="font-bold text-green-800 text-lg mb-2">{t('contact.whatsappTitle')}</h3>
                                                           <p className="text-green-700 mb-4">{t('contact.whatsappDescription')}</p>
                                                           <a
-                                                                            href={`https://wa.me/${settings.phone}?text=Halo ${settings.siteName}! Saya ingin bertanya mengenai paket wisata.`}
+                                                                            href={`https://wa.me/${settings.phone}?text=${whatsappMessage}`}
                                                                             target="_blank" rel="noopener noreferrer"
                                                                             className="inline-flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white font-bold px-6 py-3 rounded-xl transition-colors"
                                                                           >
