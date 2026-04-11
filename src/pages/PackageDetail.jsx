@@ -7,6 +7,62 @@ import Seo from '../components/Seo'
 import { useLanguage } from '../contexts/LanguageContext'
 import { useSettings } from '../contexts/SettingsContext'
 
+function resolveMapSource(pkg, packageLocation, fallbackLocation) {
+  const rawLink = typeof pkg.mapLink === 'string' ? pkg.mapLink.trim() : ''
+  if (rawLink) {
+    try {
+      const url = new URL(rawLink)
+      const queryParam = url.searchParams.get('q') || url.searchParams.get('query')
+      if (queryParam) {
+        return {
+          embedQuery: queryParam,
+          openUrl: rawLink,
+        }
+      }
+
+      const coordsMatch = rawLink.match(/@(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/)
+      if (coordsMatch) {
+        return {
+          embedQuery: `${coordsMatch[1]},${coordsMatch[2]}`,
+          openUrl: rawLink,
+        }
+      }
+
+      const pathMatch = url.pathname.match(/\/place\/([^/]+)/)
+      if (pathMatch) {
+        return {
+          embedQuery: decodeURIComponent(pathMatch[1]).replace(/\+/g, ' '),
+          openUrl: rawLink,
+        }
+      }
+
+      return {
+        embedQuery: `${packageLocation || fallbackLocation}, Indonesia`,
+        openUrl: rawLink,
+      }
+    } catch {
+      return {
+        embedQuery: rawLink,
+        openUrl: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(rawLink)}`,
+      }
+    }
+  }
+
+  const latitude = Number(pkg.mapLatitude)
+  const longitude = Number(pkg.mapLongitude)
+  if (Number.isFinite(latitude) && Number.isFinite(longitude)) {
+    return {
+      embedQuery: `${latitude},${longitude}`,
+      openUrl: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${latitude},${longitude}`)}`,
+    }
+  }
+
+  return {
+    embedQuery: `${packageLocation || fallbackLocation}, Indonesia`,
+    openUrl: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${packageLocation || fallbackLocation}, Indonesia`)}`,
+  }
+}
+
 const PackageDetail = () => {
     const { id } = useParams()
     const navigate = useNavigate()
@@ -124,6 +180,9 @@ const PackageDetail = () => {
             const packageWhatsappMessage = encodeURIComponent(
               t('packageDetail.whatsappTemplate', { packageTitle })
             )
+            const mapSource = resolveMapSource(pkg, packageLocation, t('packageDetail.locationFallback'))
+            const mapEmbedUrl = `https://maps.google.com/maps?q=${encodeURIComponent(mapSource.embedQuery)}&z=12&output=embed`
+            const mapOpenUrl = mapSource.openUrl
               
                 return (
                       <>
@@ -320,6 +379,33 @@ const PackageDetail = () => {
                                                                   </div>
                                             </div>
                                                                                                           )}
+                                                                                          </div>
+                                                                        </div>
+
+                                                            {/* Location Map */}
+                                                                        <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+                                                                                          <div className="flex items-start justify-between gap-4 border-b border-gray-100 px-6 py-5">
+                                                                                                            <div>
+                                                                                                                              <h2 className="text-lg font-bold text-gray-800">{t('packageDetail.locationMapTitle')}</h2>
+                                                                                                                              <p className="mt-1 text-sm text-gray-500">{t('packageDetail.locationMapDescription')}</p>
+                                                                                                            </div>
+                                                                                                            <a
+                                                                                                              href={mapOpenUrl}
+                                                                                                              target="_blank"
+                                                                                                              rel="noopener noreferrer"
+                                                                                                              className={`shrink-0 rounded-full border px-4 py-2 text-xs font-semibold transition-colors ${isOpenTrip ? 'border-emerald-200 text-emerald-700 hover:bg-emerald-50' : 'border-purple-200 text-purple-700 hover:bg-purple-50'}`}
+                                                                                                            >
+                                                                                                              {t('packageDetail.openMap')}
+                                                                                                            </a>
+                                                                                          </div>
+                                                                                          <div className="relative aspect-[16/9] bg-gray-100">
+                                                                                                            <iframe
+                                                                                                              title={`${t('packageDetail.locationMapTitle')} - ${packageTitle}`}
+                                                                                                              src={mapEmbedUrl}
+                                                                                                              loading="lazy"
+                                                                                                              referrerPolicy="no-referrer-when-downgrade"
+                                                                                                              className="h-full w-full border-0"
+                                                                                                            />
                                                                                           </div>
                                                                         </div>
                                                           </div>

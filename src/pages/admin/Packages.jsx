@@ -9,7 +9,7 @@ import { useAuth } from '../../contexts/AuthContext';
 const emptyForm = {
     titleId: '', titleEn: '', type: 'open-trip', locationId: '', locationEn: '', durationId: '', durationEn: '', price: '', originalPrice: '',
     descriptionId: '', descriptionEn: '', itineraryId: '', itineraryEn: '', includeId: '', includeEn: '', excludeId: '', excludeEn: '', maxParticipants: 15,
-    departureDates: '', images: [], active: true, featured: false,
+    departureDates: '', mapLink: '', mapLatitude: '', mapLongitude: '', images: [], active: true, featured: false,
 };
 
 const FIRESTORE_TIMEOUT_MS = 15000;
@@ -177,6 +177,9 @@ export default function AdminPackages() {
         includeEn: includes.en,
         excludeId: excludes.id,
         excludeEn: excludes.en,
+        mapLink: pkg.mapLink || '',
+        mapLatitude: pkg.mapLatitude ?? '',
+        mapLongitude: pkg.mapLongitude ?? '',
         images: pkg.images || [],
         departureDates: formatListForTextarea(pkg.departureDates),
       });
@@ -254,6 +257,9 @@ export default function AdminPackages() {
                           images,
                           image: images[0] || '',
                           departureDates: form.type === 'open-trip' ? normalizeDepartureDates(form.departureDates) : [],
+                          mapLink: form.mapLink.trim(),
+                          mapLatitude: form.mapLatitude === '' ? null : Number(form.mapLatitude),
+                          mapLongitude: form.mapLongitude === '' ? null : Number(form.mapLongitude),
                           price: Number(form.price),
                           originalPrice: Number(form.originalPrice) || null,
                           maxParticipants: Number(form.maxParticipants),
@@ -504,6 +510,17 @@ export default function AdminPackages() {
                                                                                           <p className="mt-1 text-xs text-gray-500">Tanggal ini yang bisa dipilih user saat memesan open trip.</p>
                                                                         </div>
                                                                       )}
+                                                                      <div className="col-span-2">
+                                                                                        <label className={labelClass}>Link Google Maps</label>
+                                                                                        <input
+                                                                                          type="url"
+                                                                                          value={form.mapLink}
+                                                                                          onChange={e => setForm({...form, mapLink: e.target.value})}
+                                                                                          className={inputClass}
+                                                                                          placeholder="https://maps.google.com/..."
+                                                                                        />
+                                                                                        <p className="mt-1 text-xs text-gray-500">Cukup paste link Google Maps dari destinasi. Jika kosong, website akan memakai nama lokasi paket sebagai fallback.</p>
+                                                                      </div>
                                                                       <div>
                                                                                         <label className={labelClass}>Include Indonesia</label>
                                                                                         <textarea rows={3} value={form.includeId} onChange={e => setForm({...form, includeId: e.target.value})} className={inputClass} placeholder="Tiket masuk, Penginapan, Makan..." />

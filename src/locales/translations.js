@@ -177,6 +177,9 @@ export const translations = {
       perPax: '/ pax',
       personUnit: 'orang',
       whatsappTemplate: 'Halo, saya ingin bertanya tentang paket {{packageTitle}}',
+      locationMapTitle: 'Lokasi Destinasi',
+      locationMapDescription: 'Lihat perkiraan area destinasi utama paket ini di peta.',
+      openMap: 'Buka di Google Maps',
     },
     booking: {
       seoTitle: 'Form Booking',
@@ -573,6 +576,9 @@ export const translations = {
       perPax: '/ pax',
       personUnit: 'people',
       whatsappTemplate: 'Hello, I would like to ask about the package {{packageTitle}}',
+      locationMapTitle: 'Destination Map',
+      locationMapDescription: 'See the approximate main destination area for this package on the map.',
+      openMap: 'Open in Google Maps',
     },
     booking: {
       seoTitle: 'Booking Form',
