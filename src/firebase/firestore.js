@@ -15,21 +15,111 @@ import {
                           } from 'firebase/firestore'
                           import { db } from './config'
 
-                          // =================== PACKAGES ===================
-                          export const packagesCollection = collection(db, 'packages')
+                          const splitList = (value) => {
+                            if (Array.isArray(value)) return value.filter(Boolean)
+                            if (typeof value !== 'string') return []
+                            return value
+                              .split(/\r?\n|,/)
+                              .map(item => item.trim())
+                              .filter(Boolean)
+                          }
 
-                          export const getPackages = async (type = null) => {
-                            let q = type
-                                ? query(packagesCollection, where('type', '==', type), orderBy('createdAt', 'desc'))
-                                    : query(packagesCollection, orderBy('createdAt', 'desc'))
-                                      const snapshot = await getDocs(q)
-                                        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
-                                        }
+                          const cleanTimeLabel = (value) => {
+                            if (typeof value !== 'string') return ''
+                            return value
+                              .replace(/\s*[–—]\s*/g, ' - ')
+                              .replace(/\s*-\s*/g, ' - ')
+                              .replace(/:\s*$/, '')
+                              .replace(/\s{2,}/g, ' ')
+                              .trim()
+                          }
+
+                          const parseItineraryLine = (line, index) => {
+                            const trimmed = line.trim()
+                            if (!trimmed) return null
+
+                            const timeRangeMatch = trimmed.match(/^(\d{1,2}[:.]\d{2}\s*[-–]\s*(?:\d{1,2}[:.]\d{2}|[A-Za-zÀ-ÿ]+))(?:\s*[:|\-]\s*|\s+)(.+)$/)
+                            if (timeRangeMatch) {
+                              return {
+                                time: cleanTimeLabel(timeRangeMatch[1]),
+                                activity: timeRangeMatch[2].trim(),
+                              }
+                            }
+
+                            const labelMatch = trimmed.match(/^([^:]+):\s+(.+)$/)
+                            if (labelMatch) {
+                              return {
+                                time: cleanTimeLabel(labelMatch[1]),
+                                activity: labelMatch[2].trim(),
+                              }
+                            }
+
+                            return {
+                              time: `Kegiatan ${index + 1}`,
+                              activity: trimmed,
+                            }
+                          }
+
+                          const normalizeItinerary = (value) => {
+                            if (Array.isArray(value)) {
+                              return value
+                                .map((item, index) => {
+                                  if (typeof item === 'string') {
+                                    return {
+                                      time: `Kegiatan ${index + 1}`,
+                                      activity: item.trim(),
+                                    }
+                                  }
+
+                                  return {
+                                    time: cleanTimeLabel(item?.time || `Kegiatan ${index + 1}`),
+                                    activity: item?.activity || item?.title || '',
+                                  }
+                                })
+                                .filter(item => item.activity)
+                            }
+
+                            if (typeof value !== 'string') return []
+
+                            return value
+                              .split(/\r?\n/)
+                              .map(parseItineraryLine)
+                              .filter(Boolean)
+                          }
+
+                          const normalizePackage = (data) => {
+                            if (!data) return data
+
+                            return {
+                              ...data,
+                              images: Array.isArray(data.images) ? data.images.filter(Boolean) : (data.image ? [data.image] : []),
+                              itinerary: normalizeItinerary(data.itinerary),
+                              includes: splitList(data.includes ?? data.include),
+                              excludes: splitList(data.excludes ?? data.exclude),
+                            }
+                          }
+
+                          // =================== PACKAGES ===================
+export const packagesCollection = collection(db, 'packages')
+
+export const getPackages = async (type = null) => {
+  const snapshot = await getDocs(packagesCollection)
+  const packages = snapshot.docs.map(doc => normalizePackage({ id: doc.id, ...doc.data() }))
+
+  return packages
+    .filter(item => (type ? item.type === type : true))
+    .filter(item => item.active !== false)
+    .sort((a, b) => {
+      const aTime = a.createdAt?.seconds || 0
+      const bTime = b.createdAt?.seconds || 0
+      return bTime - aTime
+    })
+}
 
                                         export const getPackageById = async (id) => {
                                           const docRef = doc(db, 'packages', id)
                                             const docSnap = await getDoc(docRef)
-                                              if (docSnap.exists()) return { id: docSnap.id, ...docSnap.data() }
+                                              if (docSnap.exists()) return normalizePackage({ id: docSnap.id, ...docSnap.data() })
                                                 return null
                                                 }
 
@@ -84,19 +174,45 @@ import {
                                                                                                 // =================== PAYMENTS ===================
                                                                                                 export const paymentsCollection = collection(db, 'payments')
 
-                                                                                                export const getPayments = async () => {
-                                                                                                  const q = query(paymentsCollection, orderBy('createdAt', 'desc'))
-                                                                                                    const snapshot = await getDocs(q)
-                                                                                                      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
-                                                                                                      }
-                                                                                                      
-                                                                                                      export const addPayment = async (data) => {
-                                                                                                        return await addDoc(paymentsCollection, {
-                                                                                                            ...data,
-                                                                                                                status: 'pending',
-                                                                                                                    createdAt: serverTimestamp()
-                                                                                                                      })
-                                                                                                                      }
+export const getPayments = async () => {
+  const q = query(paymentsCollection, orderBy('createdAt', 'desc'))
+    const snapshot = await getDocs(q)
+      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+      }
+      
+      export const getPaymentByBookingId = async (bookingId) => {
+        const q = query(paymentsCollection, where('bookingId', '==', bookingId), limit(1))
+          const snapshot = await getDocs(q)
+            if (!snapshot.empty) return { id: snapshot.docs[0].id, ...snapshot.docs[0].data() }
+              return null
+              }
+
+              export const addPayment = async (data) => {
+                return await addDoc(paymentsCollection, {
+                    ...data,
+                        status: data.status || 'pending',
+                            createdAt: serverTimestamp()
+                              })
+                              }
+
+                              export const upsertPaymentByBookingId = async (bookingId, data) => {
+                                const existingPayment = await getPaymentByBookingId(bookingId)
+
+                                if (existingPayment) {
+                                  const docRef = doc(db, 'payments', existingPayment.id)
+                                  await updateDoc(docRef, {
+                                    ...data,
+                                    updatedAt: serverTimestamp(),
+                                  })
+                                  return existingPayment.id
+                                }
+
+                                const newDoc = await addPayment({
+                                  bookingId,
+                                  ...data,
+                                })
+                                return newDoc.id
+                              }
                                                                                                                       
                                                                                                                       export const updatePayment = async (id, data) => {
                                                                                                                         const docRef = doc(db, 'payments', id)

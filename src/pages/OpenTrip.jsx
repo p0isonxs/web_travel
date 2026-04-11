@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Helmet } from 'react-helmet-async'
 import { getPackages } from '../firebase/firestore'
 import { FaSearch, FaMapMarkerAlt, FaClock, FaUsers, FaStar, FaFilter } from 'react-icons/fa'
+import Seo from '../components/Seo'
 
 const OpenTrip = () => {
     const [packages, setPackages] = useState([])
@@ -45,13 +45,10 @@ const OpenTrip = () => {
 
     return (
           <>
-                <Helmet>
-                        <title>Open Trip - Liburan Terus | Paket Wisata Bersama</title>
-                        <meta name="description" content="Temukan berbagai paket open trip seru bersama Liburan Terus. Harga terjangkau, pemandu berpengalaman, dan pengalaman tak terlupakan." />
-                        <meta name="keywords" content="open trip, paket wisata murah, wisata bersama, tour Indonesia" />
-                        <meta property="og:title" content="Open Trip - Liburan Terus" />
-                        <meta property="og:description" content="Paket open trip terbaik dengan harga terjangkau." />
-                </Helmet>
+                <Seo
+                  title="Open Trip - Liburan Terus | Paket Wisata Bersama"
+                  description="Temukan berbagai paket open trip seru bersama Liburan Terus. Harga terjangkau, pemandu berpengalaman, dan pengalaman tak terlupakan."
+                />
           
             {/* Hero */}
                 <section className="relative pt-20 pb-16 bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-700 overflow-hidden">
@@ -147,11 +144,11 @@ const OpenTrip = () => {
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                           {filtered.map((pkg) => (
                                           <Link key={pkg.id} to={`/paket/${pkg.id}`} className="group">
-                                                            <div className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+                                                            <div className="bg-white rounded-[28px] overflow-hidden border border-gray-100 shadow-[0_18px_50px_-30px_rgba(15,23,42,0.35)] hover:shadow-[0_24px_60px_-28px_rgba(16,185,129,0.28)] transition-all duration-300 hover:-translate-y-1">
                                                               {/* Image */}
                                                                                 <div className="relative h-52 overflow-hidden">
                                                                                                       <img
-                                                                                                                                src={pkg.image || 'https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?w=600'}
+                                                                                                                                src={pkg.images?.[0] || pkg.image || 'https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?w=600'}
                                                                                                                                 alt={pkg.title}
                                                                                                                                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                                                                                                                               />
@@ -171,42 +168,51 @@ const OpenTrip = () => {
                                                             
                                                               {/* Content */}
                                                                                 <div className="p-5">
-                                                                                                      <h3 className="font-bold text-gray-800 text-base mb-2 line-clamp-2 group-hover:text-emerald-600 transition-colors">
+                                                                                                      <div className="flex items-center justify-end gap-3 mb-3">
+                                                                                                        {pkg.rating && (
+                                                                                                          <div className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-700">
+                                                                                                                            <FaStar className="text-yellow-400" size={11} />
+                                                                                                                            <span>{pkg.rating}</span>
+                                                                                                          </div>
+                                                                                                        )}
+                                                                                                      </div>
+
+                                                                                                      <h3 className="font-bold text-gray-900 text-lg leading-snug mb-3 line-clamp-2 group-hover:text-emerald-600 transition-colors">
                                                                                                         {pkg.title}
                                                                                                         </h3>
                                                                                 
-                                                                                                      <div className="flex items-center gap-1.5 text-gray-500 text-sm mb-1">
+                                                                                                      <div className="flex items-center gap-2 text-gray-500 text-sm mb-4">
                                                                                                                               <FaMapMarkerAlt className="text-emerald-500" size={12} />
-                                                                                                                              <span>{pkg.location || 'Indonesia'}</span>
+                                                                                                                              <span className="line-clamp-1">{pkg.location || 'Indonesia'}</span>
                                                                                                         </div>
                                                                                 
-                                                                                                      <div className="flex items-center gap-4 text-gray-500 text-xs mb-4">
-                                                                                                                              <span className="flex items-center gap-1">
-                                                                                                                                                        <FaClock className="text-teal-500" size={11} />
-                                                                                                                                {pkg.duration || '1 Hari'}
-                                                                                                                                </span>
-                                                                                                                              <span className="flex items-center gap-1">
-                                                                                                                                                        <FaUsers className="text-teal-500" size={11} />
-                                                                                                                                {pkg.maxParticipants || 15} peserta
-                                                                                                                                </span>
-                                                                                                        {pkg.rating && (
-                                                                      <span className="flex items-center gap-1">
-                                                                                                  <FaStar className="text-yellow-400" size={11} />
-                                                                        {pkg.rating}
-                                                                      </span>
-                                                                                                                              )}
+                                                                                                      <div className="grid grid-cols-2 gap-3 mb-5">
+                                                                                                                              <div className="rounded-2xl bg-gray-50 px-3.5 py-3">
+                                                                                                                                                <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-gray-400 mb-1">Durasi</p>
+                                                                                                                                                <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-700">
+                                                                                                                                                <FaClock className="text-teal-500" size={11} />
+                                                                                                                                                <span>{pkg.duration || '1 Hari'}</span>
+                                                                                                                                                </span>
+                                                                                                                              </div>
+                                                                                                                              <div className="rounded-2xl bg-gray-50 px-3.5 py-3">
+                                                                                                                                                <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-gray-400 mb-1">Peserta</p>
+                                                                                                                                                <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-700">
+                                                                                                                                                <FaUsers className="text-teal-500" size={11} />
+                                                                                                                                                <span>{pkg.maxParticipants || 15} peserta</span>
+                                                                                                                                                </span>
+                                                                                                                              </div>
                                                                                                         </div>
                                                                                 
                                                                                   {/* Price */}
-                                                                                                      <div className="flex items-end justify-between">
+                                                                                                      <div className="flex items-end justify-between border-t border-gray-100 pt-4">
                                                                                                                               <div>
                                                                                                                                 {pkg.originalPrice && pkg.originalPrice > pkg.price && (
                                                                         <p className="text-xs text-gray-400 line-through">{formatPrice(pkg.originalPrice)}</p>
                                                                                                                                                         )}
-                                                                                                                                                        <p className="text-emerald-600 font-bold text-lg">{formatPrice(pkg.price)}</p>
-                                                                                                                                                        <p className="text-gray-400 text-xs">per orang</p>
+                                                                                                                                                        <p className="text-emerald-600 font-bold text-xl">{formatPrice(pkg.price)}</p>
+                                                                                                                                                        <p className="text-gray-400 text-xs uppercase tracking-[0.18em]">per orang</p>
                                                                                                                                 </div>
-                                                                                                                              <span className="bg-emerald-50 text-emerald-600 text-xs font-semibold px-3 py-1.5 rounded-xl hover:bg-emerald-500 hover:text-white transition-colors">
+                                                                                                                              <span className="inline-flex items-center rounded-full border border-emerald-200 bg-white px-4 py-2 text-xs font-semibold text-emerald-700 transition-colors group-hover:bg-emerald-500 group-hover:border-emerald-500 group-hover:text-white">
                                                                                                                                                         Lihat Detail
                                                                                                                                 </span>
                                                                                                         </div>

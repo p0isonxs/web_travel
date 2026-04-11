@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
-import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
 import { Target, Eye, Heart, Award, Users, MapPin } from 'lucide-react';
+import Seo from '../components/Seo';
 
 export default function About() {
     useEffect(() => { window.scrollTo(0, 0); }, []);
@@ -24,10 +24,10 @@ export default function About() {
 
   return (
         <>
-              <Helmet>
-                      <title>Tentang Kami - Liburan Terus | Agen Wisata Terpercaya</title>
-                      <meta name="description" content="Kenali Liburan Terus, agen wisata terpercaya yang telah melayani ribuan wisatawan dengan paket open trip dan private trip ke berbagai destinasi Indonesia." />
-              </Helmet>
+              <Seo
+                title="Tentang Kami - Liburan Terus | Agen Wisata Terpercaya"
+                description="Kenali Liburan Terus, agen wisata terpercaya yang telah melayani ribuan wisatawan dengan paket open trip dan private trip ke berbagai destinasi Indonesia."
+              />
         
           {/* Hero */}
               <div className="bg-gradient-to-r from-emerald-700 to-teal-600 py-24 mt-16">

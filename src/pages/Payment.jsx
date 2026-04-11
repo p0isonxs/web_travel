@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
-import { getBookingById, updateBooking } from '../firebase/firestore'
+import { getBookingById, updateBooking, upsertPaymentByBookingId } from '../firebase/firestore'
 import { uploadToCloudinary } from '../utils/cloudinary'
 import { FaCreditCard, FaUniversity, FaCheckCircle, FaUpload, FaArrowLeft } from 'react-icons/fa'
 import { toast } from 'react-toastify'
@@ -26,7 +26,7 @@ const Payment = () => {
                             const data = await getBookingById(bookingId)
                             setBooking(data)
                             if (data?.status === 'paid') {
-                                        navigate('/payment/success', { replace: true })
+                                        navigateToSuccess(data)
                             }
                   } catch (error) {
                             console.error('Error:', error)
@@ -39,6 +39,31 @@ const Payment = () => {
 
     const formatPrice = (price) => {
           return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(price)
+    }
+
+    const navigateToSuccess = (data = booking) => {
+          navigate('/pembayaran-berhasil', {
+                  replace: true,
+                  state: {
+                            booking: {
+                                      ...data,
+                                      id: bookingId,
+                                      packageName: data?.packageName || data?.packageTitle,
+                            },
+                  },
+          })
+    }
+
+    const createPaymentRecord = async ({ status, method, proofUrl = '', midtransOrderId = '' }) => {
+          await upsertPaymentByBookingId(bookingId, {
+                    bookingName: booking.name,
+                    packageName: booking.packageName || booking.packageTitle,
+                    amount: booking.totalPrice,
+                    method,
+                    status,
+                    proofUrl,
+                    midtransOrderId,
+          })
     }
 
     const handleMidtrans = () => {
@@ -71,15 +96,25 @@ const Payment = () => {
 
             window.snap.pay(token, {
                       onSuccess: async (result) => {
+                                  await createPaymentRecord({
+                                                status: 'verified',
+                                                method: 'midtrans',
+                                                midtransOrderId: result.order_id,
+                                  })
                                   await updateBooking(bookingId, {
                                                 status: 'paid',
                                                 paymentMethod: 'midtrans',
                                                 midtransOrderId: result.order_id,
                                                 paidAt: new Date().toISOString(),
                                   })
-                                  navigate('/payment/success')
+                                  navigateToSuccess()
                       },
-                      onPending: (result) => {
+                      onPending: async (result) => {
+                                  await createPaymentRecord({
+                                                status: 'pending',
+                                                method: 'midtrans',
+                                                midtransOrderId: result.order_id,
+                                  })
                                   toast.info('Pembayaran sedang diproses...')
                       },
                       onError: (result) => {
@@ -116,6 +151,11 @@ const Payment = () => {
           setUploading(true)
           try {
                   const url = await uploadToCloudinary(proofFile, 'payments')
+                  await createPaymentRecord({
+                            status: 'pending',
+                            method: 'transfer',
+                            proofUrl: url,
+                  })
                   await updateBooking(bookingId, {
                             status: 'waiting_confirmation',
                             paymentMethod: 'transfer',
@@ -123,7 +163,7 @@ const Payment = () => {
                             paidAt: new Date().toISOString(),
                   })
                   toast.success('Bukti pembayaran berhasil diunggah! Menunggu konfirmasi admin.')
-                  navigate('/payment/success')
+                  navigateToSuccess()
           } catch (error) {
                   console.error('Error:', error)
                   toast.error('Gagal mengunggah bukti pembayaran')

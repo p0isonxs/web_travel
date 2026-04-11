@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import { getPackageById } from '../firebase/firestore'
 import { FaMapMarkerAlt, FaClock, FaUsers, FaStar, FaCheck, FaTimes, FaChevronLeft, FaChevronRight, FaWhatsapp, FaCalendar } from 'react-icons/fa'
+import Seo from '../components/Seo'
 
 const PackageDetail = () => {
     const { id } = useParams()
@@ -31,6 +32,8 @@ const PackageDetail = () => {
     const formatPrice = (price) => {
           return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(price)
     }
+
+    const isGeneratedScheduleLabel = (value) => /^Kegiatan\s+\d+$/i.test((value || '').trim())
 
     const handleBooking = () => {
           if (!selectedDate) {
@@ -73,13 +76,12 @@ const PackageDetail = () => {
               
                 return (
                       <>
+                            <Seo
+                              title={`${pkg.title} - Liburan Terus`}
+                              description={pkg.description?.substring(0, 160) || `Paket ${pkg.type} ${pkg.title} di ${pkg.location}`}
+                              image={images[0]}
+                            />
                             <Helmet>
-                                    <title>{pkg.title} - Liburan Terus</title>
-                                    <meta name="description" content={pkg.description?.substring(0, 160) || `Paket ${pkg.type} ${pkg.title} di ${pkg.location}`} />
-                                    <meta name="keywords" content={`${pkg.title}, ${pkg.location}, ${pkg.type}, wisata Indonesia`} />
-                                    <meta property="og:title" content={`${pkg.title} - Liburan Terus`} />
-                                    <meta property="og:description" content={pkg.description?.substring(0, 160)} />
-                                    <meta property="og:image" content={images[0]} />
                                     <script type="application/ld+json">{JSON.stringify({
                                   "@context": "https://schema.org",
                                   "@type": "TouristTrip",
@@ -197,15 +199,22 @@ const PackageDetail = () => {
                                                                                                           )}
                                                                                         
                                                                                           {activeTab === 'jadwal' && (
-                                            <div className="space-y-4">
+                                            <div className="space-y-5">
                                               {pkg.itinerary?.length > 0 ? pkg.itinerary.map((item, i) => (
-                                                                      <div key={i} className="flex gap-4">
-                                                                                                <div className={`shrink-0 w-8 h-8 bg-${accentColor}-100 text-${accentColor}-600 rounded-full flex items-center justify-center text-sm font-bold`}>
-                                                                                                  {i + 1}
-                                                                                                  </div>
-                                                                                                <div>
-                                                                                                                            <p className="font-semibold text-gray-800 text-sm">{item.time}</p>
-                                                                                                                            <p className="text-gray-600 text-sm">{item.activity}</p>
+                                                                      <div key={i} className="relative flex gap-4 pl-2">
+                                                                                                <div className="relative flex flex-col items-center shrink-0">
+                                                                                                                  <div className={`w-3 h-3 rounded-full border-2 border-white shadow-sm ${isOpenTrip ? 'bg-emerald-500' : 'bg-purple-600'}`} />
+                                                                                                  {i !== pkg.itinerary.length - 1 && (
+                                                                                                    <div className="mt-2 w-px flex-1 bg-gradient-to-b from-gray-300 to-gray-100" />
+                                                                                                  )}
+                                                                                                </div>
+                                                                                                <div className="flex-1 rounded-2xl border border-gray-100 bg-gray-50/80 px-5 py-4 shadow-sm">
+                                                                                                                  {!isGeneratedScheduleLabel(item.time) && (
+                                                                                                                    <p className={`text-xs font-semibold uppercase tracking-[0.2em] ${isOpenTrip ? 'text-emerald-600' : 'text-purple-600'}`}>
+                                                                                                                      {item.time}
+                                                                                                                    </p>
+                                                                                                                  )}
+                                                                                                                            <p className={`${isGeneratedScheduleLabel(item.time) ? '' : 'mt-2 '}text-sm leading-6 text-gray-700`}>{item.activity}</p>
                                                                                                   </div>
                                                                       </div>
                                                                     )) : (

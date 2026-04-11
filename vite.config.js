@@ -8,6 +8,42 @@ export default defineConfig({
           open: true
     },
     build: {
-          outDir: 'dist'
+          outDir: 'dist',
+          rollupOptions: {
+                output: {
+                      manualChunks(id) {
+                            if (!id.includes('node_modules')) return;
+
+                            if (
+                              id.includes('/react/') ||
+                              id.includes('/react-dom/') ||
+                              id.includes('/scheduler/')
+                            ) {
+                              return 'react-vendor';
+                            }
+
+                            if (id.includes('/react-router/') || id.includes('/react-router-dom/')) {
+                              return 'router-vendor';
+                            }
+
+                            if (id.includes('/firebase/')) {
+                              return 'firebase-vendor';
+                            }
+
+                            if (id.includes('/react-icons/') || id.includes('/lucide-react/')) {
+                              return 'icons-vendor';
+                            }
+
+                            if (
+                              id.includes('/react-helmet-async/') ||
+                              id.includes('/react-toastify/') ||
+                              id.includes('/react-datepicker/') ||
+                              id.includes('/date-fns/')
+                            ) {
+                              return 'ui-vendor';
+                            }
+                      },
+                },
+          },
     }
 })

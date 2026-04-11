@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Helmet } from 'react-helmet-async'
 import { getPackages } from '../firebase/firestore'
 import { FaSearch, FaMapMarkerAlt, FaClock, FaUserFriends, FaStar, FaFilter, FaCheck } from 'react-icons/fa'
+import Seo from '../components/Seo'
 
 const PrivateTrip = () => {
     const [packages, setPackages] = useState([])
@@ -54,13 +54,10 @@ const PrivateTrip = () => {
 
     return (
           <>
-                <Helmet>
-                        <title>Private Trip - Liburan Terus | Wisata Eksklusif Rombongan</title>
-                        <meta name="description" content="Nikmati wisata eksklusif bersama keluarga atau rombongan Anda dengan paket private trip Liburan Terus. Jadwal fleksibel, harga terjangkau." />
-                        <meta name="keywords" content="private trip, wisata keluarga, wisata rombongan, paket wisata eksklusif" />
-                        <meta property="og:title" content="Private Trip - Liburan Terus" />
-                        <meta property="og:description" content="Wisata eksklusif bersama orang-orang tersayang." />
-                </Helmet>
+                <Seo
+                  title="Private Trip - Liburan Terus | Wisata Eksklusif Rombongan"
+                  description="Nikmati wisata eksklusif bersama keluarga atau rombongan Anda dengan paket private trip Liburan Terus. Jadwal fleksibel, harga terjangkau."
+                />
           
             {/* Hero */}
                 <section className="relative pt-20 pb-16 bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-700 overflow-hidden">
@@ -173,7 +170,7 @@ const PrivateTrip = () => {
                                                             <div className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
                                                                                 <div className="relative h-52 overflow-hidden">
                                                                                                       <img
-                                                                                                                                src={pkg.image || 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=600'}
+                                                                                                                                src={pkg.images?.[0] || pkg.image || 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=600'}
                                                                                                                                 alt={pkg.title}
                                                                                                                                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                                                                                                                               />

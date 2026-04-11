@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Helmet } from 'react-helmet-async';
 import { MapPin, Phone, Mail, Clock, MessageCircle, Send } from 'lucide-react';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { toast } from 'react-toastify';
 import { useSettings } from '../contexts/SettingsContext';
+import Seo from '../components/Seo';
 
 export default function Contact() {
     const [form, setForm] = useState({ name: '', email: '', phone: '', subject: '', message: '' });
@@ -37,10 +37,10 @@ export default function Contact() {
 
   return (
         <>
-              <Helmet>
-                      <title>Kontak Kami - Liburan Terus</title>
-                      <meta name="description" content="Hubungi Liburan Terus untuk informasi paket wisata, booking, atau pertanyaan lainnya. Kami siap membantu Anda merencanakan liburan impian." />
-              </Helmet>
+              <Seo
+                title="Kontak Kami - Liburan Terus"
+                description="Hubungi Liburan Terus untuk informasi paket wisata, booking, atau pertanyaan lainnya. Kami siap membantu Anda merencanakan liburan impian."
+              />
         
           {/* Hero */}
               <div className="bg-gradient-to-r from-emerald-700 to-teal-600 py-24 mt-16">

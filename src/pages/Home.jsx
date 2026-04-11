@@ -4,6 +4,7 @@ import { Helmet } from 'react-helmet-async';
 import { collection, getDocs, query, orderBy, limit, where } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { MapPin, Users, Star, ChevronRight, Phone, CheckCircle, ArrowRight, Calendar } from 'lucide-react';
+import Seo from '../components/Seo';
 
 export default function Home() {
     const [openPackages, setOpenPackages] = useState([]);
@@ -44,13 +45,12 @@ export default function Home() {
 
   return (
         <>
+              <Seo
+                title="Liburan Terus - Paket Wisata Open Trip & Private Trip Terbaik"
+                description="Liburan Terus menyediakan paket wisata open trip dan private trip terbaik ke berbagai destinasi indah di Indonesia. Pesan sekarang dengan harga terjangkau!"
+              />
               <Helmet>
-                      <title>Liburan Terus - Paket Wisata Open Trip & Private Trip Terbaik</title>
-                      <meta name="description" content="Liburan Terus menyediakan paket wisata open trip dan private trip terbaik ke berbagai destinasi indah di Indonesia. Pesan sekarang dengan harga terjangkau!" />
-                      <meta property="og:title" content="Liburan Terus - Paket Wisata Open Trip & Private Trip" />
-                      <meta property="og:description" content="Paket wisata open trip dan private trip terbaik ke berbagai destinasi indah di Indonesia" />
-                      <meta property="og:type" content="website" />
-                      <script type="application/ld+json">{JSON.stringify({
+                <script type="application/ld+json">{JSON.stringify({
                     "@context": "https://schema.org",
                     "@type": "TravelAgency",
                     "name": "Liburan Terus",
@@ -58,7 +58,7 @@ export default function Home() {
                     "url": "https://liburanterus.com",
                     "telephone": "+6281234567890",
                     "address": { "@type": "PostalAddress", "addressCountry": "ID" }
-        })}</script>
+                })}</script>
               </Helmet>
         
           {/* Hero Section */}
@@ -148,39 +148,53 @@ export default function Home() {
                     ) : (
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {openPackages.map(pkg => (
-                                        <Link key={pkg.id} to={`/paket/${pkg.id}`} className="bg-white rounded-2xl overflow-hidden shadow hover:shadow-xl transition-all group">
-                                                          <div className="relative h-52 overflow-hidden">
-                                                                              <img src={pkg.images?.[0] || 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&q=80'} alt={pkg.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                                                                              <div className="absolute top-3 left-3">
-                                                                                                    <span className="bg-emerald-500 text-white text-xs font-bold px-3 py-1 rounded-full">Open Trip</span>
-                                                                              </div>
+                                        <Link key={pkg.id} to={`/paket/${pkg.id}`} className="group">
+                                                          <article className="h-full bg-white rounded-[28px] overflow-hidden border border-gray-100 shadow-[0_18px_45px_-32px_rgba(15,23,42,0.45)] hover:shadow-[0_26px_60px_-32px_rgba(16,185,129,0.32)] transition-all duration-300 hover:-translate-y-1">
+                                                                              <div className="relative h-52 overflow-hidden">
+                                                                                                    <img src={pkg.images?.[0] || 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&q=80'} alt={pkg.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                                                                                                    <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent" />
+                                                                                                    <div className="absolute top-4 left-4">
+                                                                                                                      <span className="inline-flex items-center gap-2 rounded-full bg-white/90 backdrop-blur-sm text-emerald-700 text-[11px] font-bold uppercase tracking-[0.18em] px-3 py-1.5">
+                                                                                                                                        <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                                                                                                                                        Open Trip
+                                                                                                                      </span>
+                                                                                                    </div>
                                                             {pkg.discount && (
-                                                                <div className="absolute top-3 right-3">
-                                                                                        <span className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">-{pkg.discount}%</span>
+                                                                <div className="absolute top-4 right-4">
+                                                                                        <span className="bg-red-500 text-white text-xs font-bold px-2.5 py-1 rounded-full">-{pkg.discount}%</span>
                                                                 </div>
                                                                               )}
                                                           </div>
                                                           <div className="p-5">
-                                                                              <div className="flex items-center gap-1 text-gray-500 text-sm mb-2">
-                                                                                                    <MapPin className="w-4 h-4" />
-                                                                                                    <span>{pkg.location || 'Indonesia'}</span>
-                                                                                                    <span className="mx-2">•</span>
-                                                                                                    <Calendar className="w-4 h-4" />
-                                                                                                    <span>{pkg.duration || '3D2N'}</span>
+                                                                              <div className="flex items-center gap-2 text-gray-500 text-sm mb-3">
+                                                                                                    <MapPin className="w-4 h-4 text-emerald-500" />
+                                                                                                    <span className="line-clamp-1">{pkg.location || 'Indonesia'}</span>
                                                                               </div>
-                                                                              <h3 className="font-bold text-gray-900 text-lg mb-3 line-clamp-2 group-hover:text-emerald-600 transition-colors">{pkg.title}</h3>
-                                                                              <div className="flex items-center justify-between">
+                                                                              <h3 className="font-bold text-gray-900 text-lg leading-snug mb-4 line-clamp-2 group-hover:text-emerald-600 transition-colors">{pkg.title}</h3>
+                                                                              <div className="flex items-center gap-2 mb-5 text-xs text-gray-500">
+                                                                                                    <span className="inline-flex items-center gap-1.5 rounded-full bg-gray-50 px-3 py-1.5">
+                                                                                                                      <Calendar className="w-3.5 h-3.5 text-teal-500" />
+                                                                                                                      <span>{pkg.duration || '3D2N'}</span>
+                                                                                                    </span>
+                                                                                                    <span className="inline-flex items-center gap-1.5 rounded-full bg-gray-50 px-3 py-1.5">
+                                                                                                                      <Users className="w-3.5 h-3.5 text-teal-500" />
+                                                                                                                      <span>{pkg.maxParticipants || 15} orang</span>
+                                                                                                    </span>
+                                                                              </div>
+                                                                              <div className="flex items-end justify-between gap-4 border-t border-gray-100 pt-4">
                                                                                                     <div>
-                                                                                                                            <p className="text-xs text-gray-400">Mulai dari</p>
-                                                                                                                            <p className="text-emerald-600 font-bold text-lg">{formatPrice(pkg.price)}</p>
-                                                                                                                            <p className="text-xs text-gray-400">/pax</p>
-                                                                                                      </div>
-                                                                                                    <div className="flex items-center gap-1 text-sm text-gray-500">
-                                                                                                                            <Users className="w-4 h-4" />
-                                                                                                                            <span>{pkg.maxParticipants || 15} orang</span>
-                                                                                                      </div>
+                                                                                                                      <p className="text-[11px] uppercase tracking-[0.18em] text-gray-400 mb-1">Mulai dari</p>
+                                                                                                                      <div className="flex items-baseline gap-1.5">
+                                                                                                                                        <p className="text-emerald-600 font-bold text-xl leading-none">{formatPrice(pkg.price)}</p>
+                                                                                                                                        <span className="text-xs text-gray-400">/pax</span>
+                                                                                                                      </div>
+                                                                                                    </div>
+                                                                                                    <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 text-emerald-700 text-xs font-semibold px-4 py-2 group-hover:bg-emerald-500 group-hover:border-emerald-500 group-hover:text-white transition-colors">
+                                                                                                                      Lihat Detail
+                                                                                                    </span>
                                                                               </div>
                                                           </div>
+                                                          </article>
                                         </Link>
                                       ))}
                       </div>

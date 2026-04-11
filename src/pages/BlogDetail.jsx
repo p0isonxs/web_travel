@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
-import { collection, getDocs, query, where, limit, orderBy } from 'firebase/firestore';
+import { collection, getDocs, query, where, limit } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { Calendar, User, Tag, ArrowLeft, Share2, Facebook, Twitter } from 'lucide-react';
+import Seo from '../components/Seo';
 
 export default function BlogDetail() {
     const { slug } = useParams();
@@ -32,9 +33,18 @@ export default function BlogDetail() {
                           setPost(data);
                           // Fetch related
                   if (data.category) {
-                              const relQ = query(collection(db, 'blog'), where('published', '==', true), where('category', '==', data.category), orderBy('createdAt', 'desc'), limit(3));
-                              const relSnap = await getDocs(relQ);
-                              setRelated(relSnap.docs.map(d => ({ id: d.id, ...d.data() })).filter(p => p.id !== data.id));
+                              const relSnap = await getDocs(collection(db, 'blog'));
+                              setRelated(
+                                relSnap.docs
+                                  .map(d => ({ id: d.id, ...d.data() }))
+                                  .filter(p => p.published === true && p.category === data.category && p.id !== data.id)
+                                  .sort((a, b) => {
+                                    const aTime = a.createdAt?.seconds || 0;
+                                    const bTime = b.createdAt?.seconds || 0;
+                                    return bTime - aTime;
+                                  })
+                                  .slice(0, 3)
+                              );
                   }
                 }
         } catch (e) {
@@ -70,13 +80,13 @@ export default function BlogDetail() {
   
     return (
           <>
+                <Seo
+                  title={`${post.title} - Liburan Terus`}
+                  description={post.excerpt || post.title}
+                  image={post.coverImage}
+                  type="article"
+                />
                 <Helmet>
-                        <title>{post.title} - Liburan Terus</title>
-                        <meta name="description" content={post.excerpt || post.title} />
-                        <meta property="og:title" content={post.title} />
-                        <meta property="og:description" content={post.excerpt} />
-                  {post.coverImage && <meta property="og:image" content={post.coverImage} />}
-                        <meta property="og:type" content="article" />
                         <script type="application/ld+json">{JSON.stringify({
                       "@context": "https://schema.org",
                       "@type": "BlogPosting",
@@ -127,16 +137,36 @@ export default function BlogDetail() {
                                               
                                                 {/* Share */}
                                                             <div className="mt-12 pt-8 border-t border-gray-100">
-                                                                            <p className="font-semibold text-gray-700 mb-4 flex items-center gap-2"><Share2 className="w-5 h-5" />Bagikan artikel ini</p>
-                                                                            <div className="flex gap-3">
-                                                                                              <a href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`} target="_blank" rel="noopener noreferrer"
-                                                                                                                    className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
-                                                                                                                  <Facebook className="w-4 h-4" /> Facebook
-                                                                                                </a>
-                                                                                              <a href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(post.title)}`} target="_blank" rel="noopener noreferrer"
-                                                                                                                    className="flex items-center gap-2 bg-sky-500 hover:bg-sky-600 text-white px-4 py-2 rounded-lg transition-colors">
-                                                                                                                  <Twitter className="w-4 h-4" /> Twitter
-                                                                                                </a>
+                                                                            <div className="flex flex-col gap-4 rounded-2xl bg-gray-50 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+                                                                                              <div className="flex items-start gap-3">
+                                                                                                                <div className="rounded-full bg-white p-2 shadow-sm">
+                                                                                                                                  <Share2 className="w-4 h-4 text-gray-600" />
+                                                                                                                </div>
+                                                                                                                <div>
+                                                                                                                                  <p className="text-sm font-semibold text-gray-900">Bagikan artikel ini</p>
+                                                                                                                                  <p className="text-sm text-gray-500">Kirim ke teman atau simpan untuk dibaca nanti.</p>
+                                                                                                                </div>
+                                                                                              </div>
+                                                                                              <div className="flex items-center gap-2">
+                                                                                                                <a
+                                                                                                                                  href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`}
+                                                                                                                                  target="_blank"
+                                                                                                                                  rel="noopener noreferrer"
+                                                                                                                                  aria-label="Bagikan ke Facebook"
+                                                                                                                                  className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 transition-colors hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600"
+                                                                                                                >
+                                                                                                                                  <Facebook className="w-4 h-4" />
+                                                                                                                </a>
+                                                                                                                <a
+                                                                                                                                  href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(post.title)}`}
+                                                                                                                                  target="_blank"
+                                                                                                                                  rel="noopener noreferrer"
+                                                                                                                                  aria-label="Bagikan ke Twitter"
+                                                                                                                                  className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 transition-colors hover:border-sky-200 hover:bg-sky-50 hover:text-sky-600"
+                                                                                                                >
+                                                                                                                                  <Twitter className="w-4 h-4" />
+                                                                                                                </a>
+                                                                                              </div>
                                                                             </div>
                                                             </div>
                                               </div>

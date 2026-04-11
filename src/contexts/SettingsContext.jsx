@@ -29,6 +29,8 @@ export function SettingsProvider({ children }) {
   const [settings, setSettings] = useState(defaultSettings);
 
   useEffect(() => {
+    if (!db) return;
+
     getDoc(doc(db, 'settings', 'general'))
       .then(snap => {
         if (snap.exists()) setSettings({ ...defaultSettings, ...snap.data() });

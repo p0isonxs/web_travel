@@ -1,3 +1,4 @@
+import { Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { ToastContainer } from 'react-toastify';
@@ -10,30 +11,41 @@ import Footer from './components/Footer';
 import WhatsAppButton from './components/WhatsAppButton';
 import PrivateRoute from './components/PrivateRoute';
 
-import Home from './pages/Home';
-import OpenTrip from './pages/OpenTrip';
-import PrivateTrip from './pages/PrivateTrip';
-import PackageDetail from './pages/PackageDetail';
-import Booking from './pages/Booking';
-import Payment from './pages/Payment';
-import PaymentSuccess from './pages/PaymentSuccess';
-import Gallery from './pages/Gallery';
-import Blog from './pages/Blog';
-import BlogDetail from './pages/BlogDetail';
-import About from './pages/About';
-import Contact from './pages/Contact';
-import Login from './pages/Login';
-import NotFound from './pages/NotFound';
+const Home = lazy(() => import('./pages/Home'));
+const OpenTrip = lazy(() => import('./pages/OpenTrip'));
+const PrivateTrip = lazy(() => import('./pages/PrivateTrip'));
+const PackageDetail = lazy(() => import('./pages/PackageDetail'));
+const Booking = lazy(() => import('./pages/Booking'));
+const Payment = lazy(() => import('./pages/Payment'));
+const PaymentSuccess = lazy(() => import('./pages/PaymentSuccess'));
+const Gallery = lazy(() => import('./pages/Gallery'));
+const Blog = lazy(() => import('./pages/Blog'));
+const BlogDetail = lazy(() => import('./pages/BlogDetail'));
+const About = lazy(() => import('./pages/About'));
+const Contact = lazy(() => import('./pages/Contact'));
+const Login = lazy(() => import('./pages/Login'));
+const NotFound = lazy(() => import('./pages/NotFound'));
 
-import AdminLayout from './pages/admin/AdminLayout';
-import Dashboard from './pages/admin/Dashboard';
-import AdminPackages from './pages/admin/Packages';
-import AdminBookings from './pages/admin/Bookings';
-import AdminPayments from './pages/admin/Payments';
-import AdminBlog from './pages/admin/Blog';
-import AdminGallery from './pages/admin/Gallery';
-import AdminTestimonials from './pages/admin/Testimonials';
-import AdminSettings from './pages/admin/Settings';
+const AdminLayout = lazy(() => import('./pages/admin/AdminLayout'));
+const Dashboard = lazy(() => import('./pages/admin/Dashboard'));
+const AdminPackages = lazy(() => import('./pages/admin/Packages'));
+const AdminBookings = lazy(() => import('./pages/admin/Bookings'));
+const AdminPayments = lazy(() => import('./pages/admin/Payments'));
+const AdminBlog = lazy(() => import('./pages/admin/Blog'));
+const AdminGallery = lazy(() => import('./pages/admin/Gallery'));
+const AdminTestimonials = lazy(() => import('./pages/admin/Testimonials'));
+const AdminSettings = lazy(() => import('./pages/admin/Settings'));
+
+function RouteLoading() {
+  return (
+    <div className="min-h-[50vh] flex items-center justify-center px-4">
+      <div className="flex flex-col items-center gap-3 text-center">
+        <div className="w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+        <p className="text-sm text-gray-500">Memuat halaman...</p>
+      </div>
+    </div>
+  );
+}
 
 function PublicLayout() {
   return (
@@ -54,44 +66,46 @@ export default function App() {
       <AuthProvider>
         <SettingsProvider>
         <BrowserRouter>
-          <Routes>
-            {/* Admin Routes - no navbar/footer */}
-            <Route
-              path="/admin"
-              element={
-                <PrivateRoute>
-                  <AdminLayout />
-                </PrivateRoute>
-              }
-            >
-              <Route index element={<Dashboard />} />
-              <Route path="packages" element={<AdminPackages />} />
-              <Route path="bookings" element={<AdminBookings />} />
-              <Route path="payments" element={<AdminPayments />} />
-              <Route path="blog" element={<AdminBlog />} />
-              <Route path="gallery" element={<AdminGallery />} />
-              <Route path="testimonials" element={<AdminTestimonials />} />
-              <Route path="settings" element={<AdminSettings />} />
-            </Route>
+          <Suspense fallback={<RouteLoading />}>
+            <Routes>
+              {/* Admin Routes - no navbar/footer */}
+              <Route
+                path="/admin"
+                element={
+                  <PrivateRoute>
+                    <AdminLayout />
+                  </PrivateRoute>
+                }
+              >
+                <Route index element={<Dashboard />} />
+                <Route path="packages" element={<AdminPackages />} />
+                <Route path="bookings" element={<AdminBookings />} />
+                <Route path="payments" element={<AdminPayments />} />
+                <Route path="blog" element={<AdminBlog />} />
+                <Route path="gallery" element={<AdminGallery />} />
+                <Route path="testimonials" element={<AdminTestimonials />} />
+                <Route path="settings" element={<AdminSettings />} />
+              </Route>
 
-            {/* Public Routes - with navbar/footer */}
-            <Route element={<PublicLayout />}>
-              <Route path="/" element={<Home />} />
-              <Route path="/open-trip" element={<OpenTrip />} />
-              <Route path="/private-trip" element={<PrivateTrip />} />
-              <Route path="/paket/:id" element={<PackageDetail />} />
-              <Route path="/booking/:id" element={<Booking />} />
-              <Route path="/payment/:bookingId" element={<Payment />} />
-              <Route path="/pembayaran-berhasil" element={<PaymentSuccess />} />
-              <Route path="/galeri" element={<Gallery />} />
-              <Route path="/blog" element={<Blog />} />
-              <Route path="/blog/:slug" element={<BlogDetail />} />
-              <Route path="/tentang-kami" element={<About />} />
-              <Route path="/kontak" element={<Contact />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="*" element={<NotFound />} />
-            </Route>
-          </Routes>
+              {/* Public Routes - with navbar/footer */}
+              <Route element={<PublicLayout />}>
+                <Route path="/" element={<Home />} />
+                <Route path="/open-trip" element={<OpenTrip />} />
+                <Route path="/private-trip" element={<PrivateTrip />} />
+                <Route path="/paket/:id" element={<PackageDetail />} />
+                <Route path="/booking/:id" element={<Booking />} />
+                <Route path="/payment/:bookingId" element={<Payment />} />
+                <Route path="/pembayaran-berhasil" element={<PaymentSuccess />} />
+                <Route path="/galeri" element={<Gallery />} />
+                <Route path="/blog" element={<Blog />} />
+                <Route path="/blog/:slug" element={<BlogDetail />} />
+                <Route path="/tentang-kami" element={<About />} />
+                <Route path="/kontak" element={<Contact />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="*" element={<NotFound />} />
+              </Route>
+            </Routes>
+          </Suspense>
           <ToastContainer
             position="top-right"
             autoClose={4000}

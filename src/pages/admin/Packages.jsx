@@ -4,12 +4,97 @@ import { db } from '../../firebase/config';
 import { uploadMultiple } from '../../utils/cloudinary';
 import { Plus, Edit2, Trash2, X, Save, Eye, EyeOff, Search, Upload } from 'lucide-react';
 import { toast } from 'react-toastify';
+import { useAuth } from '../../contexts/AuthContext';
 
 const emptyForm = {
     title: '', type: 'open-trip', location: '', duration: '', price: '', originalPrice: '',
     description: '', itinerary: '', include: '', exclude: '', maxParticipants: 15,
     images: [], active: true, featured: false,
 };
+
+const FIRESTORE_TIMEOUT_MS = 15000;
+
+function withTimeout(promise, message, ms = FIRESTORE_TIMEOUT_MS) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => {
+      setTimeout(() => reject(new Error(message)), ms);
+    }),
+  ]);
+}
+
+function splitList(value) {
+  if (Array.isArray(value)) return value.filter(Boolean);
+  if (typeof value !== 'string') return [];
+  return value
+    .split(/\r?\n|,/)
+    .map(item => item.trim())
+    .filter(Boolean);
+}
+
+function cleanTimeLabel(value) {
+  if (typeof value !== 'string') return '';
+  return value
+    .replace(/\s*[–—]\s*/g, ' - ')
+    .replace(/\s*-\s*/g, ' - ')
+    .replace(/:\s*$/, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+}
+
+function parseItineraryLine(line, index) {
+  const trimmed = line.trim();
+  if (!trimmed) return null;
+
+  const timeRangeMatch = trimmed.match(/^(\d{1,2}[:.]\d{2}\s*[-–]\s*(?:\d{1,2}[:.]\d{2}|[A-Za-zÀ-ÿ]+))(?:\s*[:|\-]\s*|\s+)(.+)$/);
+  if (timeRangeMatch) {
+    return {
+      time: cleanTimeLabel(timeRangeMatch[1]),
+      activity: timeRangeMatch[2].trim(),
+    };
+  }
+
+  const labelMatch = trimmed.match(/^([^:]+):\s+(.+)$/);
+  if (labelMatch) {
+    return {
+      time: cleanTimeLabel(labelMatch[1]),
+      activity: labelMatch[2].trim(),
+    };
+  }
+
+  return {
+    time: `Kegiatan ${index + 1}`,
+    activity: trimmed,
+  };
+}
+
+function parseItinerary(value) {
+  if (Array.isArray(value)) return value;
+  if (typeof value !== 'string') return [];
+
+  return value
+    .split(/\r?\n/)
+    .map(parseItineraryLine)
+    .filter(Boolean);
+}
+
+function formatListForTextarea(value) {
+  if (Array.isArray(value)) return value.filter(Boolean).join('\n');
+  return value || '';
+}
+
+function formatItineraryForTextarea(value) {
+  if (!Array.isArray(value)) return value || '';
+  return value
+    .map((item) => {
+      if (typeof item === 'string') return item;
+      const time = cleanTimeLabel(item?.time || '');
+      const activity = item?.activity || item?.title || '';
+      return time ? `${time}: ${activity}` : activity;
+    })
+    .filter(Boolean)
+    .join('\n');
+}
 
 export default function AdminPackages() {
     const [packages, setPackages] = useState([]);
@@ -22,6 +107,8 @@ export default function AdminPackages() {
     const [filterType, setFilterType] = useState('semua');
     const [imageFiles, setImageFiles] = useState([]);
     const [imagePreviews, setImagePreviews] = useState([]);
+    const [saveStatus, setSaveStatus] = useState('');
+    const { currentUser } = useAuth();
 
   useEffect(() => { fetchPackages(); }, []);
 
@@ -32,9 +119,9 @@ export default function AdminPackages() {
         setLoading(false);
   };
 
-  const openCreate = () => { setForm(emptyForm); setEditId(null); setImageFiles([]); setImagePreviews([]); setShowForm(true); };
-    const openEdit = (pkg) => { setForm({ ...emptyForm, ...pkg, images: pkg.images || [] }); setEditId(pkg.id); setImageFiles([]); setImagePreviews([]); setShowForm(true); };
-    const closeForm = () => { setShowForm(false); setEditId(null); setForm(emptyForm); setImageFiles([]); setImagePreviews([]); };
+  const openCreate = () => { setForm(emptyForm); setEditId(null); setImageFiles([]); setImagePreviews([]); setSaveStatus(''); setShowForm(true); };
+    const openEdit = (pkg) => { setForm({ ...emptyForm, ...pkg, images: pkg.images || [], itinerary: formatItineraryForTextarea(pkg.itinerary), include: formatListForTextarea(pkg.includes ?? pkg.include), exclude: formatListForTextarea(pkg.excludes ?? pkg.exclude) }); setEditId(pkg.id); setImageFiles([]); setImagePreviews([]); setSaveStatus(''); setShowForm(true); };
+    const closeForm = () => { setShowForm(false); setEditId(null); setForm(emptyForm); setImageFiles([]); setImagePreviews([]); setSaveStatus(''); };
 
   const handleImageFiles = (e) => {
         const files = Array.from(e.target.files);
@@ -44,33 +131,59 @@ export default function AdminPackages() {
 
   const handleSave = async (e) => {
         e.preventDefault();
+
+        if (!db) {
+                toast.error('Firestore belum dikonfigurasi.');
+                return;
+        }
+
+        if (!currentUser) {
+                toast.error('Sesi admin tidak aktif. Silakan login ulang.');
+                return;
+        }
+
         setSaving(true);
+        setSaveStatus('Menyiapkan data paket...');
         try {
                 // Upload new image files if any
                 let images = form.images || [];
                 if (imageFiles.length > 0) {
-                          const uploads = await uploadMultiple(imageFiles, 'packages');
+                          const uploads = await uploadMultiple(imageFiles, 'packages', ({ current, total, fileName }) => {
+                                    setSaveStatus(`Mengunggah foto ${current}/${total}: ${fileName}`);
+                          });
                           images = [...images, ...uploads];
                 }
+                setSaveStatus('Menyimpan data paket ke database...');
                 const data = {
                           ...form,
                           images,
+                          image: images[0] || '',
+                          itinerary: parseItinerary(form.itinerary),
+                          includes: splitList(form.include),
+                          excludes: splitList(form.exclude),
                           price: Number(form.price),
                           originalPrice: Number(form.originalPrice) || null,
                           maxParticipants: Number(form.maxParticipants),
                           updatedAt: serverTimestamp(),
                 };
                 if (editId) {
-                          await updateDoc(doc(db, 'packages', editId), data);
+                          await withTimeout(
+                                    updateDoc(doc(db, 'packages', editId), data),
+                                    'Koneksi ke Firestore timeout saat memperbarui paket. Coba login ulang lalu simpan lagi.'
+                          );
                           toast.success('Paket berhasil diperbarui!');
                 } else {
-                          await addDoc(collection(db, 'packages'), { ...data, createdAt: serverTimestamp() });
+                          await withTimeout(
+                                    addDoc(collection(db, 'packages'), { ...data, createdAt: serverTimestamp() }),
+                                    'Koneksi ke Firestore timeout saat menyimpan paket. Coba login ulang lalu simpan lagi.'
+                          );
                           toast.success('Paket berhasil ditambahkan!');
                 }
                 closeForm();
                 fetchPackages();
         } catch (e) {
                 toast.error('Gagal menyimpan: ' + e.message);
+                setSaveStatus('');
         }
         setSaving(false);
   };
@@ -292,6 +405,9 @@ export default function AdminPackages() {
                                                                         {saving ? 'Menyimpan...' : 'Simpan Paket'}
                                                                       </button>
                                                       </div>
+                                                      {saving && saveStatus && (
+                                                        <p className="text-sm text-gray-500">{saveStatus}</p>
+                                                      )}
                                         </form>
                             </div>
                   </div>

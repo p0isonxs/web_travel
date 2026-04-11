@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Helmet } from 'react-helmet-async';
 import { collection, getDocs, query, orderBy, where } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { X, ZoomIn } from 'lucide-react';
+import Seo from '../components/Seo';
 
 export default function Gallery() {
     const [photos, setPhotos] = useState([]);
@@ -51,12 +51,10 @@ export default function Gallery() {
 
   return (
         <>
-              <Helmet>
-                      <title>Galeri Foto - Liburan Terus | Dokumentasi Perjalanan Wisata</title>
-                      <meta name="description" content="Lihat koleksi foto perjalanan wisata bersama Liburan Terus. Dokumentasi open trip, private trip ke berbagai destinasi indah di Indonesia." />
-                      <meta property="og:title" content="Galeri Foto - Liburan Terus" />
-                      <meta property="og:type" content="website" />
-              </Helmet>
+              <Seo
+                title="Galeri Foto - Liburan Terus | Dokumentasi Perjalanan Wisata"
+                description="Lihat koleksi foto perjalanan wisata bersama Liburan Terus. Dokumentasi open trip, private trip ke berbagai destinasi indah di Indonesia."
+              />
         
           {/* Hero */}
               <div className="bg-gradient-to-r from-emerald-600 to-teal-700 py-20 mt-16">

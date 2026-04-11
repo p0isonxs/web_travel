@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Helmet } from 'react-helmet-async';
-import { collection, getDocs, query, orderBy, where } from 'firebase/firestore';
+import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { Calendar, User, Tag, ArrowRight, Search } from 'lucide-react';
+import Seo from '../components/Seo';
 
 export default function Blog() {
     const [posts, setPosts] = useState([]);
@@ -21,15 +21,21 @@ export default function Blog() {
   const fetchPosts = async () => {
         setLoading(true);
         try {
-                let q;
-                if (activeCategory === 'semua') {
-                          q = query(collection(db, 'blog'), where('published', '==', true), orderBy('createdAt', 'desc'));
-                } else {
-                          q = query(collection(db, 'blog'), where('published', '==', true), where('category', '==', activeCategory), orderBy('createdAt', 'desc'));
-                }
-                const snap = await getDocs(q);
-                setPosts(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-        } catch {
+                const snap = await getDocs(collection(db, 'blog'));
+                const allPosts = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+                const visiblePosts = allPosts
+                  .filter(post => post.published === true)
+                  .filter(post => activeCategory === 'semua' || post.category === activeCategory)
+                  .sort((a, b) => {
+                    const aTime = a.createdAt?.seconds || 0;
+                    const bTime = b.createdAt?.seconds || 0;
+                    return bTime - aTime;
+                  });
+
+                setPosts(visiblePosts);
+        } catch (error) {
+                console.error('Error fetching blog posts:', error);
                 setPosts([]);
         }
         setLoading(false);
@@ -48,10 +54,10 @@ export default function Blog() {
 
   return (
         <>
-              <Helmet>
-                      <title>Blog & Artikel Wisata - Liburan Terus</title>
-                      <meta name="description" content="Tips wisata, destinasi terbaik, dan panduan perjalanan terlengkap dari Liburan Terus. Temukan inspirasi liburan Anda di sini." />
-              </Helmet>
+              <Seo
+                title="Blog & Artikel Wisata - Liburan Terus"
+                description="Tips wisata, destinasi terbaik, dan panduan perjalanan terlengkap dari Liburan Terus. Temukan inspirasi liburan Anda di sini."
+              />
         
           {/* Hero */}
               <div className="bg-gradient-to-r from-emerald-700 to-teal-600 py-24 mt-16">

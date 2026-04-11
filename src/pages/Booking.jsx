@@ -61,8 +61,9 @@ const Booking = () => {
                   const bookingData = {
                             packageId: id,
                             packageTitle: pkg.title,
+                            packageName: pkg.title,
                             packageType: pkg.type,
-                            packageImage: pkg.image || '',
+                            packageImage: pkg.images?.[0] || pkg.image || '',
                             pricePerPerson: pkg.price,
                             totalPrice: pkg.price * form.participants,
                             ...form,

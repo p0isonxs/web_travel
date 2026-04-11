@@ -1,14 +1,30 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { collection, getDocs, query, orderBy, limit, where } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, limit, where, addDoc, deleteDoc, doc, getDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../firebase/config';
+import { useAuth } from '../../contexts/AuthContext';
 import { Package, CalendarCheck, CreditCard, Users, TrendingUp, ArrowRight, Clock } from 'lucide-react';
+import { toast } from 'react-toastify';
+
+const DIAG_TIMEOUT_MS = 15000;
+
+function withTimeout(promise, message, ms = DIAG_TIMEOUT_MS) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => {
+      setTimeout(() => reject(new Error(message)), ms);
+    }),
+  ]);
+}
 
 export default function Dashboard() {
     const [stats, setStats] = useState({ packages: 0, bookings: 0, payments: 0, pendingPayments: 0 });
     const [recentBookings, setRecentBookings] = useState([]);
     const [recentPayments, setRecentPayments] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [diagLoading, setDiagLoading] = useState(false);
+    const [diagResult, setDiagResult] = useState(null);
+    const { currentUser } = useAuth();
 
   useEffect(() => { fetchData(); }, []);
 
@@ -60,11 +76,93 @@ export default function Dashboard() {
         return map[status] || 'bg-gray-100 text-gray-600';
   };
 
+  const runFirestoreDiagnostics = async () => {
+        setDiagLoading(true);
+        setDiagResult(null);
+
+        try {
+                const settingsRead = await withTimeout(
+                          getDoc(doc(db, 'settings', 'general')),
+                          'Read Firestore timeout'
+                );
+
+                const writeRef = await withTimeout(
+                          addDoc(collection(db, 'packages'), {
+                                    title: 'DIAGNOSTIC_TEMP',
+                                    type: 'open-trip',
+                                    location: 'localhost',
+                                    price: 0,
+                                    maxParticipants: 1,
+                                    images: [],
+                                    active: false,
+                                    featured: false,
+                                    description: 'temporary diagnostic document',
+                                    createdAt: serverTimestamp(),
+                                    updatedAt: serverTimestamp(),
+                          }),
+                          'Write Firestore timeout'
+                );
+
+                await withTimeout(
+                          deleteDoc(doc(db, 'packages', writeRef.id)),
+                          'Delete Firestore timeout'
+                );
+
+                setDiagResult({
+                          ok: true,
+                          message: `Read OK, write OK, delete OK. Settings exists: ${settingsRead.exists() ? 'yes' : 'no'}`,
+                });
+                toast.success('Tes Firestore berhasil');
+        } catch (error) {
+                setDiagResult({
+                          ok: false,
+                          message: error?.message || 'Unknown Firestore error',
+                          code: error?.code || null,
+                  });
+                toast.error('Tes Firestore gagal');
+        } finally {
+                setDiagLoading(false);
+        }
+  };
+
   return (
         <div className="space-y-8">
               <div>
                       <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
                       <p className="text-gray-500">Selamat datang kembali di panel admin Liburan Terus</p>
+              </div>
+
+              <div className="bg-white rounded-2xl shadow-sm p-6 space-y-4">
+                      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                                <div>
+                                          <h2 className="font-semibold text-gray-900">Diagnosis Firebase</h2>
+                                          <p className="text-sm text-gray-500">Tes koneksi login admin dan Firestore langsung dari browser.</p>
+                                </div>
+                                <button
+                                          onClick={runFirestoreDiagnostics}
+                                          disabled={diagLoading}
+                                          className="bg-gray-900 hover:bg-gray-800 disabled:bg-gray-400 text-white px-4 py-2 rounded-xl text-sm font-medium"
+                                >
+                                          {diagLoading ? 'Menjalankan tes...' : 'Tes Firestore'}
+                                </button>
+                      </div>
+                      <div className="grid gap-3 md:grid-cols-2 text-sm">
+                                <div className="rounded-xl border border-gray-200 p-4">
+                                          <p className="text-gray-500 mb-1">User login Firebase</p>
+                                          <p className="font-medium text-gray-900">{currentUser?.email || 'Tidak ada sesi login'}</p>
+                                </div>
+                                <div className="rounded-xl border border-gray-200 p-4">
+                                          <p className="text-gray-500 mb-1">UID</p>
+                                          <p className="font-medium text-gray-900 break-all">{currentUser?.uid || '-'}</p>
+                                </div>
+                      </div>
+                      {diagResult && (
+                        <div className={`rounded-xl border p-4 text-sm ${diagResult.ok ? 'border-emerald-200 bg-emerald-50 text-emerald-800' : 'border-red-200 bg-red-50 text-red-800'}`}>
+                                  <p className="font-medium">{diagResult.ok ? 'Hasil tes berhasil' : 'Hasil tes gagal'}</p>
+                                  <p>{diagResult.message}</p>
+                                  {diagResult.code && <p>Kode: {diagResult.code}</p>}
+                        </div>
+                      )}
               </div>
         
           {/* Stat Cards */}
