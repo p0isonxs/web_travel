@@ -19,7 +19,6 @@ const PackageDetail = lazy(() => import('./pages/PackageDetail'));
 const Booking = lazy(() => import('./pages/Booking'));
 const Payment = lazy(() => import('./pages/Payment'));
 const PaymentSuccess = lazy(() => import('./pages/PaymentSuccess'));
-const Gallery = lazy(() => import('./pages/Gallery'));
 const Blog = lazy(() => import('./pages/Blog'));
 const BlogDetail = lazy(() => import('./pages/BlogDetail'));
 const About = lazy(() => import('./pages/About'));
@@ -33,7 +32,6 @@ const AdminPackages = lazy(() => import('./pages/admin/Packages'));
 const AdminBookings = lazy(() => import('./pages/admin/Bookings'));
 const AdminPayments = lazy(() => import('./pages/admin/Payments'));
 const AdminBlog = lazy(() => import('./pages/admin/Blog'));
-const AdminGallery = lazy(() => import('./pages/admin/Gallery'));
 const AdminTestimonials = lazy(() => import('./pages/admin/Testimonials'));
 const AdminSettings = lazy(() => import('./pages/admin/Settings'));
 
@@ -84,7 +82,6 @@ export default function App() {
                 <Route path="bookings" element={<AdminBookings />} />
                 <Route path="payments" element={<AdminPayments />} />
                 <Route path="blog" element={<AdminBlog />} />
-                <Route path="gallery" element={<AdminGallery />} />
                 <Route path="testimonials" element={<AdminTestimonials />} />
                 <Route path="settings" element={<AdminSettings />} />
               </Route>
@@ -98,7 +95,6 @@ export default function App() {
                 <Route path="/booking/:id" element={<Booking />} />
                 <Route path="/payment/:bookingId" element={<Payment />} />
                 <Route path="/pembayaran-berhasil" element={<PaymentSuccess />} />
-                <Route path="/galeri" element={<Gallery />} />
                 <Route path="/blog" element={<Blog />} />
                 <Route path="/blog/:slug" element={<BlogDetail />} />
                 <Route path="/tentang-kami" element={<About />} />

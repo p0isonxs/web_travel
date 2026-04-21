@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { collection, getDocs, updateDoc, deleteDoc, doc, query, orderBy } from 'firebase/firestore';
-import { db } from '../../firebase/config';
+import { getBookings, updateBooking, deleteBooking } from '../../lib/database';
 import { Search, Eye, Trash2, ChevronDown, X } from 'lucide-react';
 import { toast } from 'react-toastify';
 
@@ -24,13 +23,12 @@ export default function AdminBookings() {
 
   const fetchBookings = async () => {
         setLoading(true);
-        const snap = await getDocs(query(collection(db, 'bookings'), orderBy('createdAt', 'desc')));
-        setBookings(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+        setBookings(await getBookings());
         setLoading(false);
   };
 
   const updateStatus = async (id, status) => {
-        await updateDoc(doc(db, 'bookings', id), { status });
+        await updateBooking(id, { status });
         toast.success(`Status diubah ke "${status}"`);
         fetchBookings();
         if (detail?.id === id) setDetail({ ...detail, status });
@@ -38,7 +36,7 @@ export default function AdminBookings() {
 
   const handleDelete = async (id) => {
         if (!confirm('Hapus data booking ini?')) return;
-        await deleteDoc(doc(db, 'bookings', id));
+        await deleteBooking(id);
         toast.success('Booking dihapus');
         fetchBookings();
         if (detail?.id === id) setDetail(null);

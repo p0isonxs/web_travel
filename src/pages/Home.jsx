@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
-import { collection, getDocs, query, orderBy, limit, where } from 'firebase/firestore';
-import { db } from '../firebase/config';
+import { getPackages, getApprovedTestimonials } from '../lib/database';
 import { MapPin, Users, Star, ChevronRight, Phone, CheckCircle, ArrowRight, Calendar } from 'lucide-react';
 import Seo from '../components/Seo';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -23,14 +22,14 @@ export default function Home() {
 
   const fetchData = async () => {
         try {
-                const [openSnap, privateSnap, testiSnap] = await Promise.all([
-                          getDocs(query(collection(db, 'packages'), where('type', '==', 'open-trip'), where('active', '==', true), orderBy('createdAt', 'desc'), limit(6))),
-                          getDocs(query(collection(db, 'packages'), where('type', '==', 'private-trip'), where('active', '==', true), orderBy('createdAt', 'desc'), limit(3))),
-                          getDocs(query(collection(db, 'testimonials'), where('approved', '==', true), orderBy('createdAt', 'desc'), limit(6))),
-                        ]);
-                setOpenPackages(openSnap.docs.map(d => ({ id: d.id, ...d.data() })));
-                setPrivatePackages(privateSnap.docs.map(d => ({ id: d.id, ...d.data() })));
-                setTestimonials(testiSnap.docs.map(d => ({ id: d.id, ...d.data() })));
+                const [openPkgs, privatePkgs, testimonialsList] = await Promise.all([
+                  getPackages('open-trip'),
+                  getPackages('private-trip'),
+                  getApprovedTestimonials(6),
+                ]);
+                setOpenPackages(openPkgs.slice(0, 6));
+                setPrivatePackages(privatePkgs.slice(0, 3));
+                setTestimonials(testimonialsList);
         } catch (e) {
                 console.error(e);
         }

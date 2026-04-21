@@ -3,7 +3,7 @@ import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import {
     LayoutDashboard, Package, CalendarCheck, CreditCard,
-    FileText, Image, Star, Settings, LogOut, Menu, X,
+    FileText, Star, Settings, LogOut, Menu, X,
     Globe, ChevronRight
 } from 'lucide-react';
 
@@ -13,7 +13,6 @@ const navItems = [
   { to: '/admin/bookings', icon: <CalendarCheck className="w-5 h-5" />, label: 'Booking' },
   { to: '/admin/payments', icon: <CreditCard className="w-5 h-5" />, label: 'Pembayaran' },
   { to: '/admin/blog', icon: <FileText className="w-5 h-5" />, label: 'Blog / Artikel' },
-  { to: '/admin/gallery', icon: <Image className="w-5 h-5" />, label: 'Galeri' },
   { to: '/admin/testimonials', icon: <Star className="w-5 h-5" />, label: 'Testimoni' },
   { to: '/admin/settings', icon: <Settings className="w-5 h-5" />, label: 'Pengaturan' },
   ];

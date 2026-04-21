@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { db } from '../../firebase/config';
+import { getSettings, updateSettings } from '../../lib/database';
 import { Save, RefreshCw } from 'lucide-react';
 import { toast } from 'react-toastify';
 
@@ -33,8 +32,8 @@ export default function AdminSettings() {
   const fetchSettings = async () => {
         setLoading(true);
         try {
-                const snap = await getDoc(doc(db, 'settings', 'general'));
-                if (snap.exists()) setSettings({ ...defaultSettings, ...snap.data() });
+                const data = await getSettings();
+                if (data && Object.keys(data).length > 0) setSettings({ ...defaultSettings, ...data });
         } catch (e) { console.error(e); }
         setLoading(false);
   };
@@ -43,7 +42,7 @@ export default function AdminSettings() {
         e.preventDefault();
         setSaving(true);
         try {
-                await setDoc(doc(db, 'settings', 'general'), settings);
+                await updateSettings(settings);
                 toast.success('Pengaturan berhasil disimpan!');
         } catch (e) { toast.error('Gagal menyimpan: ' + e.message); }
         setSaving(false);

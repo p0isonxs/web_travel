@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { collection, getDocs, updateDoc, doc, query, orderBy } from 'firebase/firestore';
-import { db } from '../../firebase/config';
+import { getPayments, updatePayment, updateBooking } from '../../lib/database';
 import { Search, CheckCircle, XCircle, Eye, X } from 'lucide-react';
 import { toast } from 'react-toastify';
 
@@ -21,13 +20,22 @@ export default function AdminPayments() {
 
   const fetchPayments = async () => {
         setLoading(true);
-        const snap = await getDocs(query(collection(db, 'payments'), orderBy('createdAt', 'desc')));
-        setPayments(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+        setPayments(await getPayments());
         setLoading(false);
   };
 
   const updateStatus = async (id, status) => {
-        await updateDoc(doc(db, 'payments', id), { status, verifiedAt: status === 'verified' ? new Date() : null });
+        await updatePayment(id, { status, verifiedAt: status === 'verified' ? new Date().toISOString() : null });
+
+        const payment = payments.find(p => p.id === id);
+        if (payment?.bookingId) {
+          if (status === 'rejected') {
+            await updateBooking(payment.bookingId, { status: 'rejected' });
+          } else if (status === 'verified') {
+            await updateBooking(payment.bookingId, { status: 'confirmed' });
+          }
+        }
+
         toast.success(status === 'verified' ? 'Pembayaran diverifikasi!' : 'Pembayaran ditolak');
         fetchPayments();
         if (detail?.id === id) setDetail({ ...detail, status });

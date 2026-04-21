@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { collection, getDocs, query, orderBy, limit, where, addDoc, deleteDoc, doc, getDoc, serverTimestamp } from 'firebase/firestore';
-import { db } from '../../firebase/config';
+import { getDashboardStats, getRecentBookings, getRecentPayments, getSettings, addPackage, deletePackage } from '../../lib/database';
 import { useAuth } from '../../contexts/AuthContext';
 import { Package, CalendarCheck, CreditCard, Users, TrendingUp, ArrowRight, Clock } from 'lucide-react';
 import { toast } from 'react-toastify';
@@ -30,22 +29,14 @@ export default function Dashboard() {
 
   const fetchData = async () => {
         try {
-                const [pkgSnap, bookSnap, paySnap, pendingSnap, recentBookSnap, recentPaySnap] = await Promise.all([
-                          getDocs(collection(db, 'packages')),
-                          getDocs(collection(db, 'bookings')),
-                          getDocs(query(collection(db, 'payments'), where('status', '==', 'verified'))),
-                          getDocs(query(collection(db, 'payments'), where('status', '==', 'pending'))),
-                          getDocs(query(collection(db, 'bookings'), orderBy('createdAt', 'desc'), limit(5))),
-                          getDocs(query(collection(db, 'payments'), orderBy('createdAt', 'desc'), limit(5))),
-                        ]);
-                setStats({
-                          packages: pkgSnap.size,
-                          bookings: bookSnap.size,
-                          payments: paySnap.size,
-                          pendingPayments: pendingSnap.size,
-                });
-                setRecentBookings(recentBookSnap.docs.map(d => ({ id: d.id, ...d.data() })));
-                setRecentPayments(recentPaySnap.docs.map(d => ({ id: d.id, ...d.data() })));
+                const [statsData, recentBookingsData, recentPaymentsData] = await Promise.all([
+                  getDashboardStats(),
+                  getRecentBookings(5),
+                  getRecentPayments(5),
+                ]);
+                setStats(statsData);
+                setRecentBookings(recentBookingsData);
+                setRecentPayments(recentPaymentsData);
         } catch (e) { console.error(e); }
         setLoading(false);
   };
@@ -76,50 +67,42 @@ export default function Dashboard() {
         return map[status] || 'bg-gray-100 text-gray-600';
   };
 
-  const runFirestoreDiagnostics = async () => {
+  const runSupabaseDiagnostics = async () => {
         setDiagLoading(true);
         setDiagResult(null);
 
         try {
-                const settingsRead = await withTimeout(
-                          getDoc(doc(db, 'settings', 'general')),
-                          'Read Firestore timeout'
+                const settings = await withTimeout(getSettings(), 'Read Supabase timeout');
+
+                const tempPkg = await withTimeout(
+                  addPackage({
+                    title: { id: 'DIAGNOSTIC_TEMP', en: '' },
+                    type: 'open-trip',
+                    location: { id: 'localhost', en: '' },
+                    price: 0,
+                    maxParticipants: 1,
+                    images: [],
+                    active: false,
+                    featured: false,
+                    description: { id: 'temporary diagnostic', en: '' },
+                  }),
+                  'Write Supabase timeout'
                 );
 
-                const writeRef = await withTimeout(
-                          addDoc(collection(db, 'packages'), {
-                                    title: 'DIAGNOSTIC_TEMP',
-                                    type: 'open-trip',
-                                    location: 'localhost',
-                                    price: 0,
-                                    maxParticipants: 1,
-                                    images: [],
-                                    active: false,
-                                    featured: false,
-                                    description: 'temporary diagnostic document',
-                                    createdAt: serverTimestamp(),
-                                    updatedAt: serverTimestamp(),
-                          }),
-                          'Write Firestore timeout'
-                );
-
-                await withTimeout(
-                          deleteDoc(doc(db, 'packages', writeRef.id)),
-                          'Delete Firestore timeout'
-                );
+                await withTimeout(deletePackage(tempPkg.id), 'Delete Supabase timeout');
 
                 setDiagResult({
-                          ok: true,
-                          message: `Read OK, write OK, delete OK. Settings exists: ${settingsRead.exists() ? 'yes' : 'no'}`,
+                  ok: true,
+                  message: `Read OK, write OK, delete OK. Settings exists: ${Object.keys(settings).length > 0 ? 'yes' : 'no'}`,
                 });
-                toast.success('Tes Firestore berhasil');
+                toast.success('Tes Supabase berhasil');
         } catch (error) {
                 setDiagResult({
-                          ok: false,
-                          message: error?.message || 'Unknown Firestore error',
-                          code: error?.code || null,
-                  });
-                toast.error('Tes Firestore gagal');
+                  ok: false,
+                  message: error?.message || 'Unknown Supabase error',
+                  code: error?.code || null,
+                });
+                toast.error('Tes Supabase gagal');
         } finally {
                 setDiagLoading(false);
         }
@@ -135,25 +118,25 @@ export default function Dashboard() {
               <div className="bg-white rounded-2xl shadow-sm p-6 space-y-4">
                       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                                 <div>
-                                          <h2 className="font-semibold text-gray-900">Diagnosis Firebase</h2>
-                                          <p className="text-sm text-gray-500">Tes koneksi login admin dan Firestore langsung dari browser.</p>
+                                          <h2 className="font-semibold text-gray-900">Diagnosis Supabase</h2>
+                                          <p className="text-sm text-gray-500">Tes koneksi login admin dan Supabase langsung dari browser.</p>
                                 </div>
                                 <button
-                                          onClick={runFirestoreDiagnostics}
+                                          onClick={runSupabaseDiagnostics}
                                           disabled={diagLoading}
                                           className="bg-gray-900 hover:bg-gray-800 disabled:bg-gray-400 text-white px-4 py-2 rounded-xl text-sm font-medium"
                                 >
-                                          {diagLoading ? 'Menjalankan tes...' : 'Tes Firestore'}
+                                          {diagLoading ? 'Menjalankan tes...' : 'Tes Supabase'}
                                 </button>
                       </div>
                       <div className="grid gap-3 md:grid-cols-2 text-sm">
                                 <div className="rounded-xl border border-gray-200 p-4">
-                                          <p className="text-gray-500 mb-1">User login Firebase</p>
+                                          <p className="text-gray-500 mb-1">User login Supabase</p>
                                           <p className="font-medium text-gray-900">{currentUser?.email || 'Tidak ada sesi login'}</p>
                                 </div>
                                 <div className="rounded-xl border border-gray-200 p-4">
                                           <p className="text-gray-500 mb-1">UID</p>
-                                          <p className="font-medium text-gray-900 break-all">{currentUser?.uid || '-'}</p>
+                                          <p className="font-medium text-gray-900 break-all">{currentUser?.id || currentUser?.sub || '-'}</p>
                                 </div>
                       </div>
                       {diagResult && (
@@ -244,7 +227,6 @@ export default function Dashboard() {
                         {[
           { to: '/admin/packages', label: 'Tambah Paket', emoji: '✈️' },
           { to: '/admin/blog', label: 'Tulis Artikel', emoji: '✍️' },
-          { to: '/admin/gallery', label: 'Upload Foto', emoji: '📸' },
           { to: '/admin/payments', label: 'Verifikasi Bayar', emoji: '✅' },
                     ].map((item, i) => (
                                   <Link key={i} to={item.to}

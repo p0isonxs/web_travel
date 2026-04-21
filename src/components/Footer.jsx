@@ -66,7 +66,6 @@ const Footer = () => {
                                                 {[
             { to: '/open-trip', label: t('common.openTrip') },
             { to: '/private-trip', label: t('common.privateTrip') },
-            { to: '/galeri', label: t('common.gallery') },
             { to: '/blog', label: t('footer.blogTips') },
                           ].map(item => (
                                             <li key={item.to}>

@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
-import { collection, getDocs, query, where, limit } from 'firebase/firestore';
-import { db } from '../firebase/config';
+import { getBlogBySlug, getBlogPosts } from '../lib/database';
 import { Calendar, User, Tag, ArrowLeft, Share2, Facebook, Twitter } from 'lucide-react';
 import Seo from '../components/Seo';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -42,28 +41,15 @@ export default function BlogDetail() {
   const fetchPost = async () => {
         setLoading(true);
         try {
-                // Try by slug first, then by ID
-          let q = query(collection(db, 'blog'), where('slug', '==', slug), limit(1));
-                let snap = await getDocs(q);
-                if (snap.empty) {
-                          q = query(collection(db, 'blog'), where('__name__', '==', slug));
-                          snap = await getDocs(q);
-                }
-                if (!snap.empty) {
-                          const data = { id: snap.docs[0].id, ...snap.docs[0].data() };
+                const data = await getBlogBySlug(slug);
+                if (data) {
                           setPost(data);
-                          // Fetch related
-                  if (data.category) {
-                              const relSnap = await getDocs(collection(db, 'blog'));
+                          if (data.category) {
+                              const allPosts = await getBlogPosts();
                               setRelated(
-                                relSnap.docs
-                                  .map(d => ({ id: d.id, ...d.data() }))
+                                allPosts
                                   .filter(p => p.published === true && p.category === data.category && p.id !== data.id)
-                                  .sort((a, b) => {
-                                    const aTime = a.createdAt?.seconds || 0;
-                                    const bTime = b.createdAt?.seconds || 0;
-                                    return bTime - aTime;
-                                  })
+                                  .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
                                   .slice(0, 3)
                               );
                   }

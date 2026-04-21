@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, query, orderBy } from 'firebase/firestore';
-import { db } from '../../firebase/config';
+import { getPackages, addPackage, updatePackage, deletePackage } from '../../lib/database';
 import { uploadMultiple } from '../../utils/cloudinary';
 import { Plus, Edit2, Trash2, X, Save, Eye, EyeOff, Search, Upload } from 'lucide-react';
 import { toast } from 'react-toastify';
@@ -145,8 +144,8 @@ export default function AdminPackages() {
 
   const fetchPackages = async () => {
         setLoading(true);
-        const snap = await getDocs(query(collection(db, 'packages'), orderBy('createdAt', 'desc')));
-        setPackages(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+        const pkgs = await getPackages();
+        setPackages(pkgs);
         setLoading(false);
   };
 
@@ -199,11 +198,6 @@ export default function AdminPackages() {
 
   const handleSave = async (e) => {
         e.preventDefault();
-
-        if (!db) {
-                toast.error('Firestore belum dikonfigurasi.');
-                return;
-        }
 
         if (!currentUser) {
                 toast.error('Sesi admin tidak aktif. Silakan login ulang.');
@@ -263,18 +257,17 @@ export default function AdminPackages() {
                           price: Number(form.price),
                           originalPrice: Number(form.originalPrice) || null,
                           maxParticipants: Number(form.maxParticipants),
-                          updatedAt: serverTimestamp(),
                 };
                 if (editId) {
                           await withTimeout(
-                                    updateDoc(doc(db, 'packages', editId), data),
-                                    'Koneksi ke Firestore timeout saat memperbarui paket. Coba login ulang lalu simpan lagi.'
+                                    updatePackage(editId, data),
+                                    'Koneksi ke Supabase timeout saat memperbarui paket. Coba login ulang lalu simpan lagi.'
                           );
                           toast.success('Paket berhasil diperbarui!');
                 } else {
                           await withTimeout(
-                                    addDoc(collection(db, 'packages'), { ...data, createdAt: serverTimestamp() }),
-                                    'Koneksi ke Firestore timeout saat menyimpan paket. Coba login ulang lalu simpan lagi.'
+                                    addPackage(data),
+                                    'Koneksi ke Supabase timeout saat menyimpan paket. Coba login ulang lalu simpan lagi.'
                           );
                           toast.success('Paket berhasil ditambahkan!');
                 }
@@ -290,7 +283,7 @@ export default function AdminPackages() {
   const handleDelete = async (id, title) => {
         if (!confirm(`Hapus paket "${title}"? Tindakan ini tidak bisa dibatalkan.`)) return;
         try {
-                await deleteDoc(doc(db, 'packages', id));
+                await deletePackage(id);
                 toast.success('Paket berhasil dihapus');
                 fetchPackages();
         } catch {

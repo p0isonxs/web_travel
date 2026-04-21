@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { collection, getDocs } from 'firebase/firestore';
-import { db } from '../firebase/config';
+import { getBlogPosts } from '../lib/database';
 import { Calendar, User, Tag, ArrowRight, Search } from 'lucide-react';
 import Seo from '../components/Seo';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -49,17 +48,12 @@ export default function Blog() {
   const fetchPosts = async () => {
         setLoading(true);
         try {
-                const snap = await getDocs(collection(db, 'blog'));
-                const allPosts = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                const allPosts = await getBlogPosts();
 
                 const visiblePosts = allPosts
                   .filter(post => post.published === true)
                   .filter(post => activeCategory === 'semua' || post.category === activeCategory)
-                  .sort((a, b) => {
-                    const aTime = a.createdAt?.seconds || 0;
-                    const bTime = b.createdAt?.seconds || 0;
-                    return bTime - aTime;
-                  });
+                  .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
                 setPosts(visiblePosts);
         } catch (error) {

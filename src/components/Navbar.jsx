@@ -23,7 +23,6 @@ const Navbar = () => {
       { to: '/', label: 'Home' },
       { to: '/open-trip', label: t('common.openTrip') },
       { to: '/private-trip', label: t('common.privateTrip') },
-      { to: '/galeri', label: t('common.gallery') },
       { to: '/blog', label: t('common.blog') },
       { to: '/tentang-kami', label: t('common.about') },
       { to: '/kontak', label: t('common.contact') },

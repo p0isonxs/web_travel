@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { collection, getDocs, query, orderBy, where } from 'firebase/firestore';
-import { db } from '../firebase/config';
+import { getGallery } from '../lib/database';
 import { X, ZoomIn } from 'lucide-react';
 import Seo from '../components/Seo';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -27,14 +26,11 @@ export default function Gallery() {
   const fetchGallery = async () => {
         setLoading(true);
         try {
-                let q;
-                if (activeCategory === 'semua') {
-                          q = query(collection(db, 'gallery'), orderBy('createdAt', 'desc'));
-                } else {
-                          q = query(collection(db, 'gallery'), where('category', '==', activeCategory), orderBy('createdAt', 'desc'));
-                }
-                const snap = await getDocs(q);
-                setPhotos(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+                const all = await getGallery();
+                const photos = activeCategory === 'semua'
+                  ? all
+                  : all.filter(p => p.category === activeCategory);
+                setPhotos(photos);
         } catch {
                 setPhotos([]);
         }

@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, query, orderBy } from 'firebase/firestore';
-import { db } from '../../firebase/config';
+import { getBlogPosts, addBlogPost, updateBlogPost, deleteBlogPost } from '../../lib/database';
 import { Plus, Edit2, Trash2, X, Save, Search, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'react-toastify';
 
@@ -47,8 +46,7 @@ export default function AdminBlog() {
 
   const fetchPosts = async () => {
         setLoading(true);
-        const snap = await getDocs(query(collection(db, 'blog'), orderBy('createdAt', 'desc')));
-        setPosts(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+        setPosts(await getBlogPosts());
         setLoading(false);
   };
 
@@ -97,13 +95,12 @@ export default function AdminBlog() {
                   author: form.author,
                   published: form.published,
                   readTime: Number(form.readTime) || 5,
-                  updatedAt: serverTimestamp(),
                 };
                 if (editId) {
-                          await updateDoc(doc(db, 'blog', editId), data);
+                          await updateBlogPost(editId, data);
                           toast.success('Artikel diperbarui!');
                 } else {
-                          await addDoc(collection(db, 'blog'), { ...data, createdAt: serverTimestamp() });
+                          await addBlogPost(data);
                           toast.success('Artikel berhasil ditambahkan!');
                 }
                 closeForm();
@@ -114,13 +111,13 @@ export default function AdminBlog() {
 
   const handleDelete = async (id, title) => {
         if (!confirm(`Hapus artikel "${title}"?`)) return;
-        await deleteDoc(doc(db, 'blog', id));
+        await deleteBlogPost(id);
         toast.success('Artikel dihapus');
         fetchPosts();
   };
 
   const togglePublish = async (id, current) => {
-        await updateDoc(doc(db, 'blog', id), { published: !current });
+        await updateBlogPost(id, { published: !current });
         fetchPosts();
   };
 

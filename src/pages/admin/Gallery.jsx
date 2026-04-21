@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { collection, getDocs, addDoc, deleteDoc, doc, serverTimestamp, query, orderBy } from 'firebase/firestore';
-import { db } from '../../firebase/config';
+import { getGallery, addGalleryItem, deleteGalleryItem } from '../../lib/database';
 import { uploadToCloudinary } from '../../utils/cloudinary';
 import { Plus, Trash2, X, Upload, Image } from 'lucide-react';
 import { toast } from 'react-toastify';
@@ -20,8 +19,7 @@ export default function AdminGallery() {
 
   const fetchPhotos = async () => {
         setLoading(true);
-        const snap = await getDocs(query(collection(db, 'gallery'), orderBy('createdAt', 'desc')));
-        setPhotos(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+        setPhotos(await getGallery());
         setLoading(false);
   };
 
@@ -39,7 +37,7 @@ export default function AdminGallery() {
                           imageUrl = await uploadToCloudinary(file, 'gallery');
                 }
                 if (!imageUrl) { toast.error('Pilih foto atau masukkan URL foto'); setUploading(false); return; }
-                await addDoc(collection(db, 'gallery'), { ...form, imageUrl, createdAt: serverTimestamp() });
+                await addGalleryItem({ ...form, imageUrl });
                 toast.success('Foto berhasil ditambahkan!');
                 setShowForm(false);
                 setForm({ caption: '', category: 'destinasi', imageUrl: '' });
@@ -52,7 +50,7 @@ export default function AdminGallery() {
   const handleDelete = async (photo) => {
         if (!confirm('Hapus foto ini?')) return;
         try {
-                await deleteDoc(doc(db, 'gallery', photo.id));
+                await deleteGalleryItem(photo.id);
                 toast.success('Foto dihapus');
                 fetchPhotos();
         } catch { toast.error('Gagal menghapus foto'); }

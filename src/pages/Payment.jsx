@@ -1,14 +1,12 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
-import { getBookingById, updateBooking, upsertPaymentByBookingId } from '../firebase/firestore'
+import { getBookingById, updateBooking, upsertPaymentByBookingId, getPaymentByBookingId } from '../lib/database'
 import { uploadToCloudinary } from '../utils/cloudinary'
-import { FaCreditCard, FaUniversity, FaCheckCircle, FaUpload, FaArrowLeft } from 'react-icons/fa'
+import { FaUniversity, FaCheckCircle, FaUpload, FaArrowLeft, FaExclamationTriangle } from 'react-icons/fa'
 import { toast } from 'react-toastify'
 import { useSettings } from '../contexts/SettingsContext'
 import { useLanguage } from '../contexts/LanguageContext'
-
-const MIDTRANS_CLIENT_KEY = import.meta.env.VITE_MIDTRANS_CLIENT_KEY || ''
 
 const Payment = () => {
     const { bookingId } = useParams()
@@ -17,18 +15,22 @@ const Payment = () => {
     const { t, language } = useLanguage()
     const [booking, setBooking] = useState(null)
     const [loading, setLoading] = useState(true)
-    const [paymentMethod, setPaymentMethod] = useState('midtrans')
     const [proofFile, setProofFile] = useState(null)
     const [proofPreview, setProofPreview] = useState(null)
     const [uploading, setUploading] = useState(false)
+    const [paymentRecord, setPaymentRecord] = useState(null)
 
     useEffect(() => {
-          const fetchBooking = async () => {
+          const fetchData = async () => {
                   try {
-                            const data = await getBookingById(bookingId)
+                            const [data, payment] = await Promise.all([
+                              getBookingById(bookingId),
+                              getPaymentByBookingId(bookingId),
+                            ])
                             setBooking(data)
-                            if (data?.status === 'paid') {
-                                        navigateToSuccess(data)
+                            setPaymentRecord(payment)
+                            if (data?.status === 'paid' || data?.status === 'confirmed') {
+                              navigateToSuccess(data)
                             }
                   } catch (error) {
                             console.error('Error:', error)
@@ -36,7 +38,7 @@ const Payment = () => {
                             setLoading(false)
                   }
           }
-          fetchBooking()
+          fetchData()
     }, [bookingId])
 
     const formatPrice = (price) => {
@@ -66,69 +68,6 @@ const Payment = () => {
                     proofUrl,
                     midtransOrderId,
           })
-    }
-
-    const handleMidtrans = () => {
-          if (typeof window.snap === 'undefined') {
-                  const script = document.createElement('script')
-                  script.src = 'https://app.sandbox.midtrans.com/snap/snap.js'
-                  script.setAttribute('data-client-key', MIDTRANS_CLIENT_KEY)
-                  script.onload = () => openSnap()
-                  document.head.appendChild(script)
-          } else {
-                  openSnap()
-          }
-    }
-
-    const openSnap = async () => {
-          try {
-                  const response = await fetch('/api/create-payment', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                        bookingId,
-                                        amount: booking.totalPrice,
-                                        customerName: booking.name,
-                                        customerEmail: booking.email,
-                                        customerPhone: booking.phone,
-                                        itemName: booking.packageTitle,
-                            }),
-                  })
-                  const { token } = await response.json()
-
-            window.snap.pay(token, {
-                      onSuccess: async (result) => {
-                                  await createPaymentRecord({
-                                                status: 'verified',
-                                                method: 'midtrans',
-                                                midtransOrderId: result.order_id,
-                                  })
-                                  await updateBooking(bookingId, {
-                                                status: 'paid',
-                                                paymentMethod: 'midtrans',
-                                                midtransOrderId: result.order_id,
-                                                paidAt: new Date().toISOString(),
-                                  })
-                                  navigateToSuccess()
-                      },
-                      onPending: async (result) => {
-                                  await createPaymentRecord({
-                                                status: 'pending',
-                                                method: 'midtrans',
-                                                midtransOrderId: result.order_id,
-                                  })
-                                  toast.info(t('payment.midtransPending'))
-                      },
-                      onError: (result) => {
-                                  toast.error(t('payment.midtransFailed'))
-                      },
-                      onClose: () => {
-                                  toast.warning(t('payment.midtransCancelled'))
-                      }
-            })
-          } catch (error) {
-                  toast.error(t('payment.midtransStartFailed'))
-          }
     }
 
     const handleFileChange = (e) => {
@@ -164,6 +103,7 @@ const Payment = () => {
                             paymentProofUrl: url,
                             paidAt: new Date().toISOString(),
                   })
+                  setPaymentRecord(prev => ({ ...prev, status: 'pending' }))
                   toast.success(t('payment.proofUploaded'))
                   navigateToSuccess()
           } catch (error) {
@@ -241,42 +181,24 @@ const Payment = () => {
                                     {/* Payment Methods */}
                                               <div className="lg:col-span-2 space-y-6">
                                                             <div className="bg-white rounded-2xl p-6 shadow-sm">
-                                                                            <h2 className="text-lg font-bold text-gray-800 mb-5">{t('payment.chooseMethod')}</h2>
-                                                            
-                                                              {/* Method Selector */}
-                                                                            <div className="grid grid-cols-2 gap-4 mb-6">
-                                                                                              <button onClick={() => setPaymentMethod('midtrans')}
-                                                                                                                    className={`p-4 border-2 rounded-xl transition-all ${paymentMethod === 'midtrans' ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200 hover:border-gray-300'}`}>
-                                                                                                                  <FaCreditCard className={`mx-auto mb-2 text-2xl ${paymentMethod === 'midtrans' ? 'text-emerald-600' : 'text-gray-400'}`} />
-                                                                                                                  <p className={`text-sm font-semibold ${paymentMethod === 'midtrans' ? 'text-emerald-700' : 'text-gray-600'}`}>{t('payment.payOnline')}</p>
-                                                                                                                  <p className="text-xs text-gray-400 mt-0.5">via Midtrans</p>
-                                                                                                </button>
-                                                                                              <button onClick={() => setPaymentMethod('transfer')}
-                                                                                                                    className={`p-4 border-2 rounded-xl transition-all ${paymentMethod === 'transfer' ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200 hover:border-gray-300'}`}>
-                                                                                                                  <FaUniversity className={`mx-auto mb-2 text-2xl ${paymentMethod === 'transfer' ? 'text-emerald-600' : 'text-gray-400'}`} />
-                                                                                                                  <p className={`text-sm font-semibold ${paymentMethod === 'transfer' ? 'text-emerald-700' : 'text-gray-600'}`}>{t('payment.bankTransfer')}</p>
-                                                                                                                  <p className="text-xs text-gray-400 mt-0.5">{t('payment.manual')}</p>
-                                                                                                </button>
-                                                                            </div>
-                                                            
-                                                              {/* Midtrans Payment */}
-                                                              {paymentMethod === 'midtrans' && (
-                              <div className="space-y-4">
-                                                  <div className="bg-blue-50 rounded-xl p-4">
-                                                                        <p className="text-sm text-blue-700 font-medium mb-2">{t('payment.midtransTitle')}</p>
-                                                                        <p className="text-xs text-blue-600">{t('payment.midtransDesc')}</p>
-                                                  </div>
-                                                  <button onClick={handleMidtrans}
-                                                                          className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white py-4 rounded-xl font-bold hover:shadow-lg transition-all flex items-center justify-center gap-2">
-                                                                        <FaCreditCard />
-                                                                        {t('payment.payViaMidtrans', { amount: formatPrice(booking.totalPrice) })}
-                                                  </button>
-                              </div>
-                                                                            )}
-                                                            
+                                                                            <h2 className="text-lg font-bold text-gray-800 mb-5">{t('payment.bankTransfer')}</h2>
+
                                                               {/* Transfer Bank */}
-                                                              {paymentMethod === 'transfer' && (
-                              <div className="space-y-4">
+                                                              <div className="space-y-4">
+
+                                                  {/* Rejection notice */}
+                                                  {paymentRecord?.status === 'rejected' && (
+                                                    <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex gap-3">
+                                                      <FaExclamationTriangle className="text-red-500 mt-0.5 shrink-0" />
+                                                      <div>
+                                                        <p className="text-sm font-semibold text-red-700">Bukti pembayaran ditolak</p>
+                                                        <p className="text-xs text-red-600 mt-1">
+                                                          Bukti transfer sebelumnya tidak valid. Silakan upload ulang bukti pembayaran yang benar di bawah ini.
+                                                        </p>
+                                                      </div>
+                                                    </div>
+                                                  )}
+
                                                   <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
                                                                         <p className="text-sm font-semibold text-amber-800 mb-3">{t('payment.bankInfo')}</p>
                                                                         <div className="space-y-2 text-sm">
@@ -336,7 +258,6 @@ const Payment = () => {
                                                                                                   )}
                                                   </button>
                               </div>
-                                                                            )}
                                                             </div>
                                               </div>
                                   

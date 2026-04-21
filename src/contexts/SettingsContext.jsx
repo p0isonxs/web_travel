@@ -1,6 +1,5 @@
 import { createContext, useContext, useEffect, useState } from 'react';
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from '../firebase/config';
+import { getSettings } from '../lib/database';
 
 export const defaultSettings = {
   siteName: 'Liburan Terus',
@@ -29,11 +28,11 @@ export function SettingsProvider({ children }) {
   const [settings, setSettings] = useState(defaultSettings);
 
   useEffect(() => {
-    if (!db) return;
-
-    getDoc(doc(db, 'settings', 'general'))
-      .then(snap => {
-        if (snap.exists()) setSettings({ ...defaultSettings, ...snap.data() });
+    getSettings()
+      .then((data) => {
+        if (data && Object.keys(data).length > 0) {
+          setSettings({ ...defaultSettings, ...data });
+        }
       })
       .catch(() => {});
   }, []);

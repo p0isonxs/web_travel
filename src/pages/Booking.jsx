@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
-import { getPackageById, addBooking, getOpenTripSlotUsage } from '../firebase/firestore'
+import { getPackageById, addBooking, getOpenTripSlotUsage } from '../lib/database'
 import { FaUser, FaEnvelope, FaPhone, FaCalendar, FaUsers, FaArrowLeft } from 'react-icons/fa'
 import { toast } from 'react-toastify'
 import { useLanguage } from '../contexts/LanguageContext'

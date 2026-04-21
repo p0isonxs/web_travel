@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, query, orderBy } from 'firebase/firestore';
-import { db } from '../../firebase/config';
+import { getTestimonials, addTestimonial, updateTestimonial, deleteTestimonial } from '../../lib/database';
 import { Plus, Trash2, CheckCircle, X, Save, Star } from 'lucide-react';
 import { toast } from 'react-toastify';
 
@@ -17,8 +16,7 @@ export default function AdminTestimonials() {
 
   const fetchTestimonials = async () => {
         setLoading(true);
-        const snap = await getDocs(query(collection(db, 'testimonials'), orderBy('createdAt', 'desc')));
-        setTestimonials(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+        setTestimonials(await getTestimonials());
         setLoading(false);
   };
 
@@ -26,7 +24,7 @@ export default function AdminTestimonials() {
         e.preventDefault();
         setSaving(true);
         try {
-                await addDoc(collection(db, 'testimonials'), { ...form, rating: Number(form.rating), createdAt: serverTimestamp() });
+                await addTestimonial({ ...form, rating: Number(form.rating) });
                 toast.success('Testimoni ditambahkan!');
                 setShowForm(false);
                 setForm(emptyForm);
@@ -36,14 +34,14 @@ export default function AdminTestimonials() {
   };
 
   const toggleApprove = async (id, current) => {
-        await updateDoc(doc(db, 'testimonials', id), { approved: !current });
+        await updateTestimonial(id, { approved: !current });
         toast.success(!current ? 'Testimoni disetujui' : 'Testimoni disembunyikan');
         fetchTestimonials();
   };
 
   const handleDelete = async (id) => {
         if (!confirm('Hapus testimoni ini?')) return;
-        await deleteDoc(doc(db, 'testimonials', id));
+        await deleteTestimonial(id);
         toast.success('Testimoni dihapus');
         fetchTestimonials();
   };

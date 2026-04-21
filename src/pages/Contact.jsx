@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { MapPin, Phone, Mail, Clock, MessageCircle, Send } from 'lucide-react';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { db } from '../firebase/config';
+import { addContact } from '../lib/database';
 import { toast } from 'react-toastify';
 import { useSettings } from '../contexts/SettingsContext';
 import Seo from '../components/Seo';
@@ -22,7 +21,7 @@ export default function Contact() {
         e.preventDefault();
         setSubmitting(true);
         try {
-                await addDoc(collection(db, 'contacts'), { ...form, createdAt: serverTimestamp(), status: 'unread' });
+                await addContact(form);
                 toast.success(t('contact.success'));
                 setForm({ name: '', email: '', phone: '', subject: '', message: '' });
         } catch {
