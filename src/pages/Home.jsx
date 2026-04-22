@@ -163,7 +163,7 @@ export default function Home() {
                                                                                                     </div>
                                                             {pkg.originalPrice && pkg.originalPrice > pkg.price && (
                                                                 <div className="absolute top-4 right-4">
-                                                                                        <span className="bg-red-500 text-white text-xs font-bold px-2.5 py-1 rounded-full">-{Math.round((1 - pkg.price / pkg.originalPrice) * 100)}%</span>
+                                                                                        <span className="bg-red-500 text-white text-xs font-bold px-2.5 py-1 rounded-full">{t('openTrip.discount')}</span>
                                                                 </div>
                                                                               )}
                                                           </div>
@@ -185,11 +185,11 @@ export default function Home() {
                                                                               </div>
                                                                               <div className="flex items-end justify-between gap-4 border-t border-gray-100 pt-4">
                                                                                                     <div>
-                                                                                                                      <p className="text-[11px] uppercase tracking-[0.18em] text-gray-400 mb-1">{t('home.startingFrom')}</p>
-                                                                                                                      <div className="flex items-baseline gap-1.5">
-                                                                                                                                        <p className="text-emerald-600 font-bold text-xl leading-none">{formatPrice(pkg.price)}</p>
-                                                                                                                                        <span className="text-xs text-gray-400">/pax</span>
-                                                                                                                      </div>
+                                                                                                                      {pkg.originalPrice && pkg.originalPrice > pkg.price && (
+                                                                                                                        <p className="text-xs text-gray-400 line-through">{formatPrice(pkg.originalPrice)}</p>
+                                                                                                                      )}
+                                                                                                                      <p className="text-emerald-600 font-bold text-xl leading-none">{formatPrice(pkg.price)}</p>
+                                                                                                                      <p className="text-[11px] uppercase tracking-[0.18em] text-gray-400 mt-0.5">{t('openTrip.perPerson')}</p>
                                                                                                     </div>
                                                                                                     <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 text-emerald-700 text-xs font-semibold px-4 py-2 group-hover:bg-emerald-500 group-hover:border-emerald-500 group-hover:text-white transition-colors">
                                                                                                                       {t('home.viewDetail')}
