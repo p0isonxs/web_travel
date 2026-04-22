@@ -132,6 +132,17 @@ export const deletePackage = async (id) => {
   if (error) throw error
 }
 
+export const getPackageBySlug = async (type, slug) => {
+  const { data, error } = await supabase
+    .from('packages')
+    .select('*')
+    .eq('type', type)
+    .filter('slug->>id', 'eq', slug)
+    .single()
+  if (error) return null
+  return normalizePackage(rowToDoc(data))
+}
+
 // ─── BOOKINGS ────────────────────────────────────────────────────────────────
 export const getBookings = async () => {
   const { data, error } = await supabase

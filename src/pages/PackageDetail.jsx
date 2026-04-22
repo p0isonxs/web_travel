@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
-import { getPackageById, getOpenTripSlotUsage } from '../lib/database'
+import { getPackageById, getPackageBySlug, getOpenTripSlotUsage } from '../lib/database'
 import { FaMapMarkerAlt, FaClock, FaUsers, FaStar, FaCheck, FaTimes, FaChevronLeft, FaChevronRight, FaWhatsapp, FaCalendar } from 'react-icons/fa'
 import Seo from '../components/Seo'
 import { useLanguage } from '../contexts/LanguageContext'
@@ -64,7 +64,7 @@ function resolveMapSource(pkg, packageLocation, fallbackLocation) {
 }
 
 const PackageDetail = () => {
-    const { id } = useParams()
+    const { id, slug } = useParams()
     const navigate = useNavigate()
     const [pkg, setPkg] = useState(null)
     const [loading, setLoading] = useState(true)
@@ -79,10 +79,17 @@ const PackageDetail = () => {
     useEffect(() => {
           const fetchPackage = async () => {
                   try {
-                            const data = await getPackageById(id)
+                            let data = null
+                            if (slug) {
+                                    const type = window.location.pathname.startsWith('/open-trip') ? 'open-trip' : 'private-trip'
+                                    data = await getPackageBySlug(type, slug)
+                            } else {
+                                    data = await getPackageById(id)
+                            }
                             setPkg(data)
-                            if (data?.type === 'open-trip') {
-                                    const usage = await getOpenTripSlotUsage(id)
+                            const pkgId = data?.id
+                            if (data?.type === 'open-trip' && pkgId) {
+                                    const usage = await getOpenTripSlotUsage(pkgId)
                                     setSlotUsage(usage)
                                     if (data.departureDates?.length > 0) {
                                             const firstAvailableDate = data.departureDates.find((date) => {
@@ -101,7 +108,7 @@ const PackageDetail = () => {
                   }
           }
           fetchPackage()
-    }, [id])
+    }, [id, slug])
 
     const formatPrice = (price) => {
           return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(price)
@@ -135,7 +142,7 @@ const PackageDetail = () => {
           if (selectedDate) {
                   params.set('date', selectedDate)
           }
-          navigate(`/booking/${id}?${params.toString()}`)
+          navigate(`/booking/${pkg.id}?${params.toString()}`)
     }
 
     if (loading) {

@@ -1,13 +1,17 @@
 import { Link } from 'react-router-dom'
 import { FiStar, FiMapPin, FiClock, FiUsers, FiHeart } from 'react-icons/fi'
 import { useState } from 'react'
+import { generateSlug } from '../utils/slug'
 
 export default function PackageCard({ package: pkg }) {
   const [wishlisted, setWishlisted] = useState(false)
-  
+
   const formatPrice = (price) => new Intl.NumberFormat('id-ID', {
     style: 'currency', currency: 'IDR', maximumFractionDigits: 0
   }).format(price)
+
+  const pkgSlug = pkg.slug?.id || generateSlug(pkg.title?.id || pkg.title || '')
+  const pkgLink = pkgSlug ? `/${pkg.type}/${pkgSlug}` : `/paket/${pkg.id}`
 
   const discount = pkg.originalPrice ? Math.round((1 - pkg.price / pkg.originalPrice) * 100) : 0
 
@@ -78,7 +82,7 @@ export default function PackageCard({ package: pkg }) {
             </p>
             <p className="text-xs text-gray-400">/orang</p>
           </div>
-          <Link to={"/paket/" + pkg.id} className="bg-primary-500 hover:bg-primary-600 text-white text-sm font-semibold px-4 py-2 rounded-full transition-colors shadow-sm">
+          <Link to={pkgLink} className="bg-primary-500 hover:bg-primary-600 text-white text-sm font-semibold px-4 py-2 rounded-full transition-colors shadow-sm">
             Pesan
           </Link>
         </div>

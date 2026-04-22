@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { getPackages } from '../lib/database'
+import { generateSlug } from '../utils/slug'
 import { FaSearch, FaMapMarkerAlt, FaClock, FaUserFriends, FaStar, FaFilter, FaCheck } from 'react-icons/fa'
 import Seo from '../components/Seo'
 import { useLanguage } from '../contexts/LanguageContext'
@@ -172,7 +173,7 @@ const PrivateTrip = () => {
                                           const location = localize(pkg.location)
                                           const duration = localize(pkg.duration)
                                           return (
-                                          <Link key={pkg.id} to={`/paket/${pkg.id}`} className="group">
+                                          <Link key={pkg.id} to={`/private-trip/${pkg.slug?.id || generateSlug(pkg.title?.id || pkg.title || '')}`} className="group">
                                                             <div className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
                                                                                 <div className="relative h-52 overflow-hidden">
                                                                                                       <img

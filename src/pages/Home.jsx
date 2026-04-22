@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { getPackages, getApprovedTestimonials } from '../lib/database';
+import { generateSlug } from '../utils/slug';
 import { MapPin, Users, Star, ChevronRight, Phone, CheckCircle, ArrowRight, Calendar } from 'lucide-react';
 import Seo from '../components/Seo';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -149,7 +150,7 @@ export default function Home() {
                                         const location = localize(pkg.location);
                                         const duration = localize(pkg.duration);
                                         return (
-                                        <Link key={pkg.id} to={`/paket/${pkg.id}`} className="group">
+                                        <Link key={pkg.id} to={`/${pkg.type}/${pkg.slug?.id || generateSlug(pkg.title?.id || pkg.title || '')}`} className="group">
                                                           <article className="h-full bg-white rounded-[28px] overflow-hidden border border-gray-100 shadow-[0_18px_45px_-32px_rgba(15,23,42,0.45)] hover:shadow-[0_26px_60px_-32px_rgba(16,185,129,0.32)] transition-all duration-300 hover:-translate-y-1">
                                                                               <div className="relative h-52 overflow-hidden">
                                                                                                     <img src={pkg.images?.[0] || 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&q=80'} alt={title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />

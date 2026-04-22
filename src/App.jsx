@@ -91,6 +91,8 @@ export default function App() {
                 <Route path="/" element={<Home />} />
                 <Route path="/open-trip" element={<OpenTrip />} />
                 <Route path="/private-trip" element={<PrivateTrip />} />
+                <Route path="/open-trip/:slug" element={<PackageDetail />} />
+                <Route path="/private-trip/:slug" element={<PackageDetail />} />
                 <Route path="/paket/:id" element={<PackageDetail />} />
                 <Route path="/booking/:id" element={<Booking />} />
                 <Route path="/payment/:bookingId" element={<Payment />} />

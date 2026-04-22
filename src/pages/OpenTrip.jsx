@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { getPackages } from '../lib/database'
+import { generateSlug } from '../utils/slug'
 import { FaSearch, FaMapMarkerAlt, FaClock, FaUsers, FaStar, FaFilter } from 'react-icons/fa'
 import Seo from '../components/Seo'
 import { useLanguage } from '../contexts/LanguageContext'
@@ -149,7 +150,7 @@ const OpenTrip = () => {
                                           const location = localize(pkg.location)
                                           const duration = localize(pkg.duration)
                                           return (
-                                          <Link key={pkg.id} to={`/paket/${pkg.id}`} className="group">
+                                          <Link key={pkg.id} to={`/open-trip/${pkg.slug?.id || generateSlug(pkg.title?.id || pkg.title || '')}`} className="group">
                                                             <div className="bg-white rounded-[28px] overflow-hidden border border-gray-100 shadow-[0_18px_50px_-30px_rgba(15,23,42,0.35)] hover:shadow-[0_24px_60px_-28px_rgba(16,185,129,0.28)] transition-all duration-300 hover:-translate-y-1">
                                                               {/* Image */}
                                                                                 <div className="relative h-52 overflow-hidden">

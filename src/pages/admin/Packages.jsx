@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getPackages, addPackage, updatePackage, deletePackage } from '../../lib/database';
+import { generateSlug } from '../../utils/slug';
 import { uploadMultiple } from '../../utils/cloudinary';
 import { Plus, Edit2, Trash2, X, Save, Eye, EyeOff, Search, Upload } from 'lucide-react';
 import { toast } from 'react-toastify';
@@ -216,8 +217,11 @@ export default function AdminPackages() {
                           images = [...images, ...uploads];
                 }
                 setSaveStatus('Menyimpan data paket ke database...');
+                const slugId = generateSlug(form.titleId.trim())
+                const slugEn = generateSlug(form.titleEn.trim() || form.titleId.trim())
                 const data = {
                           type: form.type,
+                          slug: { id: slugId, en: slugEn },
                           title: {
                             id: form.titleId.trim(),
                             en: form.titleEn.trim(),
