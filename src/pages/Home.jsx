@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
-import { getPackages, getApprovedTestimonials } from '../lib/database';
+import { getPackages, getApprovedTestimonials, getBlogPosts } from '../lib/database';
 import { generateSlug } from '../utils/slug';
-import { MapPin, Users, Star, ChevronRight, Phone, CheckCircle, ArrowRight, Calendar } from 'lucide-react';
+import { MapPin, Users, Star, ChevronRight, Phone, CheckCircle, ArrowRight, Calendar, ChevronLeft } from 'lucide-react';
 import Seo from '../components/Seo';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useSettings } from '../contexts/SettingsContext';
@@ -12,7 +12,10 @@ export default function Home() {
     const [openPackages, setOpenPackages] = useState([]);
     const [privatePackages, setPrivatePackages] = useState([]);
     const [testimonials, setTestimonials] = useState([]);
-    const [stats, setStats] = useState({ trips: 500, customers: 3000, destinations: 50, rating: 4.9 });
+    const [blogs, setBlogs] = useState([]);
+    const [slideIdx, setSlideIdx] = useState(0);
+    const [visibleCount, setVisibleCount] = useState(4);
+    const timerRef = useRef(null);
     const { t, language, localize } = useLanguage();
     const settings = useSettings();
 
@@ -21,22 +24,68 @@ export default function Home() {
         window.scrollTo(0, 0);
   }, []);
 
+  // Track visible count for responsive carousel
+  useEffect(() => {
+        const update = () => {
+                  const w = window.innerWidth;
+                  setVisibleCount(w >= 1024 ? 4 : w >= 640 ? 2 : 1);
+        };
+        update();
+        window.addEventListener('resize', update);
+        return () => window.removeEventListener('resize', update);
+  }, []);
+
   const fetchData = async () => {
         try {
-                const [openPkgs, privatePkgs, testimonialsList] = await Promise.all([
+                const [openPkgs, privatePkgs, testimonialsList, blogList] = await Promise.all([
                   getPackages('open-trip'),
                   getPackages('private-trip'),
-                  getApprovedTestimonials(6),
+                  getApprovedTestimonials(10),
+                  getBlogPosts(),
                 ]);
                 setOpenPackages(openPkgs.slice(0, 6));
                 setPrivatePackages(privatePkgs.slice(0, 3));
                 setTestimonials(testimonialsList);
+                setBlogs(blogList.filter(b => b.published).slice(0, 3));
         } catch (e) {
                 console.error(e);
         }
   };
 
   const formatPrice = (price) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(price);
+
+  const formatDate = (ts) => {
+        if (!ts) return '';
+        const d = new Date(ts);
+        return d.toLocaleDateString(language === 'en' ? 'en-US' : 'id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+  };
+
+  // Carousel logic
+  const maxSlideIdx = Math.max(0, testimonials.length - visibleCount);
+
+  const startTimer = useCallback(() => {
+        clearInterval(timerRef.current);
+        if (testimonials.length > visibleCount) {
+                  timerRef.current = setInterval(() => {
+                            setSlideIdx(prev => (prev >= maxSlideIdx ? 0 : prev + 1));
+                  }, 4000);
+        }
+  }, [testimonials.length, visibleCount, maxSlideIdx]);
+
+  useEffect(() => {
+        startTimer();
+        return () => clearInterval(timerRef.current);
+  }, [startTimer]);
+
+  const goToSlide = (idx) => {
+        setSlideIdx(Math.min(idx, maxSlideIdx));
+        startTimer();
+  };
+
+  const prevSlide = () => goToSlide(slideIdx <= 0 ? maxSlideIdx : slideIdx - 1);
+  const nextSlide = () => goToSlide(slideIdx >= maxSlideIdx ? 0 : slideIdx + 1);
+
+  const cardWidth = 100 / visibleCount;
 
   const whyUs = t('home.whyUsItems');
   const homepageWhatsappMessage = encodeURIComponent(t('home.whatsappTemplate'));
@@ -58,14 +107,14 @@ export default function Home() {
                     "address": { "@type": "PostalAddress", "addressCountry": "ID" }
                 })}</script>
               </Helmet>
-        
+
           {/* Hero Section */}
               <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
                       <div className="absolute inset-0 bg-gradient-to-br from-emerald-900 via-teal-800 to-emerald-700">
                                 <div className="absolute inset-0 opacity-20" style={{backgroundImage: 'url("https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&q=80")', backgroundSize: 'cover', backgroundPosition: 'center'}} />
                       </div>
                       <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-              
+
                       <div className="relative z-10 w-full max-w-5xl mx-auto px-4 pt-24 pb-16 text-center sm:pt-20 sm:pb-10">
                                 <div className="inline-flex max-w-full items-center gap-2 rounded-full border border-white/30 bg-white/20 px-3 py-2 text-xs text-white backdrop-blur-sm sm:px-4 sm:text-sm mb-5 sm:mb-6">
                                             <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
@@ -89,7 +138,7 @@ export default function Home() {
                                             </Link>
                                 </div>
                       </div>
-              
+
                 {/* Scroll indicator */}
                       <div className="absolute bottom-8 left-1/2 hidden -translate-x-1/2 animate-bounce text-white/60 md:block">
                                 <div className="w-6 h-10 border-2 border-white/40 rounded-full flex justify-center pt-2">
@@ -97,7 +146,7 @@ export default function Home() {
                                 </div>
                       </div>
               </section>
-        
+
           {/* Stats */}
               <section className="bg-white py-10 shadow-lg relative z-10">
                       <div className="max-w-5xl mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-6">
@@ -115,7 +164,7 @@ export default function Home() {
                                 ))}
                       </div>
               </section>
-        
+
           {/* Open Trip Section */}
               <section className="py-20 bg-gray-50">
                       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -129,7 +178,7 @@ export default function Home() {
                                                           {t('common.viewAll')} <ChevronRight className="w-5 h-5" />
                                             </Link>
                                 </div>
-                      
+
                         {openPackages.length === 0 ? (
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {[...Array(3)].map((_, i) => (
@@ -201,7 +250,7 @@ export default function Home() {
                                       )})}
                       </div>
                                 )}
-                      
+
                                 <div className="text-center mt-8 md:hidden">
                                             <Link to="/open-trip" className="inline-flex items-center gap-2 text-emerald-600 font-semibold border border-emerald-600 px-6 py-3 rounded-xl hover:bg-emerald-50">
                                                           {t('home.viewAllOpenTrips')} <ArrowRight className="w-4 h-4" />
@@ -209,7 +258,7 @@ export default function Home() {
                                 </div>
                       </div>
               </section>
-        
+
           {/* Private Trip CTA */}
               <section className="py-20 bg-gradient-to-r from-purple-700 to-violet-800 relative overflow-hidden">
                       <div className="absolute inset-0 opacity-10" style={{backgroundImage: 'url("https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=1920&q=80")', backgroundSize: 'cover'}} />
@@ -237,7 +286,7 @@ export default function Home() {
                                               {privatePackages.slice(0, 4).map((pkg, i) => {
                           const title = localize(pkg.title);
                           return (
-                          <Link key={pkg.id} to={`/paket/${pkg.id}`} className={`relative rounded-2xl overflow-hidden group ${i === 0 ? 'row-span-2' : ''}`}>
+                          <Link key={pkg.id} to={`/${pkg.type}/${pkg.slug?.id || generateSlug(pkg.title?.id || pkg.title || '')}`} className={`relative rounded-2xl overflow-hidden group ${i === 0 ? 'row-span-2' : ''}`}>
                                             <div className={`relative ${i === 0 ? 'h-72' : 'h-32'} overflow-hidden`}>
                                                                 <img src={pkg.images?.[0] || `https://images.unsplash.com/photo-152${i}000000000-abc?w=400&q=80`} alt={title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                                                                 <div className="absolute inset-0 bg-black/30 group-hover:bg-black/10 transition-colors" />
@@ -252,7 +301,7 @@ export default function Home() {
                                 </div>
                       </div>
               </section>
-        
+
           {/* Why Us */}
               <section className="py-20 bg-white">
                       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -273,40 +322,154 @@ export default function Home() {
                                 </div>
                       </div>
               </section>
-        
-          {/* Testimonials */}
+
+          {/* Testimonials Carousel */}
           {testimonials.length > 0 && (
-                  <section className="py-20 bg-gray-50">
+                  <section className="py-20 bg-gray-50 overflow-hidden">
                             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                                         <div className="text-center mb-14">
                                                       <span className="text-emerald-600 font-semibold text-sm uppercase tracking-wider">{t('home.testimonialsEyebrow')}</span>
                                                       <h2 className="text-4xl font-bold text-gray-900 mt-2">{t('home.testimonialsTitle')}</h2>
                                         </div>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                          {testimonials.map(testimonial => (
-                                    <div key={testimonial.id} className="bg-white p-6 rounded-2xl shadow hover:shadow-lg transition-shadow">
-                                                      <div className="flex gap-1 mb-3">
-                                                        {[...Array(5)].map((_, i) => (
-                                                            <Star key={i} className={`w-5 h-5 ${i < (testimonial.rating || 5) ? 'text-yellow-400 fill-yellow-400' : 'text-gray-200 fill-gray-200'}`} />
-                                                          ))}
+
+                                        {/* Track */}
+                                        <div className="relative"
+                                             onMouseEnter={() => clearInterval(timerRef.current)}
+                                             onMouseLeave={startTimer}>
+                                          {/* Prev button */}
+                                          <button onClick={prevSlide}
+                                                    className="absolute -left-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white shadow-lg rounded-full flex items-center justify-center text-gray-600 hover:text-emerald-600 hover:shadow-emerald-100 transition-all hidden sm:flex">
+                                            <ChevronLeft className="w-5 h-5" />
+                                          </button>
+                                          {/* Next button */}
+                                          <button onClick={nextSlide}
+                                                    className="absolute -right-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white shadow-lg rounded-full flex items-center justify-center text-gray-600 hover:text-emerald-600 hover:shadow-emerald-100 transition-all hidden sm:flex">
+                                            <ChevronRight className="w-5 h-5" />
+                                          </button>
+
+                                          <div className="overflow-hidden">
+                                            <div
+                                              className="flex transition-transform duration-500 ease-in-out"
+                                              style={{ transform: `translateX(-${slideIdx * cardWidth}%)` }}
+                                            >
+                                              {testimonials.map(testimonial => (
+                                                <div
+                                                  key={testimonial.id}
+                                                  style={{ flex: `0 0 ${cardWidth}%` }}
+                                                  className="px-3"
+                                                >
+                                                  <div className="bg-white p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow h-full flex flex-col">
+                                                    <div className="flex gap-1 mb-3">
+                                                      {[...Array(5)].map((_, i) => (
+                                                          <Star key={i} className={`w-4 h-4 ${i < (testimonial.rating || 5) ? 'text-yellow-400 fill-yellow-400' : 'text-gray-200 fill-gray-200'}`} />
+                                                        ))}
+                                                    </div>
+                                                    <p className="text-gray-600 italic text-sm leading-relaxed line-clamp-4 flex-1">"{testimonial.comment}"</p>
+                                                    <div className="flex items-center gap-3 mt-4 pt-4 border-t border-gray-100">
+                                                                        <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-700 font-bold text-sm shrink-0">
+                                                                          {testimonial.name?.[0]?.toUpperCase() || 'A'}
+                                                                        </div>
+                                                                        <div className="min-w-0">
+                                                                                              <p className="font-semibold text-gray-900 text-sm truncate">{testimonial.name || t('home.anonymous')}</p>
+                                                                                              <p className="text-xs text-gray-500 truncate">{testimonial.packageName || t('home.traveler')}</p>
+                                                                        </div>
+                                                    </div>
+                                                  </div>
+                                                </div>
+                                              ))}
+                                            </div>
+                                          </div>
+                                        </div>
+
+                                        {/* Dots */}
+                                        {testimonials.length > visibleCount && (
+                                          <div className="flex justify-center gap-2 mt-8">
+                                            {Array.from({ length: maxSlideIdx + 1 }).map((_, i) => (
+                                              <button
+                                                key={i}
+                                                onClick={() => goToSlide(i)}
+                                                className={`h-2 rounded-full transition-all duration-300 ${i === slideIdx ? 'bg-emerald-500 w-6' : 'bg-gray-300 w-2 hover:bg-gray-400'}`}
+                                              />
+                                            ))}
+                                          </div>
+                                        )}
+                            </div>
+                  </section>
+              )}
+
+          {/* Blog Section */}
+          {blogs.length > 0 && (
+                  <section className="py-20 bg-white">
+                            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                                        <div className="flex items-end justify-between mb-10">
+                                                      <div>
+                                                                    <span className="text-emerald-600 font-semibold text-sm uppercase tracking-wider">
+                                                                      {language === 'en' ? 'Tips & Inspiration' : 'Tips & Inspirasi'}
+                                                                    </span>
+                                                                    <h2 className="text-4xl font-bold text-gray-900 mt-1">
+                                                                      {language === 'en' ? 'Travel Articles' : 'Artikel Wisata'}
+                                                                    </h2>
+                                                                    <p className="text-gray-500 mt-2">
+                                                                      {language === 'en' ? 'Tips, inspiration, and guides for your trip' : 'Tips, inspirasi, dan panduan untuk perjalananmu'}
+                                                                    </p>
                                                       </div>
-                                                      <p className="text-gray-600 italic mb-4 line-clamp-4">"{testimonial.comment}"</p>
-                                                      <div className="flex items-center gap-3">
-                                                                          <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-700 font-bold">
-                                                                            {testimonial.name?.[0] || 'A'}
-                                                                          </div>
-                                                                          <div>
-                                                                                                <p className="font-semibold text-gray-900">{testimonial.name || t('home.anonymous')}</p>
-                                                                                                <p className="text-sm text-gray-500">{testimonial.packageName || t('home.traveler')}</p>
-                                                                          </div>
-                                                      </div>
+                                                      <Link to="/blog" className="hidden md:flex items-center gap-2 text-emerald-600 hover:text-emerald-700 font-semibold">
+                                                                    {t('common.viewAll')} <ChevronRight className="w-5 h-5" />
+                                                      </Link>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                          {blogs.map((blog, i) => {
+                            const title = localize(blog.title) || blog.title?.id || '';
+                            const excerpt = localize(blog.excerpt) || blog.excerpt?.id || '';
+                            return (
+                              <Link key={blog.id} to={`/blog/${blog.slug}`} className="group flex flex-col">
+                                <article className="flex flex-col h-full bg-white rounded-[28px] overflow-hidden border border-gray-100 shadow-[0_18px_45px_-32px_rgba(15,23,42,0.35)] hover:shadow-[0_26px_60px_-32px_rgba(16,185,129,0.28)] transition-all duration-300 hover:-translate-y-1">
+                                  {/* Image */}
+                                  <div className="relative aspect-[16/9] overflow-hidden">
+                                    <img
+                                      src={blog.coverImage || 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=600&q=80'}
+                                      alt={title}
+                                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                    />
+                                    {i === 0 && (
+                                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+                                    )}
+                                    {blog.category && (
+                                      <span className="absolute top-4 left-4 bg-emerald-500 text-white text-[11px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-full">
+                                        {blog.category}
+                                      </span>
+                                    )}
+                                  </div>
+                                  {/* Content */}
+                                  <div className="flex flex-col flex-1 p-5">
+                                    <p className="text-xs text-gray-400 mb-2">{formatDate(blog.createdAt)}</p>
+                                    <h3 className="font-bold text-gray-900 text-base leading-snug mb-2 line-clamp-2 group-hover:text-emerald-600 transition-colors flex-1">
+                                      {title}
+                                    </h3>
+                                    <p className="text-sm text-gray-500 leading-relaxed line-clamp-2 mb-4">
+                                      {excerpt}
+                                    </p>
+                                    <div className="flex items-center gap-1 text-emerald-600 text-sm font-semibold mt-auto">
+                                      <span>{language === 'en' ? 'Read More' : 'Baca Selengkapnya'}</span>
+                                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                                     </div>
-                                  ))}
+                                  </div>
+                                </article>
+                              </Link>
+                            );
+                          })}
+                                        </div>
+
+                                        <div className="text-center mt-8 md:hidden">
+                                                      <Link to="/blog" className="inline-flex items-center gap-2 text-emerald-600 font-semibold border border-emerald-600 px-6 py-3 rounded-xl hover:bg-emerald-50">
+                                                                    {language === 'en' ? 'View All Articles' : 'Lihat Semua Artikel'} <ArrowRight className="w-4 h-4" />
+                                                      </Link>
                                         </div>
                             </div>
                   </section>
               )}
-        
+
           {/* CTA Banner */}
               <section className="py-20 bg-gradient-to-r from-emerald-600 to-teal-700">
                       <div className="max-w-4xl mx-auto px-4 text-center">
