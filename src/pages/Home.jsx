@@ -28,7 +28,7 @@ export default function Home() {
   useEffect(() => {
         const update = () => {
                   const w = window.innerWidth;
-                  setVisibleCount(w >= 1024 ? 4 : w >= 640 ? 2 : 1);
+                  setVisibleCount(w >= 1024 ? 3 : w >= 640 ? 2 : 1);
         };
         update();
         window.addEventListener('resize', update);
@@ -323,11 +323,12 @@ export default function Home() {
 
           {/* Testimonials Carousel */}
           {testimonials.length > 0 && (
-            <section className="py-24 relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #064e3b 0%, #0f766e 45%, #065f46 100%)' }}>
-              {/* Decorative blobs */}
-              <div className="absolute -top-24 -right-24 w-96 h-96 bg-white/5 rounded-full" />
-              <div className="absolute -bottom-16 -left-16 w-72 h-72 bg-emerald-400/10 rounded-full" />
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-teal-500/5 rounded-full" />
+            <section className="py-24 relative overflow-hidden">
+              {/* Background photo + overlay */}
+              <div className="absolute inset-0">
+                <div className="absolute inset-0 opacity-40" style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&q=80")', backgroundSize: 'cover', backgroundPosition: 'center' }} />
+                <div className="absolute inset-0 bg-gradient-to-b from-emerald-950/80 via-emerald-900/85 to-emerald-950/90" />
+              </div>
 
               <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Heading */}
