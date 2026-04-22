@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { getPackages, getApprovedTestimonials, getBlogPosts } from '../lib/database';
 import { generateSlug } from '../utils/slug';
-import { MapPin, Users, Star, ChevronRight, Phone, CheckCircle, ArrowRight, Calendar, ChevronLeft } from 'lucide-react';
+import { MapPin, Users, Star, ChevronRight, Phone, CheckCircle, ArrowRight, Calendar } from 'lucide-react';
 import Seo from '../components/Seo';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useSettings } from '../contexts/SettingsContext';
@@ -82,8 +82,6 @@ export default function Home() {
         startTimer();
   };
 
-  const prevSlide = () => goToSlide(slideIdx <= 0 ? maxSlideIdx : slideIdx - 1);
-  const nextSlide = () => goToSlide(slideIdx >= maxSlideIdx ? 0 : slideIdx + 1);
 
   const cardWidth = 100 / visibleCount;
 
@@ -325,77 +323,90 @@ export default function Home() {
 
           {/* Testimonials Carousel */}
           {testimonials.length > 0 && (
-                  <section className="py-20 bg-gray-50 overflow-hidden">
-                            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                                        <div className="text-center mb-14">
-                                                      <span className="text-emerald-600 font-semibold text-sm uppercase tracking-wider">{t('home.testimonialsEyebrow')}</span>
-                                                      <h2 className="text-4xl font-bold text-gray-900 mt-2">{t('home.testimonialsTitle')}</h2>
-                                        </div>
+            <section className="py-24 relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #064e3b 0%, #0f766e 45%, #065f46 100%)' }}>
+              {/* Decorative blobs */}
+              <div className="absolute -top-24 -right-24 w-96 h-96 bg-white/5 rounded-full" />
+              <div className="absolute -bottom-16 -left-16 w-72 h-72 bg-emerald-400/10 rounded-full" />
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-teal-500/5 rounded-full" />
 
-                                        {/* Track */}
-                                        <div className="relative"
-                                             onMouseEnter={() => clearInterval(timerRef.current)}
-                                             onMouseLeave={startTimer}>
-                                          {/* Prev button */}
-                                          <button onClick={prevSlide}
-                                                    className="absolute -left-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white shadow-lg rounded-full flex items-center justify-center text-gray-600 hover:text-emerald-600 hover:shadow-emerald-100 transition-all hidden sm:flex">
-                                            <ChevronLeft className="w-5 h-5" />
-                                          </button>
-                                          {/* Next button */}
-                                          <button onClick={nextSlide}
-                                                    className="absolute -right-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white shadow-lg rounded-full flex items-center justify-center text-gray-600 hover:text-emerald-600 hover:shadow-emerald-100 transition-all hidden sm:flex">
-                                            <ChevronRight className="w-5 h-5" />
-                                          </button>
+              <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                {/* Heading */}
+                <div className="text-center mb-14">
+                  <span className="inline-block text-emerald-300 font-semibold text-sm uppercase tracking-[0.2em] mb-3">
+                    {t('home.testimonialsEyebrow')}
+                  </span>
+                  <h2 className="text-4xl font-bold text-white">{t('home.testimonialsTitle')}</h2>
+                  <p className="text-emerald-200/70 mt-3 text-base">
+                    {language === 'en' ? 'Real stories from our happy travelers' : 'Cerita nyata dari wisatawan yang sudah bersama kami'}
+                  </p>
+                </div>
 
-                                          <div className="overflow-hidden">
-                                            <div
-                                              className="flex transition-transform duration-500 ease-in-out"
-                                              style={{ transform: `translateX(-${slideIdx * cardWidth}%)` }}
-                                            >
-                                              {testimonials.map(testimonial => (
-                                                <div
-                                                  key={testimonial.id}
-                                                  style={{ flex: `0 0 ${cardWidth}%` }}
-                                                  className="px-3"
-                                                >
-                                                  <div className="bg-white p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow h-full flex flex-col">
-                                                    <div className="flex gap-1 mb-3">
-                                                      {[...Array(5)].map((_, i) => (
-                                                          <Star key={i} className={`w-4 h-4 ${i < (testimonial.rating || 5) ? 'text-yellow-400 fill-yellow-400' : 'text-gray-200 fill-gray-200'}`} />
-                                                        ))}
-                                                    </div>
-                                                    <p className="text-gray-600 italic text-sm leading-relaxed line-clamp-4 flex-1">"{testimonial.comment}"</p>
-                                                    <div className="flex items-center gap-3 mt-4 pt-4 border-t border-gray-100">
-                                                                        <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-700 font-bold text-sm shrink-0">
-                                                                          {testimonial.name?.[0]?.toUpperCase() || 'A'}
-                                                                        </div>
-                                                                        <div className="min-w-0">
-                                                                                              <p className="font-semibold text-gray-900 text-sm truncate">{testimonial.name || t('home.anonymous')}</p>
-                                                                                              <p className="text-xs text-gray-500 truncate">{testimonial.packageName || t('home.traveler')}</p>
-                                                                        </div>
-                                                    </div>
-                                                  </div>
-                                                </div>
-                                              ))}
-                                            </div>
-                                          </div>
-                                        </div>
+                {/* Carousel track */}
+                <div
+                  onMouseEnter={() => clearInterval(timerRef.current)}
+                  onMouseLeave={startTimer}
+                >
+                  <div className="overflow-hidden">
+                    <div
+                      className="flex transition-transform duration-600 ease-in-out"
+                      style={{ transform: `translateX(-${slideIdx * cardWidth}%)` }}
+                    >
+                      {testimonials.map(testimonial => (
+                        <div
+                          key={testimonial.id}
+                          style={{ flex: `0 0 ${cardWidth}%` }}
+                          className="px-3"
+                        >
+                          <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-3xl p-6 h-full flex flex-col hover:bg-white/15 transition-colors duration-300">
+                            {/* Big quote mark */}
+                            <div className="text-6xl leading-none font-serif text-emerald-300/60 mb-1 select-none">"</div>
 
-                                        {/* Dots */}
-                                        {testimonials.length > visibleCount && (
-                                          <div className="flex justify-center gap-2 mt-8">
-                                            {Array.from({ length: maxSlideIdx + 1 }).map((_, i) => (
-                                              <button
-                                                key={i}
-                                                onClick={() => goToSlide(i)}
-                                                className={`h-2 rounded-full transition-all duration-300 ${i === slideIdx ? 'bg-emerald-500 w-6' : 'bg-gray-300 w-2 hover:bg-gray-400'}`}
-                                              />
-                                            ))}
-                                          </div>
-                                        )}
+                            {/* Comment */}
+                            <p className="text-white/90 text-sm leading-relaxed line-clamp-4 flex-1 mb-5">
+                              {testimonial.comment}
+                            </p>
+
+                            {/* Stars */}
+                            <div className="flex gap-0.5 mb-5">
+                              {[...Array(5)].map((_, i) => (
+                                <Star key={i} className={`w-4 h-4 ${i < (testimonial.rating || 5) ? 'text-amber-400 fill-amber-400' : 'text-white/20 fill-white/20'}`} />
+                              ))}
                             </div>
-                  </section>
-              )}
+
+                            {/* Author */}
+                            <div className="flex items-center gap-3 pt-4 border-t border-white/15">
+                              <div className="w-11 h-11 rounded-full bg-gradient-to-br from-emerald-300 to-teal-500 flex items-center justify-center text-white font-bold text-base shrink-0 shadow-lg">
+                                {testimonial.name?.[0]?.toUpperCase() || 'A'}
+                              </div>
+                              <div className="min-w-0">
+                                <p className="font-bold text-white text-sm truncate">{testimonial.name || t('home.anonymous')}</p>
+                                <p className="text-emerald-300 text-xs truncate flex items-center gap-1">
+                                  <span>✈</span> {testimonial.packageName || t('home.traveler')}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Dots */}
+                {testimonials.length > visibleCount && (
+                  <div className="flex justify-center gap-2 mt-10">
+                    {Array.from({ length: maxSlideIdx + 1 }).map((_, i) => (
+                      <button
+                        key={i}
+                        onClick={() => goToSlide(i)}
+                        className={`h-2 rounded-full transition-all duration-300 ${i === slideIdx ? 'bg-white w-7' : 'bg-white/30 w-2 hover:bg-white/60'}`}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            </section>
+          )}
 
           {/* Blog Section */}
           {blogs.length > 0 && (
