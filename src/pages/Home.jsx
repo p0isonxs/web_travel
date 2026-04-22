@@ -257,47 +257,99 @@ export default function Home() {
                       </div>
               </section>
 
-          {/* Private Trip CTA */}
-              <section className="py-20 bg-gradient-to-r from-purple-700 to-violet-800 relative overflow-hidden">
-                      <div className="absolute inset-0 opacity-10" style={{backgroundImage: 'url("https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=1920&q=80")', backgroundSize: 'cover'}} />
-                      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                                <div className="grid md:grid-cols-2 gap-12 items-center">
-                                            <div>
-                                                          <span className="text-purple-200 font-semibold text-sm uppercase tracking-wider">{t('home.privateEyebrow')}</span>
-                                                          <h2 className="text-4xl font-bold text-white mt-2 mb-4">{t('home.privateTitle')}</h2>
-                                                          <p className="text-purple-100 text-lg mb-8">
-                                                                          {t('home.privateDescription')}
-                                                          </p>
-                                                          <ul className="space-y-3 mb-8">
-                                                            {[t('home.privateBullet1'), t('home.privateBullet2'), t('home.privateBullet3'), t('home.privateBullet4')].map((item, i) => (
-                            <li key={i} className="flex items-center gap-3 text-white">
-                                                <CheckCircle className="w-5 h-5 text-purple-300 shrink-0" />
-                                                <span>{item}</span>
-                            </li>
-                          ))}
-                                                          </ul>
-                                                          <Link to="/private-trip" className="inline-flex items-center gap-2 bg-white text-purple-700 font-bold px-8 py-4 rounded-xl hover:bg-purple-50 transition-all hover:scale-105 shadow-lg">
-                                                                          {t('home.viewPrivatePackages')} <ArrowRight className="w-5 h-5" />
-                                                          </Link>
-                                            </div>
-                                            <div className="grid grid-cols-2 gap-4">
-                                              {privatePackages.slice(0, 4).map((pkg, i) => {
-                          const title = localize(pkg.title);
-                          return (
-                          <Link key={pkg.id} to={`/${pkg.type}/${pkg.slug?.id || generateSlug(pkg.title?.id || pkg.title || '')}`} className={`relative rounded-2xl overflow-hidden group ${i === 0 ? 'row-span-2' : ''}`}>
-                                            <div className={`relative ${i === 0 ? 'h-72' : 'h-32'} overflow-hidden`}>
-                                                                <img src={pkg.images?.[0] || `https://images.unsplash.com/photo-152${i}000000000-abc?w=400&q=80`} alt={title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                                                                <div className="absolute inset-0 bg-black/30 group-hover:bg-black/10 transition-colors" />
-                                                                <p className="absolute bottom-3 left-3 text-white font-semibold text-sm">{title}</p>
-                                            </div>
-                          </Link>
-                        )})}
-                                              {privatePackages.length === 0 && [...Array(3)].map((_, i) => (
-                          <div key={i} className={`bg-purple-600/30 rounded-2xl ${i === 0 ? 'row-span-2 h-72' : 'h-32'} animate-pulse`} />
+          {/* Private Trip */}
+              <section className="relative overflow-hidden py-24">
+                {/* Full photo background */}
+                <div className="absolute inset-0">
+                  <img src="https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=1920&q=80" alt="" className="w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-violet-950/95 via-purple-900/90 to-purple-800/75" />
+                </div>
+
+                <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                  <div className="grid lg:grid-cols-2 gap-16 items-center">
+
+                    {/* Left — text */}
+                    <div>
+                      <span className="inline-block text-purple-300 font-semibold text-sm uppercase tracking-[0.2em] mb-4">{t('home.privateEyebrow')}</span>
+                      <h2 className="text-4xl sm:text-5xl font-bold text-white leading-tight mb-5">{t('home.privateTitle')}</h2>
+                      <p className="text-purple-100/80 text-lg leading-relaxed mb-8">{t('home.privateDescription')}</p>
+
+                      {/* Benefits — glass cards 2×2 */}
+                      <div className="grid grid-cols-2 gap-3 mb-8">
+                        {[t('home.privateBullet1'), t('home.privateBullet2'), t('home.privateBullet3'), t('home.privateBullet4')].map((item, i) => (
+                          <div key={i} className="flex items-start gap-2.5 bg-white/10 backdrop-blur-sm border border-white/15 rounded-2xl px-4 py-3">
+                            <CheckCircle className="w-4 h-4 text-purple-300 shrink-0 mt-0.5" />
+                            <span className="text-white text-sm leading-snug">{item}</span>
+                          </div>
                         ))}
-                                            </div>
-                                </div>
                       </div>
+
+                      {/* Stats row */}
+                      <div className="flex items-center gap-6 mb-8">
+                        {[
+                          { val: '100%', label: language === 'en' ? 'Custom' : 'Custom' },
+                          { val: '500+', label: language === 'en' ? 'Trips' : 'Trip' },
+                          { val: '24/7', label: language === 'en' ? 'Support' : 'Support' },
+                        ].map((s, i) => (
+                          <div key={i} className="flex items-center gap-6">
+                            {i > 0 && <div className="w-px h-8 bg-white/20" />}
+                            <div>
+                              <p className="text-2xl font-bold text-white leading-none">{s.val}</p>
+                              <p className="text-purple-300 text-xs mt-1">{s.label}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      <Link to="/private-trip" className="inline-flex items-center gap-2 bg-white text-purple-700 font-bold px-8 py-4 rounded-2xl hover:bg-purple-50 transition-all hover:scale-105 shadow-xl shadow-purple-950/40">
+                        {t('home.viewPrivatePackages')} <ArrowRight className="w-5 h-5" />
+                      </Link>
+                    </div>
+
+                    {/* Right — package photo grid */}
+                    <div className="hidden lg:grid grid-cols-2 gap-4 h-[440px]">
+                      {/* Big card */}
+                      {privatePackages[0] && (() => {
+                        const pkg = privatePackages[0];
+                        const title = localize(pkg.title);
+                        return (
+                          <Link to={`/${pkg.type}/${pkg.slug?.id || generateSlug(pkg.title?.id || pkg.title || '')}`}
+                                className="relative rounded-3xl overflow-hidden row-span-2 group">
+                            <img src={pkg.images?.[0] || 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&q=80'}
+                                 alt={title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+                            <div className="absolute bottom-5 left-5 right-5">
+                              <span className="inline-block bg-purple-500/80 backdrop-blur-sm text-white text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full mb-2">Private Trip</span>
+                              <p className="text-white font-bold text-base leading-snug">{title}</p>
+                            </div>
+                          </Link>
+                        );
+                      })()}
+                      {/* Two small cards */}
+                      {privatePackages.slice(1, 3).map((pkg) => {
+                        const title = localize(pkg.title);
+                        return (
+                          <Link key={pkg.id} to={`/${pkg.type}/${pkg.slug?.id || generateSlug(pkg.title?.id || pkg.title || '')}`}
+                                className="relative rounded-3xl overflow-hidden group">
+                            <img src={pkg.images?.[0] || 'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=400&q=80'}
+                                 alt={title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                            <p className="absolute bottom-4 left-4 right-4 text-white font-semibold text-sm leading-snug">{title}</p>
+                          </Link>
+                        );
+                      })}
+                      {/* Placeholders */}
+                      {privatePackages.length === 0 && (
+                        <>
+                          <div className="row-span-2 rounded-3xl bg-purple-600/30 animate-pulse" />
+                          <div className="rounded-3xl bg-purple-600/30 animate-pulse" />
+                          <div className="rounded-3xl bg-purple-600/30 animate-pulse" />
+                        </>
+                      )}
+                    </div>
+
+                  </div>
+                </div>
               </section>
 
           {/* Why Us */}
