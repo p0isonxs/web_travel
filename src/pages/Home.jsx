@@ -161,9 +161,9 @@ export default function Home() {
                                                                                                                                         Open Trip
                                                                                                                       </span>
                                                                                                     </div>
-                                                            {pkg.discount && (
+                                                            {pkg.originalPrice && pkg.originalPrice > pkg.price && (
                                                                 <div className="absolute top-4 right-4">
-                                                                                        <span className="bg-red-500 text-white text-xs font-bold px-2.5 py-1 rounded-full">-{pkg.discount}%</span>
+                                                                                        <span className="bg-red-500 text-white text-xs font-bold px-2.5 py-1 rounded-full">-{Math.round((1 - pkg.price / pkg.originalPrice) * 100)}%</span>
                                                                 </div>
                                                                               )}
                                                           </div>

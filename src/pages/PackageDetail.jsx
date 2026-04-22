@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useParams, Link, useNavigate } from 'react-router-dom'
+import { useParams, Link, useNavigate, useLocation } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import { getPackageById, getPackageBySlug, getOpenTripSlotUsage } from '../lib/database'
 import { FaMapMarkerAlt, FaClock, FaUsers, FaStar, FaCheck, FaTimes, FaChevronLeft, FaChevronRight, FaWhatsapp, FaCalendar } from 'react-icons/fa'
@@ -66,6 +66,7 @@ function resolveMapSource(pkg, packageLocation, fallbackLocation) {
 const PackageDetail = () => {
     const { id, slug } = useParams()
     const navigate = useNavigate()
+    const location = useLocation()
     const [pkg, setPkg] = useState(null)
     const [loading, setLoading] = useState(true)
     const [activeTab, setActiveTab] = useState('deskripsi')
@@ -81,7 +82,7 @@ const PackageDetail = () => {
                   try {
                             let data = null
                             if (slug) {
-                                    const type = window.location.pathname.startsWith('/open-trip') ? 'open-trip' : 'private-trip'
+                                    const type = location.pathname.startsWith('/open-trip') ? 'open-trip' : 'private-trip'
                                     data = await getPackageBySlug(type, slug)
                             } else {
                                     data = await getPackageById(id)
@@ -108,7 +109,7 @@ const PackageDetail = () => {
                   }
           }
           fetchPackage()
-    }, [id, slug])
+    }, [id, slug, location.pathname])
 
     const formatPrice = (price) => {
           return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(price)

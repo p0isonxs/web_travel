@@ -211,7 +211,6 @@ const PrivateTrip = () => {
                                                                                                                               <div>
                                                                                                                                                         <p className="text-xs text-gray-400">{t('privateTrip.startingFrom')}</p>
                                                                                                                                                         <p className="text-purple-600 font-bold text-lg">{formatPrice(pkg.price)}</p>
-                                                                                                                                                        <p className="text-gray-400 text-xs">{t('privateTrip.negotiablePrice')}</p>
                                                                                                                                 </div>
                                                                                                                               <span className="bg-purple-50 text-purple-600 text-xs font-semibold px-3 py-1.5 rounded-xl hover:bg-purple-600 hover:text-white transition-colors">
                                                                                                                                                         {t('privateTrip.viewDetail')}
