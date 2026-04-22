@@ -178,9 +178,9 @@ export default function Home() {
                                 </div>
 
                         {openPackages.length === 0 ? (
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      <div className="flex gap-5 overflow-x-auto snap-x snap-mandatory pb-4 md:grid md:grid-cols-2 lg:grid-cols-3 md:overflow-visible md:pb-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden -mx-4 px-4 md:mx-0 md:px-0">
                         {[...Array(3)].map((_, i) => (
-                                        <div key={i} className="bg-white rounded-2xl overflow-hidden shadow animate-pulse">
+                                        <div key={i} className="snap-start shrink-0 w-[78vw] sm:w-[55vw] md:w-auto bg-white rounded-2xl overflow-hidden shadow animate-pulse">
                                                           <div className="h-52 bg-gray-200" />
                                                           <div className="p-5 space-y-3">
                                                                               <div className="h-4 bg-gray-200 rounded w-3/4" />
@@ -191,13 +191,13 @@ export default function Home() {
                                       ))}
                       </div>
                     ) : (
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      <div className="flex gap-5 overflow-x-auto snap-x snap-mandatory pb-4 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-6 md:overflow-visible md:pb-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden -mx-4 px-4 md:mx-0 md:px-0">
                         {openPackages.map(pkg => {
                                         const title = localize(pkg.title);
                                         const location = localize(pkg.location);
                                         const duration = localize(pkg.duration);
                                         return (
-                                        <Link key={pkg.id} to={`/${pkg.type}/${pkg.slug?.id || generateSlug(pkg.title?.id || pkg.title || '')}`} className="group">
+                                        <Link key={pkg.id} to={`/${pkg.type}/${pkg.slug?.id || generateSlug(pkg.title?.id || pkg.title || '')}`} className="group snap-start shrink-0 w-[78vw] sm:w-[55vw] md:w-auto">
                                                           <article className="h-full bg-white rounded-[28px] overflow-hidden border border-gray-100 shadow-[0_18px_45px_-32px_rgba(15,23,42,0.45)] hover:shadow-[0_26px_60px_-32px_rgba(16,185,129,0.32)] transition-all duration-300 hover:-translate-y-1">
                                                                               <div className="relative h-52 overflow-hidden">
                                                                                                     <img src={pkg.images?.[0] || 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&q=80'} alt={title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
@@ -430,12 +430,12 @@ export default function Home() {
                                                       </Link>
                                         </div>
 
-                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                        <div className="flex gap-5 overflow-x-auto snap-x snap-mandatory pb-4 md:grid md:grid-cols-3 md:gap-6 md:overflow-visible md:pb-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden -mx-4 px-4 md:mx-0 md:px-0">
                                           {blogs.map((blog, i) => {
                             const title = localize(blog.title) || blog.title?.id || '';
                             const excerpt = localize(blog.excerpt) || blog.excerpt?.id || '';
                             return (
-                              <Link key={blog.id} to={`/blog/${blog.slug}`} className="group flex flex-col">
+                              <Link key={blog.id} to={`/blog/${blog.slug}`} className="group flex flex-col snap-start shrink-0 w-[78vw] sm:w-[55vw] md:w-auto">
                                 <article className="flex flex-col h-full bg-white rounded-[28px] overflow-hidden border border-gray-100 shadow-[0_18px_45px_-32px_rgba(15,23,42,0.35)] hover:shadow-[0_26px_60px_-32px_rgba(16,185,129,0.28)] transition-all duration-300 hover:-translate-y-1">
                                   {/* Image */}
                                   <div className="relative aspect-[16/9] overflow-hidden">
