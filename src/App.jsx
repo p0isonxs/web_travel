@@ -34,6 +34,7 @@ const AdminPayments = lazy(() => import('./pages/admin/Payments'));
 const AdminBlog = lazy(() => import('./pages/admin/Blog'));
 const AdminTestimonials = lazy(() => import('./pages/admin/Testimonials'));
 const AdminSettings = lazy(() => import('./pages/admin/Settings'));
+const AdminContacts = lazy(() => import('./pages/admin/Contacts'));
 
 function RouteLoading() {
   return (
@@ -84,6 +85,7 @@ export default function App() {
                 <Route path="blog" element={<AdminBlog />} />
                 <Route path="testimonials" element={<AdminTestimonials />} />
                 <Route path="settings" element={<AdminSettings />} />
+                <Route path="contacts" element={<AdminContacts />} />
               </Route>
 
               {/* Public Routes - with navbar/footer */}

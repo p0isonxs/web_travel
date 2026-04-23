@@ -375,6 +375,25 @@ export const addContact = async (data) => {
   if (error) throw error
 }
 
+export const getContacts = async () => {
+  const { data, error } = await supabase
+    .from('contacts')
+    .select('*')
+    .order('created_at', { ascending: false })
+  if (error) throw error
+  return (data || []).map(rowToDoc)
+}
+
+export const updateContact = async (id, data) => {
+  const { error } = await supabase.from('contacts').update(docToRow(data)).eq('id', id)
+  if (error) throw error
+}
+
+export const deleteContact = async (id) => {
+  const { error } = await supabase.from('contacts').delete().eq('id', id)
+  if (error) throw error
+}
+
 // ─── DASHBOARD STATS ─────────────────────────────────────────────────────────
 export const getDashboardStats = async () => {
   const [pkgRes, bookRes, verifiedRes, pendingRes] = await Promise.all([

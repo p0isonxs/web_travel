@@ -4,8 +4,10 @@ import { useAuth } from '../../contexts/AuthContext';
 import {
     LayoutDashboard, Package, CalendarCheck, CreditCard,
     FileText, Star, Settings, LogOut, Menu, X,
-    Globe, ChevronRight
+    Globe, ChevronRight, MessageSquare
 } from 'lucide-react';
+import { useEffect } from 'react';
+import { getContacts } from '../../lib/database';
 
 const navItems = [
   { to: '/admin', icon: <LayoutDashboard className="w-5 h-5" />, label: 'Dashboard', exact: true },
@@ -14,12 +16,18 @@ const navItems = [
   { to: '/admin/payments', icon: <CreditCard className="w-5 h-5" />, label: 'Pembayaran' },
   { to: '/admin/blog', icon: <FileText className="w-5 h-5" />, label: 'Blog / Artikel' },
   { to: '/admin/testimonials', icon: <Star className="w-5 h-5" />, label: 'Testimoni' },
+  { to: '/admin/contacts', icon: <MessageSquare className="w-5 h-5" />, label: 'Pesan Masuk', badge: true },
   { to: '/admin/settings', icon: <Settings className="w-5 h-5" />, label: 'Pengaturan' },
-  ];
+];
 
 export default function AdminLayout() {
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [unreadCount, setUnreadCount] = useState(0);
     const { logout, currentUser } = useAuth();
+
+  useEffect(() => {
+    getContacts().then(list => setUnreadCount(list.filter(c => c.status === 'unread').length)).catch(() => {});
+  }, []);
     const location = useLocation();
     const navigate = useNavigate();
 
@@ -64,7 +72,12 @@ export default function AdminLayout() {
                                 >
                       {item.icon}
                                 <span>{item.label}</span>
-                      {isActive(item.to, item.exact) && <ChevronRight className="w-4 h-4 ml-auto" />}
+                      <span className="ml-auto flex items-center gap-1">
+                        {item.badge && unreadCount > 0 && (
+                          <span className="bg-red-500 text-white text-xs font-bold rounded-full px-1.5 py-0.5 leading-none">{unreadCount}</span>
+                        )}
+                        {isActive(item.to, item.exact) && <ChevronRight className="w-4 h-4" />}
+                      </span>
                     </Link>
                   ))}
               </nav>
