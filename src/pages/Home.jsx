@@ -177,84 +177,62 @@ export default function Home() {
                     </div>
                   </div>
 
-                  {/* RIGHT — floating destination cards */}
-                  <div className="hidden lg:flex items-center justify-center relative h-[500px]">
+                  {/* RIGHT — clean destination cards */}
+                  <div className="hidden lg:flex flex-col gap-4 w-full max-w-sm ml-auto">
 
-                    {/* Card 3 — back */}
-                    {openPackages[2] && (() => {
-                      const pkg = openPackages[2];
-                      return (
-                        <Link to={`/${pkg.type}/${pkg.slug?.id || generateSlug(pkg.title?.id || '')}`}
-                          className="absolute right-0 top-16 w-52 rounded-2xl overflow-hidden shadow-2xl rotate-6 hover:rotate-3 transition-transform duration-300 group">
-                          <img src={pkg.images?.[0]} alt={localize(pkg.title)} className="w-full h-36 object-cover group-hover:scale-105 transition-transform duration-500" />
-                          <div className="bg-white/10 backdrop-blur-md border border-white/20 p-3">
-                            <p className="text-white text-xs font-semibold line-clamp-1">{localize(pkg.title)}</p>
-                            <p className="text-emerald-300 text-xs mt-0.5">{formatPrice(pkg.price)}</p>
-                          </div>
-                        </Link>
-                      );
-                    })()}
-
-                    {/* Card 2 — middle */}
-                    {openPackages[1] && (() => {
-                      const pkg = openPackages[1];
-                      return (
-                        <Link to={`/${pkg.type}/${pkg.slug?.id || generateSlug(pkg.title?.id || '')}`}
-                          className="absolute right-20 top-28 w-56 rounded-2xl overflow-hidden shadow-2xl -rotate-2 hover:rotate-0 transition-transform duration-300 z-10 group">
-                          <img src={pkg.images?.[0]} alt={localize(pkg.title)} className="w-full h-40 object-cover group-hover:scale-105 transition-transform duration-500" />
-                          <div className="bg-white/15 backdrop-blur-md border border-white/25 p-3">
-                            <p className="text-white text-xs font-semibold line-clamp-1">{localize(pkg.title)}</p>
-                            <div className="flex items-center justify-between mt-1">
-                              <p className="text-emerald-300 text-xs">{formatPrice(pkg.price)}</p>
-                              <span className="text-yellow-400 text-xs">★ {pkg.rating || '4.9'}</span>
-                            </div>
-                          </div>
-                        </Link>
-                      );
-                    })()}
-
-                    {/* Card 1 — front */}
+                    {/* Main card — large */}
                     {openPackages[0] && (() => {
                       const pkg = openPackages[0];
                       return (
                         <Link to={`/${pkg.type}/${pkg.slug?.id || generateSlug(pkg.title?.id || '')}`}
-                          className="absolute left-0 bottom-12 w-64 rounded-2xl overflow-hidden shadow-2xl rotate-1 hover:-rotate-1 transition-transform duration-300 z-20 group">
-                          <img src={pkg.images?.[0]} alt={localize(pkg.title)} className="w-full h-44 object-cover group-hover:scale-105 transition-transform duration-500" />
-                          <div className="bg-white/15 backdrop-blur-md border border-white/25 p-4">
+                          className="relative rounded-2xl overflow-hidden shadow-2xl group block">
+                          <img src={pkg.images?.[0]} alt={localize(pkg.title)} className="w-full h-56 object-cover group-hover:scale-105 transition-transform duration-500" />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                          <div className="absolute top-3 left-3">
+                            <span className="bg-emerald-500 text-white text-xs font-bold px-3 py-1 rounded-full">Open Trip</span>
+                          </div>
+                          <div className="absolute bottom-0 left-0 right-0 p-4">
                             <div className="flex items-center gap-1.5 mb-1">
                               <MapPin className="w-3 h-3 text-emerald-400" />
-                              <span className="text-white/70 text-xs">{localize(pkg.location) || 'Indonesia'}</span>
+                              <span className="text-white/75 text-xs">{localize(pkg.location) || 'Indonesia'}</span>
                             </div>
-                            <p className="text-white text-sm font-bold line-clamp-1">{localize(pkg.title)}</p>
-                            <div className="flex items-center justify-between mt-2">
-                              <p className="text-emerald-300 text-sm font-semibold">{formatPrice(pkg.price)}</p>
-                              <span className="bg-emerald-500/30 text-emerald-300 text-xs px-2 py-0.5 rounded-full border border-emerald-500/30">Open Trip</span>
+                            <div className="flex items-end justify-between">
+                              <p className="text-white font-bold text-base line-clamp-1">{localize(pkg.title)}</p>
+                              <p className="text-emerald-300 font-semibold text-sm shrink-0 ml-2">{formatPrice(pkg.price)}</p>
                             </div>
                           </div>
                         </Link>
                       );
                     })()}
 
-                    {/* Fallback decorative when no packages */}
-                    {openPackages.length === 0 && (
-                      <div className="w-64 h-80 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 animate-pulse" />
-                    )}
-
-                    {/* Floating badge — popular */}
-                    <div className="absolute top-4 left-8 z-30 bg-white rounded-2xl shadow-xl px-4 py-3 flex items-center gap-3">
-                      <div className="w-8 h-8 bg-emerald-100 rounded-xl flex items-center justify-center">
-                        <Star className="w-4 h-4 text-emerald-600 fill-emerald-500" />
-                      </div>
-                      <div>
-                        <p className="text-gray-900 font-bold text-sm leading-none">4.9 / 5</p>
-                        <p className="text-gray-400 text-xs mt-0.5">{language === 'en' ? 'Traveler rating' : 'Rating wisatawan'}</p>
-                      </div>
+                    {/* Two small cards side by side */}
+                    <div className="grid grid-cols-2 gap-4">
+                      {openPackages.slice(1, 3).map((pkg, i) => (
+                        <Link key={i} to={`/${pkg.type}/${pkg.slug?.id || generateSlug(pkg.title?.id || '')}`}
+                          className="relative rounded-xl overflow-hidden shadow-xl group block">
+                          <img src={pkg.images?.[0]} alt={localize(pkg.title)} className="w-full h-32 object-cover group-hover:scale-105 transition-transform duration-500" />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/65 to-transparent" />
+                          <div className="absolute bottom-0 left-0 right-0 p-3">
+                            <p className="text-white font-semibold text-xs line-clamp-1">{localize(pkg.title)}</p>
+                            <p className="text-emerald-300 text-xs mt-0.5">{formatPrice(pkg.price)}</p>
+                          </div>
+                        </Link>
+                      ))}
                     </div>
 
-                    {/* Floating badge — trips */}
-                    <div className="absolute bottom-4 right-4 z-30 bg-emerald-500 rounded-2xl shadow-xl px-4 py-3">
-                      <p className="text-white font-bold text-sm">500+ Trip</p>
-                      <p className="text-emerald-100 text-xs">{language === 'en' ? 'Completed' : 'Berhasil'}</p>
+                    {/* Floating badge */}
+                    <div className="flex items-center justify-between">
+                      <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-2.5 flex items-center gap-2">
+                        <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                        <div>
+                          <span className="text-white font-bold text-sm">4.9 / 5</span>
+                          <span className="text-white/50 text-xs ml-2">{language === 'en' ? 'Rating' : 'Rating'}</span>
+                        </div>
+                      </div>
+                      <div className="bg-emerald-500/20 backdrop-blur-sm border border-emerald-500/30 rounded-xl px-4 py-2.5">
+                        <span className="text-emerald-300 font-bold text-sm">500+ </span>
+                        <span className="text-white/60 text-xs">{language === 'en' ? 'Trips done' : 'Trip selesai'}</span>
+                      </div>
                     </div>
                   </div>
 
