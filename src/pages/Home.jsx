@@ -167,22 +167,6 @@ export default function Home() {
                       </Link>
                     </div>
 
-                    {/* Mini stats */}
-                    <div className="flex items-center gap-6">
-                      {[
-                        { val: '500+',   label: language === 'en' ? 'Trips' : 'Trip' },
-                        { val: '3.000+', label: language === 'en' ? 'Travelers' : 'Wisatawan' },
-                        { val: '4.9★',   label: language === 'en' ? 'Rating' : 'Rating' },
-                      ].map((s, i) => (
-                        <div key={i} className="flex items-center gap-5">
-                          {i > 0 && <div className="w-px h-8 bg-white/20" />}
-                          <div>
-                            <div className="text-xl font-bold text-white">{s.val}</div>
-                            <div className="text-white/50 text-xs">{s.label}</div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
                   </div>
 
                   {/* RIGHT — auto-slide card */}
