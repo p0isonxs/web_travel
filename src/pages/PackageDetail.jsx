@@ -175,7 +175,9 @@ const PackageDetail = () => {
   
     const images = pkg.images?.length > 0 ? pkg.images : [pkg.image || 'https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?w=800']
         const isOpenTrip = pkg.type === 'open-trip'
-            const accentColor = isOpenTrip ? 'emerald' : 'purple'
+            const accent = isOpenTrip
+              ? { icon: 'text-emerald-500', border: 'border-emerald-500', text: 'text-emerald-600', ring: 'focus:ring-emerald-500', tabActive: 'text-emerald-600 border-b-2 border-emerald-500', bg50: 'bg-emerald-50', bg100: 'bg-emerald-100', bg200: 'bg-emerald-200' }
+              : { icon: 'text-purple-500',  border: 'border-purple-500',  text: 'text-purple-600',  ring: 'focus:ring-purple-500',  tabActive: 'text-purple-600 border-b-2 border-purple-500',  bg50: 'bg-purple-50',  bg100: 'bg-purple-100',  bg200: 'bg-purple-200'  }
             const capacityPerDate = Number(pkg.maxParticipants) || 15
             const selectedRemainingSlots = selectedDate ? Math.max(0, capacityPerDate - (slotUsage[selectedDate] || 0)) : capacityPerDate
             const packageTitle = localize(pkg.title)
@@ -263,7 +265,7 @@ const PackageDetail = () => {
                                           <div className="flex gap-2 p-3 overflow-x-auto">
                                             {images.map((img, i) => (
                                                                   <button key={i} onClick={() => setActiveImage(i)}
-                                                                                            className={`shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-colors ${activeImage === i ? `border-${accentColor}-500` : 'border-transparent'}`}>
+                                                                                            className={`shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-colors ${activeImage === i ? `${accent.border}` : 'border-transparent'}`}>
                                                                                           <img src={img} alt="" className="w-full h-full object-cover" />
                                                                   </button>
                                                                 ))}
@@ -276,16 +278,16 @@ const PackageDetail = () => {
                                                                                         <h1 className="text-2xl font-bold text-gray-800 mb-3">{packageTitle}</h1>
                                                                                         <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500 mb-4">
                                                                                                           <span className="flex items-center gap-1.5">
-                                                                                                                              <FaMapMarkerAlt className={`text-${accentColor}-500`} />
+                                                                                                                              <FaMapMarkerAlt className={`${accent.icon}`} />
                                                                                                             {packageLocation || t('packageDetail.locationFallback')}
                                                                                                             </span>
                                                                                                           <span className="flex items-center gap-1.5">
-                                                                                                                              <FaClock className={`text-${accentColor}-500`} />
+                                                                                                                              <FaClock className={`${accent.icon}`} />
                                                                                                             {packageDuration || t('packageDetail.durationFallback')}
                                                                                                             </span>
                                                                                           {isOpenTrip && (
                                             <span className="flex items-center gap-1.5">
-                                                                  <FaUsers className={`text-${accentColor}-500`} />
+                                                                  <FaUsers className={`${accent.icon}`} />
                                                                   {t('packageDetail.maxParticipants')} {pkg.maxParticipants || 15} {t('packageDetail.participantUnit')}
                                             </span>
                                                                                                           )}
@@ -303,7 +305,7 @@ const PackageDetail = () => {
                                                                                         <div className="flex border-b">
                                                                                           {['deskripsi', 'jadwal', 'fasilitas'].map(tab => (
                                             <button key={tab} onClick={() => setActiveTab(tab)}
-                                                                    className={`flex-1 py-4 text-sm font-medium capitalize transition-colors ${activeTab === tab ? `text-${accentColor}-600 border-b-2 border-${accentColor}-500` : 'text-gray-500 hover:text-gray-700'}`}>
+                                                                    className={`flex-1 py-4 text-sm font-medium capitalize transition-colors ${activeTab === tab ? `${accent.text} border-b-2 ${accent.border}` : 'text-gray-500 hover:text-gray-700'}`}>
                                               {tab === 'deskripsi' ? t('packageDetail.descriptionTab') : tab === 'jadwal' ? t('packageDetail.itineraryTab') : t('packageDetail.facilitiesTab')}
                                             </button>
                                           ))}
@@ -427,7 +429,7 @@ const PackageDetail = () => {
                                                                                             <p className="text-sm text-gray-400 line-through">{formatPrice(pkg.originalPrice)}</p>
                                                                                           )}
                                                                                           <div className="mt-1 flex items-end gap-2">
-                                                                                            <p className={`text-3xl font-bold leading-none text-${accentColor}-600`}>{formatPrice(pkg.price)}</p>
+                                                                                            <p className={`text-3xl font-bold leading-none ${accent.text}`}>{formatPrice(pkg.price)}</p>
                                                                                             <span className="pb-0.5 text-sm text-gray-500">{t('packageDetail.perPax')}</span>
                                                                                           </div>
                                                                                         </div>
@@ -435,7 +437,7 @@ const PackageDetail = () => {
                                                                           {/* Select Date */}
                                                                                         <div className="mb-4">
                                                                                                           <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                                                                                                                              <FaCalendar className={`inline mr-1.5 text-${accentColor}-500`} />
+                                                                                                                              <FaCalendar className={`inline mr-1.5 ${accent.icon}`} />
                                                                                                                               {isOpenTrip ? t('packageDetail.selectOpenTripSchedule') : t('packageDetail.departureDate')}
                                                                                                             </label>
                                                                                                           {isOpenTrip ? (
@@ -504,7 +506,7 @@ const PackageDetail = () => {
                                                                                                               value={selectedDate}
                                                                                                               onChange={e => setSelectedDate(e.target.value)}
                                                                                                               min={new Date().toISOString().split('T')[0]}
-                                                                                                              className={`w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-${accentColor}-500`}
+                                                                                                              className={`w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 ${accent.ring}`}
                                                                                                             />
                                                                                                           )}
                                                                                           </div>
@@ -512,17 +514,17 @@ const PackageDetail = () => {
                                                                           {/* Participants */}
                                                                                         <div className="mb-6">
                                                                                                           <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                                                                                                                              <FaUsers className={`inline mr-1.5 text-${accentColor}-500`} />
+                                                                                                                              <FaUsers className={`inline mr-1.5 ${accent.icon}`} />
                                                                                                                               {t('packageDetail.participantsLabel')}
                                                                                                             </label>
                                                                                                           <div className="flex items-center gap-3 border border-gray-200 rounded-xl px-4 py-3">
                                                                                                                               <button onClick={() => setParticipants(p => Math.max(1, p - 1))}
-                                                                                                                                                      className={`w-7 h-7 bg-${accentColor}-100 text-${accentColor}-600 rounded-full flex items-center justify-center font-bold text-lg hover:bg-${accentColor}-200 transition-colors`}>
+                                                                                                                                                      className={`w-7 h-7 ${accent.bg100} ${accent.text} rounded-full flex items-center justify-center font-bold text-lg hover:${accent.bg200} transition-colors`}>
                                                                                                                                                     -
                                                                                                                                 </button>
                                                                                                                               <span className="flex-1 text-center font-semibold text-gray-800">{participants}</span>
                                                                                                                               <button onClick={() => setParticipants(p => Math.min(isOpenTrip ? Math.max(1, selectedRemainingSlots) : (pkg.maxParticipants || 99), p + 1))}
-                                                                                                                                                      className={`w-7 h-7 bg-${accentColor}-100 text-${accentColor}-600 rounded-full flex items-center justify-center font-bold text-lg hover:bg-${accentColor}-200 transition-colors`}>
+                                                                                                                                                      className={`w-7 h-7 ${accent.bg100} ${accent.text} rounded-full flex items-center justify-center font-bold text-lg hover:${accent.bg200} transition-colors`}>
                                                                                                                                                     +
                                                                                                                                 </button>
                                                                                                             </div>
@@ -534,13 +536,13 @@ const PackageDetail = () => {
                                                                                           </div>
                                                                         
                                                                           {/* Total */}
-                                                                                        <div className={`bg-${accentColor}-50 rounded-xl p-4 mb-5`}>
+                                                                                        <div className={`${accent.bg50} rounded-xl p-4 mb-5`}>
                                                                                                           <div className="flex justify-between text-sm text-gray-600 mb-1">
                                                                                                                               <span>{formatPrice(pkg.price)} x {participants} {t('packageDetail.personUnit')}</span>
                                                                                                             </div>
                                                                                                           <div className="flex justify-between font-bold text-gray-800">
                                                                                                                               <span>{t('packageDetail.total')}</span>
-                                                                                                                              <span className={`text-${accentColor}-600`}>{formatPrice(pkg.price * participants)}</span>
+                                                                                                                              <span className={`${accent.text}`}>{formatPrice(pkg.price * participants)}</span>
                                                                                                             </div>
                                                                                           </div>
                                                                         

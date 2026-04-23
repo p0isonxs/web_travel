@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Target, Eye, Heart, Award, Users, MapPin } from 'lucide-react';
+import { Target, Eye, Heart } from 'lucide-react';
 import Seo from '../components/Seo';
 import { useLanguage } from '../contexts/LanguageContext';
 

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { getPackages, getApprovedTestimonials, getBlogPosts } from '../lib/database';
 import { generateSlug } from '../utils/slug';
-import { MapPin, Users, Star, ChevronRight, Phone, CheckCircle, ArrowRight, Calendar, ShieldCheck, Wallet, Clock3, HeartHandshake } from 'lucide-react';
+import { MapPin, Users, Star, ChevronRight, Phone, CheckCircle, ArrowRight, Calendar } from 'lucide-react';
 import Seo from '../components/Seo';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useSettings } from '../contexts/SettingsContext';

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { getBlogPosts } from '../lib/database';
-import { Calendar, User, Tag, ArrowRight, Search } from 'lucide-react';
+import { Calendar, User, ArrowRight, Search } from 'lucide-react';
 import Seo from '../components/Seo';
 import { useLanguage } from '../contexts/LanguageContext';
 
