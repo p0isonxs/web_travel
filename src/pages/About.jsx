@@ -22,6 +22,7 @@ export default function About() {
               <Seo
                 title={t('about.seoTitle')}
                 description={t('about.seoDescription')}
+                image="https://images.unsplash.com/photo-1501854140801-50d01698950b?w=1200&q=80"
               />
         
           {/* Hero */}

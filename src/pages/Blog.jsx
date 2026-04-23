@@ -79,6 +79,7 @@ export default function Blog() {
               <Seo
                 title={t('blog.seoTitle')}
                 description={t('blog.seoDescription')}
+                image="https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1200&q=80"
               />
         
           {/* Hero */}

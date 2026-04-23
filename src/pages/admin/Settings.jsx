@@ -38,7 +38,7 @@ function ImageUploadField({ label, value, settingKey, onUploaded }) {
       const url = await uploadToCloudinary(file, 'backgrounds');
       onUploaded(settingKey, url);
       toast.success('Gambar berhasil diupload!');
-    } catch { toast.error('Gagal upload gambar'); }
+    } catch (err) { toast.error('Gagal upload: ' + (err.message || err)); }
     setUploading(false);
   };
 

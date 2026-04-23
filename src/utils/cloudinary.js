@@ -3,6 +3,7 @@ const UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
 const UPLOAD_TIMEOUT_MS = 30000;
 
 export async function uploadToCloudinary(file, folder = 'general') {
+  console.log('Cloudinary config:', { CLOUD_NAME, UPLOAD_PRESET });
   if (!CLOUD_NAME || !UPLOAD_PRESET) {
     throw new Error('Cloudinary belum dikonfigurasi. Isi VITE_CLOUDINARY_CLOUD_NAME dan VITE_CLOUDINARY_UPLOAD_PRESET di file .env');
   }
@@ -31,7 +32,10 @@ export async function uploadToCloudinary(file, folder = 'general') {
   }
 
   const data = await res.json();
-  if (!res.ok) throw new Error(data?.error?.message || 'Upload gagal');
+  if (!res.ok) {
+    console.error('Cloudinary error response:', data);
+    throw new Error(data?.error?.message || 'Upload gagal');
+  }
   return data.secure_url;
 }
 

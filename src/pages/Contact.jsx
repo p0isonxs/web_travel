@@ -44,6 +44,7 @@ export default function Contact() {
               <Seo
                 title={t('contact.seoTitle')}
                 description={t('contact.seoDescription')}
+                image="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&q=80"
               />
         
           {/* Hero */}

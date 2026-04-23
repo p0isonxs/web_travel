@@ -16,6 +16,9 @@ export const defaultSettings = {
   bankAccountName: 'PT Liburan Terus Indonesia',
   metaDescription: 'Liburan Terus menyediakan paket wisata open trip dan private trip terbaik ke berbagai destinasi indah di Indonesia.',
   metaKeywords: 'wisata indonesia, open trip, private trip, paket wisata',
+  heroBackground: '',
+  privateTripBackground: '',
+  testimonialBackground: '',
 };
 
 const SettingsContext = createContext(defaultSettings);
