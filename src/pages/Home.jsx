@@ -149,79 +149,21 @@ export default function Home() {
                       </div>
               </section>
 
-          {/* Trust Strip */}
-              <section className="bg-white py-14 border-b border-gray-100">
-                <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-
-                  {/* Stats row */}
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-0 divide-y md:divide-y-0 md:divide-x divide-gray-100 mb-14">
-                    {[
-                      { val: '500+', label: language === 'en' ? 'Trips Completed' : 'Trip Selesai', icon: '✈️' },
-                      { val: '3.000+', label: language === 'en' ? 'Happy Travelers' : 'Wisatawan Puas', icon: '😊' },
-                      { val: '50+', label: language === 'en' ? 'Destinations' : 'Destinasi', icon: '🗺️' },
-                      { val: '4.9★', label: language === 'en' ? 'Average Rating' : 'Rating Rata-rata', icon: '⭐' },
-                    ].map((s, i) => (
-                      <div key={i} className="flex flex-col items-center py-6 px-4">
-                        <span className="text-2xl mb-2">{s.icon}</span>
-                        <span className="text-3xl font-black text-emerald-600">{s.val}</span>
-                        <span className="text-gray-400 text-sm mt-1 text-center">{s.label}</span>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Split: left copy + right features */}
-                  <div className="grid lg:grid-cols-2 gap-12 items-center">
-
-                    {/* Left */}
-                    <div>
-                      <span className="text-emerald-600 text-xs font-semibold uppercase tracking-[0.2em]">
-                        {language === 'en' ? 'Why Choose Us' : 'Kenapa Pilih Kami'}
-                      </span>
-                      <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mt-3 mb-5 leading-tight">
-                        {language === 'en'
-                          ? 'Your best journey starts here'
-                          : 'Perjalanan terbaikmu dimulai dari sini'}
-                      </h2>
-                      <p className="text-gray-500 leading-relaxed mb-8">
-                        {language === 'en'
-                          ? 'We\'ve helped thousands of travelers explore Indonesia safely, comfortably, and affordably. Every trip is planned with care so you can focus on the experience.'
-                          : 'Kami telah membantu ribuan wisatawan menjelajahi Indonesia dengan aman, nyaman, dan terjangkau. Setiap perjalanan direncanakan dengan teliti agar kamu fokus menikmati momennya.'}
-                      </p>
-                      <Link to="/open-trip"
-                        className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-6 py-3 rounded-xl transition-colors">
-                        {language === 'en' ? 'Explore Trips' : 'Lihat Paket Trip'} <ArrowRight className="w-4 h-4" />
-                      </Link>
+          {/* Stats Strip */}
+              <section className="bg-white border-b border-gray-100">
+                <div className="max-w-4xl mx-auto px-4 grid grid-cols-2 md:grid-cols-4 divide-x divide-y md:divide-y-0 divide-gray-100">
+                  {[
+                    { val: '500+',   label: language === 'en' ? 'Trips Done'      : 'Trip Selesai',     icon: <MapPin className="w-5 h-5" /> },
+                    { val: '3.000+', label: language === 'en' ? 'Happy Travelers' : 'Wisatawan Puas',   icon: <Users className="w-5 h-5" /> },
+                    { val: '50+',    label: language === 'en' ? 'Destinations'    : 'Destinasi',        icon: <Calendar className="w-5 h-5" /> },
+                    { val: '4.9★',   label: language === 'en' ? 'Rating'          : 'Rating',           icon: <Star className="w-5 h-5" /> },
+                  ].map((s, i) => (
+                    <div key={i} className="flex flex-col items-center gap-1 py-8 px-4">
+                      <span className="text-emerald-500">{s.icon}</span>
+                      <span className="text-2xl font-black text-gray-900">{s.val}</span>
+                      <span className="text-gray-400 text-xs">{s.label}</span>
                     </div>
-
-                    {/* Right — feature list */}
-                    <div className="flex flex-col gap-0 divide-y divide-gray-100">
-                      {[
-                        { icon: <ShieldCheck className="w-5 h-5 text-emerald-600" />, bg: 'bg-emerald-50',
-                          title: language === 'en' ? 'Safe & Trusted' : 'Aman & Terpercaya',
-                          desc: language === 'en' ? 'Travel insurance & professional guides on every trip.' : 'Asuransi perjalanan & pemandu profesional di setiap trip.' },
-                        { icon: <Wallet className="w-5 h-5 text-teal-600" />, bg: 'bg-teal-50',
-                          title: language === 'en' ? 'Transparent Price' : 'Harga Transparan',
-                          desc: language === 'en' ? 'No hidden fees. All costs are clear before you book.' : 'Tanpa biaya tersembunyi. Semua jelas sebelum booking.' },
-                        { icon: <Clock3 className="w-5 h-5 text-violet-600" />, bg: 'bg-violet-50',
-                          title: language === 'en' ? 'Flexible Schedule' : 'Jadwal Fleksibel',
-                          desc: language === 'en' ? 'Pick your date. Private trips are fully customizable.' : 'Pilih tanggalmu sendiri. Private trip bisa fully custom.' },
-                        { icon: <HeartHandshake className="w-5 h-5 text-rose-500" />, bg: 'bg-rose-50',
-                          title: language === 'en' ? '24/7 Support' : 'Dukungan 24/7',
-                          desc: language === 'en' ? 'Our team is ready to help anytime during your trip.' : 'Tim kami siap membantu kapanpun selama perjalananmu.' },
-                      ].map((f, i) => (
-                        <div key={i} className="flex items-start gap-4 py-5">
-                          <div className={`shrink-0 inline-flex items-center justify-center w-10 h-10 rounded-xl ${f.bg}`}>
-                            {f.icon}
-                          </div>
-                          <div>
-                            <h3 className="font-semibold text-gray-900 text-sm mb-0.5">{f.title}</h3>
-                            <p className="text-gray-400 text-sm leading-relaxed">{f.desc}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-
-                  </div>
+                  ))}
                 </div>
               </section>
 
