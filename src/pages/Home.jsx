@@ -111,42 +111,161 @@ export default function Home() {
               </Helmet>
 
           {/* Hero Section */}
-              <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-                      <div className="absolute inset-0 bg-gradient-to-br from-emerald-900 via-teal-800 to-emerald-700">
-                                <div className="absolute inset-0 opacity-20" style={{backgroundImage: `url("${HERO_BG}")`, backgroundSize: 'cover', backgroundPosition: 'center'}} />
-                      </div>
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+              <section className="relative min-h-screen flex items-center overflow-hidden">
 
-                      <div className="relative z-10 w-full max-w-5xl mx-auto px-4 pt-24 pb-16 text-center sm:pt-20 sm:pb-10">
-                                <div className="inline-flex max-w-full items-center gap-2 rounded-full border border-white/30 bg-white/20 px-3 py-2 text-xs text-white backdrop-blur-sm sm:px-4 sm:text-sm mb-5 sm:mb-6">
-                                            <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                                            <span>{t('home.heroBadge')}</span>
-                                </div>
-                                <h1 className="text-4xl font-bold leading-tight text-white sm:text-5xl md:text-7xl mb-5 sm:mb-6">
-                                            {t('home.heroTitleLine1')}
-                                            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-emerald-300 to-teal-200">
-                                                          {t('home.heroTitleLine2')}
-                                            </span>
-                                </h1>
-                                <p className="mx-auto mb-8 max-w-xl text-base text-white/90 sm:mb-10 sm:max-w-2xl sm:text-xl">
-                                            {t('home.heroDescription')}
-                                </p>
-                                <div className="mx-auto flex w-full max-w-sm flex-col gap-3 sm:max-w-none sm:flex-row sm:justify-center sm:gap-4">
-                                            <Link to="/open-trip" className="flex min-h-14 items-center justify-center rounded-xl bg-emerald-500 px-6 py-3.5 text-base font-bold text-white shadow-lg shadow-emerald-500/30 transition-all hover:bg-emerald-400 sm:min-h-0 sm:px-8 sm:py-4 sm:text-lg sm:hover:scale-105">
-                                                          {t('home.heroPrimaryCta')}
-                                            </Link>
-                                            <Link to="/private-trip" className="flex min-h-14 items-center justify-center rounded-xl border border-white/40 bg-white/15 px-6 py-3.5 text-base font-bold text-white backdrop-blur-sm transition-all hover:bg-white/25 sm:min-h-0 sm:px-8 sm:py-4 sm:text-lg">
-                                                          {t('home.heroSecondaryCta')}
-                                            </Link>
-                                </div>
+                {/* Background photo */}
+                <div className="absolute inset-0">
+                  <img src={HERO_BG} alt="" className="w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/60 to-black/20" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                </div>
+
+                {/* Decorative blobs */}
+                <div className="absolute top-1/4 left-1/3 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+                <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-teal-400/10 rounded-full blur-3xl pointer-events-none" />
+
+                <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-20 grid lg:grid-cols-2 gap-12 items-center">
+
+                  {/* LEFT — text */}
+                  <div>
+                    {/* Badge */}
+                    <div className="inline-flex items-center gap-2 rounded-full border border-emerald-400/40 bg-emerald-500/15 backdrop-blur-sm px-4 py-2 text-sm text-emerald-300 mb-6">
+                      <Star className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
+                      <span>{t('home.heroBadge')}</span>
+                    </div>
+
+                    {/* Headline */}
+                    <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-tight mb-6">
+                      {t('home.heroTitleLine1')}
+                      <span className="block text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300 mt-1">
+                        {t('home.heroTitleLine2')}
+                      </span>
+                    </h1>
+
+                    {/* Description */}
+                    <p className="text-white/75 text-lg leading-relaxed mb-8 max-w-lg">
+                      {t('home.heroDescription')}
+                    </p>
+
+                    {/* CTAs */}
+                    <div className="flex flex-col sm:flex-row gap-3 mb-10">
+                      <Link to="/open-trip"
+                        className="inline-flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-white font-bold px-8 py-4 rounded-xl shadow-lg shadow-emerald-500/30 transition-all hover:scale-105 text-base">
+                        {t('home.heroPrimaryCta')} <ArrowRight className="w-4 h-4" />
+                      </Link>
+                      <Link to="/private-trip"
+                        className="inline-flex items-center justify-center gap-2 border border-white/30 bg-white/10 hover:bg-white/20 text-white font-semibold px-8 py-4 rounded-xl backdrop-blur-sm transition-all text-base">
+                        {t('home.heroSecondaryCta')}
+                      </Link>
+                    </div>
+
+                    {/* Mini stats */}
+                    <div className="flex items-center gap-6">
+                      {[
+                        { val: '500+',   label: language === 'en' ? 'Trips' : 'Trip' },
+                        { val: '3.000+', label: language === 'en' ? 'Travelers' : 'Wisatawan' },
+                        { val: '4.9★',   label: language === 'en' ? 'Rating' : 'Rating' },
+                      ].map((s, i) => (
+                        <div key={i} className="flex items-center gap-5">
+                          {i > 0 && <div className="w-px h-8 bg-white/20" />}
+                          <div>
+                            <div className="text-xl font-bold text-white">{s.val}</div>
+                            <div className="text-white/50 text-xs">{s.label}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* RIGHT — floating destination cards */}
+                  <div className="hidden lg:flex items-center justify-center relative h-[500px]">
+
+                    {/* Card 3 — back */}
+                    {openPackages[2] && (() => {
+                      const pkg = openPackages[2];
+                      return (
+                        <Link to={`/${pkg.type}/${pkg.slug?.id || generateSlug(pkg.title?.id || '')}`}
+                          className="absolute right-0 top-16 w-52 rounded-2xl overflow-hidden shadow-2xl rotate-6 hover:rotate-3 transition-transform duration-300 group">
+                          <img src={pkg.images?.[0]} alt={localize(pkg.title)} className="w-full h-36 object-cover group-hover:scale-105 transition-transform duration-500" />
+                          <div className="bg-white/10 backdrop-blur-md border border-white/20 p-3">
+                            <p className="text-white text-xs font-semibold line-clamp-1">{localize(pkg.title)}</p>
+                            <p className="text-emerald-300 text-xs mt-0.5">{formatPrice(pkg.price)}</p>
+                          </div>
+                        </Link>
+                      );
+                    })()}
+
+                    {/* Card 2 — middle */}
+                    {openPackages[1] && (() => {
+                      const pkg = openPackages[1];
+                      return (
+                        <Link to={`/${pkg.type}/${pkg.slug?.id || generateSlug(pkg.title?.id || '')}`}
+                          className="absolute right-20 top-28 w-56 rounded-2xl overflow-hidden shadow-2xl -rotate-2 hover:rotate-0 transition-transform duration-300 z-10 group">
+                          <img src={pkg.images?.[0]} alt={localize(pkg.title)} className="w-full h-40 object-cover group-hover:scale-105 transition-transform duration-500" />
+                          <div className="bg-white/15 backdrop-blur-md border border-white/25 p-3">
+                            <p className="text-white text-xs font-semibold line-clamp-1">{localize(pkg.title)}</p>
+                            <div className="flex items-center justify-between mt-1">
+                              <p className="text-emerald-300 text-xs">{formatPrice(pkg.price)}</p>
+                              <span className="text-yellow-400 text-xs">★ {pkg.rating || '4.9'}</span>
+                            </div>
+                          </div>
+                        </Link>
+                      );
+                    })()}
+
+                    {/* Card 1 — front */}
+                    {openPackages[0] && (() => {
+                      const pkg = openPackages[0];
+                      return (
+                        <Link to={`/${pkg.type}/${pkg.slug?.id || generateSlug(pkg.title?.id || '')}`}
+                          className="absolute left-0 bottom-12 w-64 rounded-2xl overflow-hidden shadow-2xl rotate-1 hover:-rotate-1 transition-transform duration-300 z-20 group">
+                          <img src={pkg.images?.[0]} alt={localize(pkg.title)} className="w-full h-44 object-cover group-hover:scale-105 transition-transform duration-500" />
+                          <div className="bg-white/15 backdrop-blur-md border border-white/25 p-4">
+                            <div className="flex items-center gap-1.5 mb-1">
+                              <MapPin className="w-3 h-3 text-emerald-400" />
+                              <span className="text-white/70 text-xs">{localize(pkg.location) || 'Indonesia'}</span>
+                            </div>
+                            <p className="text-white text-sm font-bold line-clamp-1">{localize(pkg.title)}</p>
+                            <div className="flex items-center justify-between mt-2">
+                              <p className="text-emerald-300 text-sm font-semibold">{formatPrice(pkg.price)}</p>
+                              <span className="bg-emerald-500/30 text-emerald-300 text-xs px-2 py-0.5 rounded-full border border-emerald-500/30">Open Trip</span>
+                            </div>
+                          </div>
+                        </Link>
+                      );
+                    })()}
+
+                    {/* Fallback decorative when no packages */}
+                    {openPackages.length === 0 && (
+                      <div className="w-64 h-80 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 animate-pulse" />
+                    )}
+
+                    {/* Floating badge — popular */}
+                    <div className="absolute top-4 left-8 z-30 bg-white rounded-2xl shadow-xl px-4 py-3 flex items-center gap-3">
+                      <div className="w-8 h-8 bg-emerald-100 rounded-xl flex items-center justify-center">
+                        <Star className="w-4 h-4 text-emerald-600 fill-emerald-500" />
                       </div>
+                      <div>
+                        <p className="text-gray-900 font-bold text-sm leading-none">4.9 / 5</p>
+                        <p className="text-gray-400 text-xs mt-0.5">{language === 'en' ? 'Traveler rating' : 'Rating wisatawan'}</p>
+                      </div>
+                    </div>
+
+                    {/* Floating badge — trips */}
+                    <div className="absolute bottom-4 right-4 z-30 bg-emerald-500 rounded-2xl shadow-xl px-4 py-3">
+                      <p className="text-white font-bold text-sm">500+ Trip</p>
+                      <p className="text-emerald-100 text-xs">{language === 'en' ? 'Completed' : 'Berhasil'}</p>
+                    </div>
+                  </div>
+
+                </div>
 
                 {/* Scroll indicator */}
-                      <div className="absolute bottom-8 left-1/2 hidden -translate-x-1/2 animate-bounce text-white/60 md:block">
-                                <div className="w-6 h-10 border-2 border-white/40 rounded-full flex justify-center pt-2">
-                                            <div className="w-1 h-3 bg-white/60 rounded-full animate-pulse" />
-                                </div>
-                      </div>
+                <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce text-white/40 hidden md:block">
+                  <div className="w-5 h-9 border-2 border-white/30 rounded-full flex justify-center pt-1.5">
+                    <div className="w-1 h-2.5 bg-white/50 rounded-full" />
+                  </div>
+                </div>
               </section>
 
           {/* Stats Strip */}
