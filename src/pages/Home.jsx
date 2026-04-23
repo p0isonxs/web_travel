@@ -14,6 +14,7 @@ export default function Home() {
     const [testimonials, setTestimonials] = useState([]);
     const [blogs, setBlogs] = useState([]);
     const [slideIdx, setSlideIdx] = useState(0);
+    const [heroCardIdx, setHeroCardIdx] = useState(0);
     const [visibleCount, setVisibleCount] = useState(4);
     const timerRef = useRef(null);
     const { t, language, localize } = useLanguage();
@@ -59,6 +60,13 @@ export default function Home() {
         const d = new Date(ts);
         return d.toLocaleDateString(language === 'en' ? 'en-US' : 'id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
   };
+
+  // Hero card auto-slide
+  useEffect(() => {
+    if (openPackages.length <= 1) return;
+    const t = setInterval(() => setHeroCardIdx(i => (i + 1) % Math.min(openPackages.length, 5)), 3500);
+    return () => clearInterval(t);
+  }, [openPackages.length]);
 
   // Carousel logic
   const maxSlideIdx = Math.max(0, testimonials.length - visibleCount);
@@ -177,64 +185,51 @@ export default function Home() {
                     </div>
                   </div>
 
-                  {/* RIGHT — clean destination cards */}
-                  <div className="hidden lg:flex flex-col gap-4 w-full max-w-sm ml-auto">
-
-                    {/* Main card — large */}
-                    {openPackages[0] && (() => {
-                      const pkg = openPackages[0];
-                      return (
+                  {/* RIGHT — auto-slide card */}
+                  {openPackages.length > 0 && (() => {
+                    const pkg = openPackages[heroCardIdx];
+                    return (
+                      <div className="hidden lg:block w-full max-w-sm ml-auto">
                         <Link to={`/${pkg.type}/${pkg.slug?.id || generateSlug(pkg.title?.id || '')}`}
-                          className="relative rounded-2xl overflow-hidden shadow-2xl group block">
-                          <img src={pkg.images?.[0]} alt={localize(pkg.title)} className="w-full h-56 object-cover group-hover:scale-105 transition-transform duration-500" />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-                          <div className="absolute top-3 left-3">
-                            <span className="bg-emerald-500 text-white text-xs font-bold px-3 py-1 rounded-full">Open Trip</span>
+                          className="relative rounded-2xl overflow-hidden shadow-2xl group block h-[420px]">
+                          {/* Slides */}
+                          {openPackages.slice(0, 5).map((p, i) => (
+                            <img key={i} src={p.images?.[0]} alt={localize(p.title)}
+                              className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${i === heroCardIdx ? 'opacity-100' : 'opacity-0'}`} />
+                          ))}
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
+
+                          {/* Badge */}
+                          <div className="absolute top-4 left-4">
+                            <span className="bg-emerald-500 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow">Open Trip</span>
                           </div>
-                          <div className="absolute bottom-0 left-0 right-0 p-4">
-                            <div className="flex items-center gap-1.5 mb-1">
-                              <MapPin className="w-3 h-3 text-emerald-400" />
-                              <span className="text-white/75 text-xs">{localize(pkg.location) || 'Indonesia'}</span>
+
+                          {/* Dots */}
+                          <div className="absolute top-4 right-4 flex gap-1.5">
+                            {openPackages.slice(0, 5).map((_, i) => (
+                              <button key={i} onClick={e => { e.preventDefault(); setHeroCardIdx(i); }}
+                                className={`w-1.5 h-1.5 rounded-full transition-all ${i === heroCardIdx ? 'bg-white w-4' : 'bg-white/40'}`} />
+                            ))}
+                          </div>
+
+                          {/* Info */}
+                          <div className="absolute bottom-0 left-0 right-0 p-5">
+                            <div className="flex items-center gap-1.5 mb-1.5">
+                              <MapPin className="w-3.5 h-3.5 text-emerald-400" />
+                              <span className="text-white/70 text-sm">{localize(pkg.location) || 'Indonesia'}</span>
                             </div>
-                            <div className="flex items-end justify-between">
-                              <p className="text-white font-bold text-base line-clamp-1">{localize(pkg.title)}</p>
-                              <p className="text-emerald-300 font-semibold text-sm shrink-0 ml-2">{formatPrice(pkg.price)}</p>
+                            <p className="text-white font-bold text-lg leading-snug line-clamp-2 mb-3">{localize(pkg.title)}</p>
+                            <div className="flex items-center justify-between">
+                              <p className="text-emerald-300 font-semibold text-base">{formatPrice(pkg.price)}</p>
+                              <span className="inline-flex items-center gap-1 bg-white/15 backdrop-blur-sm border border-white/20 text-white text-xs px-3 py-1.5 rounded-full">
+                                {t('home.heroPrimaryCta')} <ArrowRight className="w-3 h-3" />
+                              </span>
                             </div>
                           </div>
                         </Link>
-                      );
-                    })()}
-
-                    {/* Two small cards side by side */}
-                    <div className="grid grid-cols-2 gap-4">
-                      {openPackages.slice(1, 3).map((pkg, i) => (
-                        <Link key={i} to={`/${pkg.type}/${pkg.slug?.id || generateSlug(pkg.title?.id || '')}`}
-                          className="relative rounded-xl overflow-hidden shadow-xl group block">
-                          <img src={pkg.images?.[0]} alt={localize(pkg.title)} className="w-full h-32 object-cover group-hover:scale-105 transition-transform duration-500" />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/65 to-transparent" />
-                          <div className="absolute bottom-0 left-0 right-0 p-3">
-                            <p className="text-white font-semibold text-xs line-clamp-1">{localize(pkg.title)}</p>
-                            <p className="text-emerald-300 text-xs mt-0.5">{formatPrice(pkg.price)}</p>
-                          </div>
-                        </Link>
-                      ))}
-                    </div>
-
-                    {/* Floating badge */}
-                    <div className="flex items-center justify-between">
-                      <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-2.5 flex items-center gap-2">
-                        <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                        <div>
-                          <span className="text-white font-bold text-sm">4.9 / 5</span>
-                          <span className="text-white/50 text-xs ml-2">{language === 'en' ? 'Rating' : 'Rating'}</span>
-                        </div>
                       </div>
-                      <div className="bg-emerald-500/20 backdrop-blur-sm border border-emerald-500/30 rounded-xl px-4 py-2.5">
-                        <span className="text-emerald-300 font-bold text-sm">500+ </span>
-                        <span className="text-white/60 text-xs">{language === 'en' ? 'Trips done' : 'Trip selesai'}</span>
-                      </div>
-                    </div>
-                  </div>
+                    );
+                  })()}
 
                 </div>
 
