@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { getBlogPosts, addBlogPost, updateBlogPost, deleteBlogPost } from '../../lib/database';
-import { Plus, Edit2, Trash2, X, Save, Search, Eye, EyeOff } from 'lucide-react';
+import { Plus, Edit2, Trash2, X, Save, Search, Eye, EyeOff, Upload } from 'lucide-react';
 import { toast } from 'react-toastify';
+import { uploadToCloudinary } from '../../utils/cloudinary';
 
 const emptyForm = {
   titleId: '', titleEn: '', slug: '', category: 'tips wisata',
@@ -40,6 +41,7 @@ export default function AdminBlog() {
     const [editId, setEditId] = useState(null);
     const [form, setForm] = useState(emptyForm);
     const [saving, setSaving] = useState(false);
+    const [coverUploading, setCoverUploading] = useState(false);
     const [search, setSearch] = useState('');
 
   useEffect(() => { fetchPosts(); }, []);
@@ -236,8 +238,41 @@ export default function AdminBlog() {
                                                                       </div>
                                                       </div>
                                                       <div>
-                                                                      <label className={labelClass}>URL Cover Image</label>
-                                                                      <input type="url" value={form.coverImage} onChange={e => setForm({...form, coverImage: e.target.value})} className={inputClass} placeholder="https://..." />
+                                                                      <label className={labelClass}>Cover Image</label>
+                                                                      <div className="flex gap-4 items-start">
+                                                                        {form.coverImage ? (
+                                                                          <div className="relative shrink-0">
+                                                                            <img src={form.coverImage} alt="cover" className="w-40 h-24 object-cover rounded-xl border border-gray-200" />
+                                                                            <button type="button" onClick={() => setForm({...form, coverImage: ''})}
+                                                                              className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600">
+                                                                              <X className="w-3 h-3" />
+                                                                            </button>
+                                                                          </div>
+                                                                        ) : (
+                                                                          <div className="w-40 h-24 rounded-xl border-2 border-dashed border-gray-300 flex items-center justify-center bg-gray-50 shrink-0">
+                                                                            <span className="text-xs text-gray-400 text-center px-2">Belum ada foto</span>
+                                                                          </div>
+                                                                        )}
+                                                                        <div className="flex-1">
+                                                                          <label className="inline-flex items-center gap-2 cursor-pointer bg-white border border-gray-300 text-gray-700 text-sm font-medium px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors">
+                                                                            {coverUploading ? <div className="w-4 h-4 border-2 border-gray-500 border-t-transparent rounded-full animate-spin" /> : <Upload className="w-4 h-4" />}
+                                                                            <span>{coverUploading ? 'Mengupload...' : 'Upload Foto'}</span>
+                                                                            <input type="file" accept="image/*" className="hidden" disabled={coverUploading} onChange={async (e) => {
+                                                                              const file = e.target.files[0];
+                                                                              if (!file) return;
+                                                                              if (file.size > 5 * 1024 * 1024) { toast.error('Ukuran file maksimal 5MB'); return; }
+                                                                              setCoverUploading(true);
+                                                                              try {
+                                                                                const url = await uploadToCloudinary(file, 'blog-covers');
+                                                                                setForm(f => ({...f, coverImage: url}));
+                                                                                toast.success('Gambar berhasil diupload!');
+                                                                              } catch { toast.error('Gagal upload gambar'); }
+                                                                              setCoverUploading(false);
+                                                                            }} />
+                                                                          </label>
+                                                                          <p className="text-xs text-gray-400 mt-2">JPG/PNG/WebP, maks 5MB. Rekomendasi: 1200×630px</p>
+                                                                        </div>
+                                                                      </div>
                                                       </div>
                                                       <div>
                                                                       <label className={labelClass}>Ringkasan Indonesia</label>

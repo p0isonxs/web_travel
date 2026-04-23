@@ -1,9 +1,13 @@
 import { useState, useEffect } from 'react';
 import { getSettings, updateSettings } from '../../lib/database';
-import { Save, RefreshCw } from 'lucide-react';
+import { uploadToCloudinary } from '../../utils/cloudinary';
+import { Save, RefreshCw, Upload, X } from 'lucide-react';
 import { toast } from 'react-toastify';
 
 const defaultSettings = {
+    heroBackground: '',
+    privateTripBackground: '',
+    testimonialBackground: '',
     siteName: 'Liburan Terus',
     tagline: 'Jelajahi Keindahan Indonesia Bersama Kami',
     phone: '6281234567890',
@@ -21,6 +25,52 @@ const defaultSettings = {
     metaDescription: 'Liburan Terus menyediakan paket wisata open trip dan private trip terbaik ke berbagai destinasi indah di Indonesia.',
     metaKeywords: 'wisata indonesia, open trip, private trip, paket wisata, liburan terus',
 };
+
+function ImageUploadField({ label, value, settingKey, onUploaded }) {
+  const [uploading, setUploading] = useState(false);
+
+  const handleFile = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) { toast.error('Ukuran file maksimal 5MB'); return; }
+    setUploading(true);
+    try {
+      const url = await uploadToCloudinary(file, 'backgrounds');
+      onUploaded(settingKey, url);
+      toast.success('Gambar berhasil diupload!');
+    } catch { toast.error('Gagal upload gambar'); }
+    setUploading(false);
+  };
+
+  return (
+    <div className="md:col-span-2">
+      <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label>
+      <div className="flex gap-4 items-start">
+        {value ? (
+          <div className="relative shrink-0">
+            <img src={value} alt={label} className="w-40 h-24 object-cover rounded-xl border border-gray-200" />
+            <button type="button" onClick={() => onUploaded(settingKey, '')}
+              className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600">
+              <X className="w-3 h-3" />
+            </button>
+          </div>
+        ) : (
+          <div className="w-40 h-24 rounded-xl border-2 border-dashed border-gray-300 flex items-center justify-center bg-gray-50 shrink-0">
+            <span className="text-xs text-gray-400 text-center px-2">Belum ada foto</span>
+          </div>
+        )}
+        <div className="flex-1">
+          <label className="inline-flex items-center gap-2 cursor-pointer bg-white border border-gray-300 text-gray-700 text-sm font-medium px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors">
+            {uploading ? <div className="w-4 h-4 border-2 border-gray-500 border-t-transparent rounded-full animate-spin" /> : <Upload className="w-4 h-4" />}
+            <span>{uploading ? 'Mengupload...' : 'Upload Foto'}</span>
+            <input type="file" accept="image/*" className="hidden" onChange={handleFile} disabled={uploading} />
+          </label>
+          <p className="text-xs text-gray-400 mt-2">JPG/PNG/WebP, maks 5MB. Rekomendasi: 1920×1080px</p>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function AdminSettings() {
     const [settings, setSettings] = useState(defaultSettings);
@@ -148,6 +198,27 @@ export default function AdminSettings() {
                                   </div>
                         </Section>
                 
+                        <Section title="Background Halaman">
+                                  <ImageUploadField
+                                    label="Background Hero"
+                                    value={settings.heroBackground}
+                                    settingKey="heroBackground"
+                                    onUploaded={(key, url) => setSettings({ ...settings, [key]: url })}
+                                  />
+                                  <ImageUploadField
+                                    label="Background Section Private Trip"
+                                    value={settings.privateTripBackground}
+                                    settingKey="privateTripBackground"
+                                    onUploaded={(key, url) => setSettings({ ...settings, [key]: url })}
+                                  />
+                                  <ImageUploadField
+                                    label="Background Section Testimoni"
+                                    value={settings.testimonialBackground}
+                                    settingKey="testimonialBackground"
+                                    onUploaded={(key, url) => setSettings({ ...settings, [key]: url })}
+                                  />
+                        </Section>
+
                         <Section title="SEO Meta Tags">
                                   <div className="md:col-span-2">
                                               <label className={labelClass}>Meta Description</label>
