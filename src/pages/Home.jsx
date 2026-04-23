@@ -149,107 +149,76 @@ export default function Home() {
                       </div>
               </section>
 
-          {/* Why Us — Bento Grid */}
-              <section className="relative z-10 bg-gray-950 py-16 sm:py-20">
+          {/* Trust Strip */}
+              <section className="bg-white py-14 border-b border-gray-100">
                 <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
 
-                  {/* Header */}
-                  <div className="text-center mb-10">
-                    <span className="inline-block text-emerald-400 text-xs font-semibold uppercase tracking-[0.2em] mb-3">
-                      {language === 'en' ? 'Why Choose Us' : 'Kenapa Pilih Kami'}
-                    </span>
-                    <h2 className="text-3xl sm:text-4xl font-bold text-white">
-                      {language === 'en' ? 'Your journey, our ' : 'Perjalananmu, '}
-                      <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300">
-                        {language === 'en' ? 'commitment' : 'prioritas kami'}
-                      </span>
-                    </h2>
+                  {/* Stats row */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-0 divide-y md:divide-y-0 md:divide-x divide-gray-100 mb-14">
+                    {[
+                      { val: '500+', label: language === 'en' ? 'Trips Completed' : 'Trip Selesai', icon: '✈️' },
+                      { val: '3.000+', label: language === 'en' ? 'Happy Travelers' : 'Wisatawan Puas', icon: '😊' },
+                      { val: '50+', label: language === 'en' ? 'Destinations' : 'Destinasi', icon: '🗺️' },
+                      { val: '4.9★', label: language === 'en' ? 'Average Rating' : 'Rating Rata-rata', icon: '⭐' },
+                    ].map((s, i) => (
+                      <div key={i} className="flex flex-col items-center py-6 px-4">
+                        <span className="text-2xl mb-2">{s.icon}</span>
+                        <span className="text-3xl font-black text-emerald-600">{s.val}</span>
+                        <span className="text-gray-400 text-sm mt-1 text-center">{s.label}</span>
+                      </div>
+                    ))}
                   </div>
 
-                  {/* Bento Grid */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {/* Split: left copy + right features */}
+                  <div className="grid lg:grid-cols-2 gap-12 items-center">
 
-                    {/* Big card — col span 2 */}
-                    <div className="md:col-span-2 relative rounded-3xl overflow-hidden bg-gradient-to-br from-emerald-700 to-teal-800 p-8 flex flex-col justify-between min-h-[220px]">
-                      <div className="absolute inset-0 opacity-10"
-                        style={{backgroundImage: `url("${HERO_BG}")`, backgroundSize: 'cover', backgroundPosition: 'center'}} />
-                      <div className="absolute inset-0 bg-gradient-to-br from-emerald-700/90 to-teal-800/90" />
-                      <div className="relative">
-                        <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-sm mb-4">
-                          <ShieldCheck className="w-6 h-6 text-white" />
-                        </div>
-                        <h3 className="text-xl font-bold text-white mb-2">
-                          {language === 'en' ? 'Safe & Trusted Since Day One' : 'Aman & Terpercaya Sejak Awal'}
-                        </h3>
-                        <p className="text-emerald-100/80 text-sm leading-relaxed max-w-md">
-                          {language === 'en'
-                            ? 'Every trip includes travel insurance, professional guides, and 24/7 emergency support — so you can explore freely.'
-                            : 'Setiap perjalanan dilengkapi asuransi, pemandu profesional, dan dukungan darurat 24/7 — jadi kamu bisa menjelajah dengan tenang.'}
-                        </p>
-                      </div>
-                      <div className="relative flex gap-8 mt-6">
-                        {[['500+', language === 'en' ? 'Trips Done' : 'Trip Selesai'], ['3.000+', language === 'en' ? 'Travelers' : 'Wisatawan'], ['50+', language === 'en' ? 'Destinations' : 'Destinasi']].map(([val, lbl]) => (
-                          <div key={lbl}>
-                            <div className="text-2xl font-black text-white">{val}</div>
-                            <div className="text-emerald-200 text-xs">{lbl}</div>
+                    {/* Left */}
+                    <div>
+                      <span className="text-emerald-600 text-xs font-semibold uppercase tracking-[0.2em]">
+                        {language === 'en' ? 'Why Choose Us' : 'Kenapa Pilih Kami'}
+                      </span>
+                      <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mt-3 mb-5 leading-tight">
+                        {language === 'en'
+                          ? 'Your best journey starts here'
+                          : 'Perjalanan terbaikmu dimulai dari sini'}
+                      </h2>
+                      <p className="text-gray-500 leading-relaxed mb-8">
+                        {language === 'en'
+                          ? 'We\'ve helped thousands of travelers explore Indonesia safely, comfortably, and affordably. Every trip is planned with care so you can focus on the experience.'
+                          : 'Kami telah membantu ribuan wisatawan menjelajahi Indonesia dengan aman, nyaman, dan terjangkau. Setiap perjalanan direncanakan dengan teliti agar kamu fokus menikmati momennya.'}
+                      </p>
+                      <Link to="/open-trip"
+                        className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-6 py-3 rounded-xl transition-colors">
+                        {language === 'en' ? 'Explore Trips' : 'Lihat Paket Trip'} <ArrowRight className="w-4 h-4" />
+                      </Link>
+                    </div>
+
+                    {/* Right — feature list */}
+                    <div className="flex flex-col gap-0 divide-y divide-gray-100">
+                      {[
+                        { icon: <ShieldCheck className="w-5 h-5 text-emerald-600" />, bg: 'bg-emerald-50',
+                          title: language === 'en' ? 'Safe & Trusted' : 'Aman & Terpercaya',
+                          desc: language === 'en' ? 'Travel insurance & professional guides on every trip.' : 'Asuransi perjalanan & pemandu profesional di setiap trip.' },
+                        { icon: <Wallet className="w-5 h-5 text-teal-600" />, bg: 'bg-teal-50',
+                          title: language === 'en' ? 'Transparent Price' : 'Harga Transparan',
+                          desc: language === 'en' ? 'No hidden fees. All costs are clear before you book.' : 'Tanpa biaya tersembunyi. Semua jelas sebelum booking.' },
+                        { icon: <Clock3 className="w-5 h-5 text-violet-600" />, bg: 'bg-violet-50',
+                          title: language === 'en' ? 'Flexible Schedule' : 'Jadwal Fleksibel',
+                          desc: language === 'en' ? 'Pick your date. Private trips are fully customizable.' : 'Pilih tanggalmu sendiri. Private trip bisa fully custom.' },
+                        { icon: <HeartHandshake className="w-5 h-5 text-rose-500" />, bg: 'bg-rose-50',
+                          title: language === 'en' ? '24/7 Support' : 'Dukungan 24/7',
+                          desc: language === 'en' ? 'Our team is ready to help anytime during your trip.' : 'Tim kami siap membantu kapanpun selama perjalananmu.' },
+                      ].map((f, i) => (
+                        <div key={i} className="flex items-start gap-4 py-5">
+                          <div className={`shrink-0 inline-flex items-center justify-center w-10 h-10 rounded-xl ${f.bg}`}>
+                            {f.icon}
                           </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Rating card */}
-                    <div className="rounded-3xl bg-amber-400 p-7 flex flex-col justify-between min-h-[220px]">
-                      <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-amber-300 mb-2">
-                        <Star className="w-6 h-6 text-amber-700 fill-amber-700" />
-                      </div>
-                      <div>
-                        <div className="text-6xl font-black text-amber-900 leading-none">4.9</div>
-                        <div className="flex gap-0.5 mt-2 mb-1">
-                          {[...Array(5)].map((_, i) => <Star key={i} className="w-4 h-4 text-amber-700 fill-amber-700" />)}
+                          <div>
+                            <h3 className="font-semibold text-gray-900 text-sm mb-0.5">{f.title}</h3>
+                            <p className="text-gray-400 text-sm leading-relaxed">{f.desc}</p>
+                          </div>
                         </div>
-                        <div className="text-amber-800 text-sm font-medium">
-                          {language === 'en' ? 'Average rating from 3.000+ travelers' : 'Rating rata-rata dari 3.000+ wisatawan'}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Price card */}
-                    <div className="rounded-3xl bg-gray-800 border border-gray-700 p-7 hover:border-teal-500/50 transition-colors group">
-                      <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-teal-500/15 mb-4">
-                        <Wallet className="w-6 h-6 text-teal-400" />
-                      </div>
-                      <h3 className="text-white font-bold text-base mb-2">
-                        {language === 'en' ? 'Transparent Price' : 'Harga Transparan'}
-                      </h3>
-                      <p className="text-gray-400 text-sm leading-relaxed">
-                        {language === 'en' ? 'No hidden fees. Everything is clearly stated upfront before you book.' : 'Tanpa biaya tersembunyi. Semua sudah jelas sebelum kamu booking.'}
-                      </p>
-                    </div>
-
-                    {/* Schedule card */}
-                    <div className="rounded-3xl bg-gray-800 border border-gray-700 p-7 hover:border-violet-500/50 transition-colors group">
-                      <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-violet-500/15 mb-4">
-                        <Clock3 className="w-6 h-6 text-violet-400" />
-                      </div>
-                      <h3 className="text-white font-bold text-base mb-2">
-                        {language === 'en' ? 'Flexible Schedule' : 'Jadwal Fleksibel'}
-                      </h3>
-                      <p className="text-gray-400 text-sm leading-relaxed">
-                        {language === 'en' ? 'Pick dates that fit your own timeline. Private trips are fully customizable.' : 'Pilih tanggal sesuai jadwalmu. Private trip bisa fully custom.'}
-                      </p>
-                    </div>
-
-                    {/* Support card */}
-                    <div className="rounded-3xl bg-gray-800 border border-gray-700 p-7 hover:border-pink-500/50 transition-colors group">
-                      <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-pink-500/15 mb-4">
-                        <HeartHandshake className="w-6 h-6 text-pink-400" />
-                      </div>
-                      <h3 className="text-white font-bold text-base mb-2">
-                        {language === 'en' ? '24/7 Support' : 'Dukungan 24/7'}
-                      </h3>
-                      <p className="text-gray-400 text-sm leading-relaxed">
-                        {language === 'en' ? 'Our team is always ready to help anytime, even in the middle of your trip.' : 'Tim kami siap membantu kapanpun, bahkan di tengah perjalananmu.'}
-                      </p>
+                      ))}
                     </div>
 
                   </div>
