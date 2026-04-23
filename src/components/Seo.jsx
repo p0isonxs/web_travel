@@ -16,7 +16,9 @@ export default function Seo({
 }) {
   const { pathname } = useLocation();
   const url = `${SITE_URL}${pathname}`;
-  const resolvedImage = image || DEFAULT_IMAGE;
+  const bgImage = image || DEFAULT_IMAGE;
+  const pageType = type === 'article' ? 'blog' : pathname.startsWith('/open-trip') ? 'open-trip' : pathname.startsWith('/private-trip') ? 'private-trip' : 'website';
+  const ogImage = `${SITE_URL}/api/og?title=${encodeURIComponent(title)}&description=${encodeURIComponent(description)}&image=${encodeURIComponent(bgImage)}&type=${encodeURIComponent(pageType)}`;
 
   return (
     <Helmet>
@@ -30,7 +32,7 @@ export default function Seo({
       <meta property="og:url" content={url} />
       <meta property="og:title" content={title} />
       <meta property="og:description" content={description} />
-      <meta property="og:image" content={resolvedImage} />
+      <meta property="og:image" content={ogImage} />
       <meta property="og:image:width" content="1200" />
       <meta property="og:image:height" content="630" />
       <meta property="og:locale" content="id_ID" />
@@ -40,7 +42,7 @@ export default function Seo({
       <meta name="twitter:site" content="@liburanterus" />
       <meta name="twitter:title" content={title} />
       <meta name="twitter:description" content={description} />
-      <meta name="twitter:image" content={resolvedImage} />
+      <meta name="twitter:image" content={ogImage} />
 
       {noindex && <meta name="robots" content="noindex, nofollow" />}
     </Helmet>

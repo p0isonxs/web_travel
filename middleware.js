@@ -83,7 +83,9 @@ export default async function middleware(request) {
     // use defaults
   }
 
-  return new Response(html({ title, description, image, url: `${SITE_URL}${pathname}` }), {
+  const ogImage = `${SITE_URL}/api/og?title=${encodeURIComponent(title)}&description=${encodeURIComponent(description)}&image=${encodeURIComponent(image)}&type=${encodeURIComponent(type)}`;
+
+  return new Response(html({ title, description, image: ogImage, url: `${SITE_URL}${pathname}` }), {
     headers: { 'content-type': 'text/html; charset=utf-8' },
   });
 }
