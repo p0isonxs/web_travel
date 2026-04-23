@@ -149,49 +149,109 @@ export default function Home() {
                       </div>
               </section>
 
-          {/* Why Us Strip */}
-              <section className="relative z-10 bg-gradient-to-b from-emerald-50 to-white py-14">
+          {/* Why Us — Bento Grid */}
+              <section className="relative z-10 bg-gray-950 py-16 sm:py-20">
                 <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-                    {[
-                      {
-                        icon: <ShieldCheck className="w-6 h-6 text-emerald-600" />,
-                        bg: 'bg-emerald-100',
-                        title: language === 'en' ? 'Safe & Trusted' : 'Aman & Terpercaya',
-                        desc: language === 'en' ? 'Travel insurance included on every trip' : 'Asuransi perjalanan disertakan di setiap trip',
-                        stat: '500+ Trip',
-                      },
-                      {
-                        icon: <Wallet className="w-6 h-6 text-teal-600" />,
-                        bg: 'bg-teal-100',
-                        title: language === 'en' ? 'Transparent Price' : 'Harga Transparan',
-                        desc: language === 'en' ? 'No hidden fees, all costs clearly stated' : 'Tanpa biaya tersembunyi, semua jelas di awal',
-                        stat: 'Best Value',
-                      },
-                      {
-                        icon: <Clock3 className="w-6 h-6 text-violet-600" />,
-                        bg: 'bg-violet-100',
-                        title: language === 'en' ? 'Flexible Schedule' : 'Jadwal Fleksibel',
-                        desc: language === 'en' ? 'Choose dates that suit your plan' : 'Pilih tanggal sesuai rencanamu sendiri',
-                        stat: '50+ Destinasi',
-                      },
-                      {
-                        icon: <HeartHandshake className="w-6 h-6 text-amber-600" />,
-                        bg: 'bg-amber-100',
-                        title: language === 'en' ? '24/7 Support' : 'Dukungan 24/7',
-                        desc: language === 'en' ? 'Our team is always ready to assist you' : 'Tim kami siap membantu kapanpun kamu butuh',
-                        stat: '⭐ 4.9 / 5',
-                      },
-                    ].map((item, i) => (
-                      <div key={i} className="group bg-white rounded-2xl p-5 shadow-sm border border-gray-100 hover:shadow-md hover:-translate-y-1 transition-all duration-300">
-                        <div className={`inline-flex items-center justify-center w-12 h-12 rounded-xl ${item.bg} mb-4`}>
-                          {item.icon}
+
+                  {/* Header */}
+                  <div className="text-center mb-10">
+                    <span className="inline-block text-emerald-400 text-xs font-semibold uppercase tracking-[0.2em] mb-3">
+                      {language === 'en' ? 'Why Choose Us' : 'Kenapa Pilih Kami'}
+                    </span>
+                    <h2 className="text-3xl sm:text-4xl font-bold text-white">
+                      {language === 'en' ? 'Your journey, our ' : 'Perjalananmu, '}
+                      <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300">
+                        {language === 'en' ? 'commitment' : 'prioritas kami'}
+                      </span>
+                    </h2>
+                  </div>
+
+                  {/* Bento Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+                    {/* Big card — col span 2 */}
+                    <div className="md:col-span-2 relative rounded-3xl overflow-hidden bg-gradient-to-br from-emerald-700 to-teal-800 p-8 flex flex-col justify-between min-h-[220px]">
+                      <div className="absolute inset-0 opacity-10"
+                        style={{backgroundImage: `url("${HERO_BG}")`, backgroundSize: 'cover', backgroundPosition: 'center'}} />
+                      <div className="absolute inset-0 bg-gradient-to-br from-emerald-700/90 to-teal-800/90" />
+                      <div className="relative">
+                        <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-sm mb-4">
+                          <ShieldCheck className="w-6 h-6 text-white" />
                         </div>
-                        <h3 className="font-bold text-gray-900 text-base mb-1">{item.title}</h3>
-                        <p className="text-gray-500 text-sm leading-relaxed mb-3">{item.desc}</p>
-                        <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full">{item.stat}</span>
+                        <h3 className="text-xl font-bold text-white mb-2">
+                          {language === 'en' ? 'Safe & Trusted Since Day One' : 'Aman & Terpercaya Sejak Awal'}
+                        </h3>
+                        <p className="text-emerald-100/80 text-sm leading-relaxed max-w-md">
+                          {language === 'en'
+                            ? 'Every trip includes travel insurance, professional guides, and 24/7 emergency support — so you can explore freely.'
+                            : 'Setiap perjalanan dilengkapi asuransi, pemandu profesional, dan dukungan darurat 24/7 — jadi kamu bisa menjelajah dengan tenang.'}
+                        </p>
                       </div>
-                    ))}
+                      <div className="relative flex gap-8 mt-6">
+                        {[['500+', language === 'en' ? 'Trips Done' : 'Trip Selesai'], ['3.000+', language === 'en' ? 'Travelers' : 'Wisatawan'], ['50+', language === 'en' ? 'Destinations' : 'Destinasi']].map(([val, lbl]) => (
+                          <div key={lbl}>
+                            <div className="text-2xl font-black text-white">{val}</div>
+                            <div className="text-emerald-200 text-xs">{lbl}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Rating card */}
+                    <div className="rounded-3xl bg-amber-400 p-7 flex flex-col justify-between min-h-[220px]">
+                      <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-amber-300 mb-2">
+                        <Star className="w-6 h-6 text-amber-700 fill-amber-700" />
+                      </div>
+                      <div>
+                        <div className="text-6xl font-black text-amber-900 leading-none">4.9</div>
+                        <div className="flex gap-0.5 mt-2 mb-1">
+                          {[...Array(5)].map((_, i) => <Star key={i} className="w-4 h-4 text-amber-700 fill-amber-700" />)}
+                        </div>
+                        <div className="text-amber-800 text-sm font-medium">
+                          {language === 'en' ? 'Average rating from 3.000+ travelers' : 'Rating rata-rata dari 3.000+ wisatawan'}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Price card */}
+                    <div className="rounded-3xl bg-gray-800 border border-gray-700 p-7 hover:border-teal-500/50 transition-colors group">
+                      <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-teal-500/15 mb-4">
+                        <Wallet className="w-6 h-6 text-teal-400" />
+                      </div>
+                      <h3 className="text-white font-bold text-base mb-2">
+                        {language === 'en' ? 'Transparent Price' : 'Harga Transparan'}
+                      </h3>
+                      <p className="text-gray-400 text-sm leading-relaxed">
+                        {language === 'en' ? 'No hidden fees. Everything is clearly stated upfront before you book.' : 'Tanpa biaya tersembunyi. Semua sudah jelas sebelum kamu booking.'}
+                      </p>
+                    </div>
+
+                    {/* Schedule card */}
+                    <div className="rounded-3xl bg-gray-800 border border-gray-700 p-7 hover:border-violet-500/50 transition-colors group">
+                      <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-violet-500/15 mb-4">
+                        <Clock3 className="w-6 h-6 text-violet-400" />
+                      </div>
+                      <h3 className="text-white font-bold text-base mb-2">
+                        {language === 'en' ? 'Flexible Schedule' : 'Jadwal Fleksibel'}
+                      </h3>
+                      <p className="text-gray-400 text-sm leading-relaxed">
+                        {language === 'en' ? 'Pick dates that fit your own timeline. Private trips are fully customizable.' : 'Pilih tanggal sesuai jadwalmu. Private trip bisa fully custom.'}
+                      </p>
+                    </div>
+
+                    {/* Support card */}
+                    <div className="rounded-3xl bg-gray-800 border border-gray-700 p-7 hover:border-pink-500/50 transition-colors group">
+                      <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-pink-500/15 mb-4">
+                        <HeartHandshake className="w-6 h-6 text-pink-400" />
+                      </div>
+                      <h3 className="text-white font-bold text-base mb-2">
+                        {language === 'en' ? '24/7 Support' : 'Dukungan 24/7'}
+                      </h3>
+                      <p className="text-gray-400 text-sm leading-relaxed">
+                        {language === 'en' ? 'Our team is always ready to help anytime, even in the middle of your trip.' : 'Tim kami siap membantu kapanpun, bahkan di tengah perjalananmu.'}
+                      </p>
+                    </div>
+
                   </div>
                 </div>
               </section>
