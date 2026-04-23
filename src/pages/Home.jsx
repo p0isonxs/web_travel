@@ -93,9 +93,9 @@ export default function Home() {
 
   const cardWidth = 100 / visibleCount;
 
-  const HERO_BG = settings.heroBackground || 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&q=80';
-  const PRIVATE_BG = settings.privateTripBackground || 'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=1920&q=80';
-  const TESTI_BG = settings.testimonialBackground || 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&q=80';
+  const HERO_BG = settings.heroBackground || '';
+  const PRIVATE_BG = settings.privateTripBackground || '';
+  const TESTI_BG = settings.testimonialBackground || '';
 
   const whyUs = t('home.whyUsItems');
   const homepageWhatsappMessage = encodeURIComponent(t('home.whatsappTemplate'));
@@ -122,8 +122,8 @@ export default function Home() {
               <section className="relative min-h-screen flex items-center overflow-hidden">
 
                 {/* Background photo */}
-                <div className="absolute inset-0">
-                  <img src={HERO_BG} alt="" className="w-full h-full object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-br from-emerald-900 via-teal-800 to-emerald-700">
+                  {HERO_BG && <img src={HERO_BG} alt="" className="w-full h-full object-cover" />}
                   <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/60 to-black/20" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                 </div>
@@ -340,8 +340,8 @@ export default function Home() {
           {/* Private Trip */}
               <section className="relative overflow-hidden py-24">
                 {/* Full photo background */}
-                <div className="absolute inset-0">
-                  <img src={PRIVATE_BG} alt="" className="w-full h-full object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-r from-violet-950 via-purple-900 to-purple-800">
+                  {PRIVATE_BG && <img src={PRIVATE_BG} alt="" className="w-full h-full object-cover" />}
                   <div className="absolute inset-0 bg-gradient-to-r from-violet-950/95 via-purple-900/90 to-purple-800/75" />
                 </div>
 
@@ -457,8 +457,8 @@ export default function Home() {
           {testimonials.length > 0 && (
             <section className="py-24 relative overflow-hidden">
               {/* Background photo + overlay */}
-              <div className="absolute inset-0">
-                <div className="absolute inset-0 opacity-40" style={{ backgroundImage: `url("${TESTI_BG}")`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
+              <div className="absolute inset-0 bg-emerald-950">
+                {TESTI_BG && <div className="absolute inset-0 opacity-40" style={{ backgroundImage: `url("${TESTI_BG}")`, backgroundSize: 'cover', backgroundPosition: 'center' }} />}
                 <div className="absolute inset-0 bg-gradient-to-b from-emerald-950/80 via-emerald-900/85 to-emerald-950/90" />
               </div>
 
