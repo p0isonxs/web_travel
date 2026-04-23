@@ -228,6 +228,7 @@ export default function Dashboard() {
           { to: '/admin/packages', label: 'Tambah Paket', emoji: '✈️' },
           { to: '/admin/blog', label: 'Tulis Artikel', emoji: '✍️' },
           { to: '/admin/payments', label: 'Verifikasi Bayar', emoji: '✅' },
+          { to: '/admin/contacts', label: 'Pesan Masuk', emoji: '💬' },
                     ].map((item, i) => (
                                   <Link key={i} to={item.to}
                                                   className="bg-white/20 hover:bg-white/30 rounded-xl p-4 text-center transition-colors">
