@@ -52,13 +52,16 @@ export default async function middleware(request) {
   try {
     if (type === 'blog') {
       const res = await fetch(
-        `${SUPABASE_URL}/rest/v1/blog?slug=eq.${encodeURIComponent(slug)}&select=title_id,excerpt_id,cover_image&limit=1`,
+        `${SUPABASE_URL}/rest/v1/blog?slug=eq.${encodeURIComponent(slug)}&select=title,excerpt,cover_image&limit=1`,
         { headers: SBHEADERS }
       );
-      const [post] = await res.json();
+      const data = await res.json();
+      const post = Array.isArray(data) ? data[0] : null;
       if (post) {
-        if (post.title_id) title = `${post.title_id} - Liburan Terus`;
-        if (post.excerpt_id) description = post.excerpt_id;
+        const rawTitle = typeof post.title === 'object' ? post.title.id : post.title;
+        const rawExcerpt = typeof post.excerpt === 'object' ? post.excerpt.id : post.excerpt;
+        if (rawTitle) title = `${rawTitle} - Liburan Terus`;
+        if (rawExcerpt) description = rawExcerpt;
         if (post.cover_image) image = post.cover_image;
       }
     } else {
@@ -66,7 +69,8 @@ export default async function middleware(request) {
         `${SUPABASE_URL}/rest/v1/packages?type=eq.${encodeURIComponent(type)}&slug->>id=eq.${encodeURIComponent(slug)}&select=title,description,images&limit=1`,
         { headers: SBHEADERS }
       );
-      const [pkg] = await res.json();
+      const pkgData = await res.json();
+      const pkg = Array.isArray(pkgData) ? pkgData[0] : null;
       if (pkg) {
         const rawTitle = typeof pkg.title === 'object' ? pkg.title.id : pkg.title;
         const rawDesc = typeof pkg.description === 'object' ? pkg.description.id : pkg.description;
