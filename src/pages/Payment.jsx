@@ -90,13 +90,28 @@ const Payment = () => {
                   return
           }
           setUploading(true)
+          let url = ''
           try {
-                  const url = await uploadToCloudinary(proofFile, 'payments')
+                  url = await uploadToCloudinary(proofFile, 'payments')
+          } catch (error) {
+                  console.error('Cloudinary upload error:', error)
+                  toast.error('Gagal upload foto: ' + (error.message || error))
+                  setUploading(false)
+                  return
+          }
+          try {
                   await createPaymentRecord({
                             status: 'pending',
                             method: 'transfer',
                             proofUrl: url,
                   })
+          } catch (error) {
+                  console.error('Payment record error:', error)
+                  toast.error('Gagal simpan data pembayaran: ' + (error.message || error))
+                  setUploading(false)
+                  return
+          }
+          try {
                   await updateBooking(bookingId, {
                             status: 'waiting_confirmation',
                             paymentMethod: 'transfer',
@@ -107,8 +122,8 @@ const Payment = () => {
                   toast.success(t('payment.proofUploaded'))
                   navigateToSuccess()
           } catch (error) {
-                  console.error('Error:', error)
-                  toast.error(t('payment.proofUploadFailed'))
+                  console.error('Update booking error:', error)
+                  toast.error('Gagal update status booking: ' + (error.message || error))
           } finally {
                   setUploading(false)
           }
