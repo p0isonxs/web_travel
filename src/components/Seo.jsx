@@ -3,9 +3,9 @@ import { useLocation } from 'react-router-dom';
 
 const SITE_NAME = 'Liburan Terus';
 const SITE_URL = import.meta.env.VITE_APP_URL || 'https://web-travel-pi.vercel.app';
-const DEFAULT_TITLE = 'Liburan Terus - Paket Wisata Open Trip & Private Trip Indonesia';
+const DEFAULT_TITLE = 'Liburan Terus - Wisata Open Trip & Private Trip';
 const DEFAULT_DESCRIPTION = 'Paket wisata open trip dan private trip terbaik ke berbagai destinasi indah di Indonesia. Harga terjangkau, pemandu profesional, aman & terpercaya.';
-const DEFAULT_IMAGE = 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&q=80';
+const DEFAULT_IMAGE = 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&h=630&fit=crop&q=80';
 
 export default function Seo({
   title = DEFAULT_TITLE,

@@ -60,7 +60,7 @@ const PrivateTrip = () => {
                 <Seo
                   title={t('privateTrip.seoTitle')}
                   description={t('privateTrip.seoDescription')}
-                  image="https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=1200&q=80"
+                  image="https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=1200&h=630&fit=crop&q=80"
                 />
           
             {/* Hero */}
