@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { getPackages, getApprovedTestimonials, getBlogPosts } from '../lib/database';
 import { generateSlug } from '../utils/slug';
-import { MapPin, Users, Star, ChevronRight, Phone, CheckCircle, ArrowRight, Calendar } from 'lucide-react';
+import { MapPin, Users, Star, ChevronRight, Phone, CheckCircle, ArrowRight, Calendar, ShieldCheck, Wallet, Clock3, HeartHandshake } from 'lucide-react';
 import Seo from '../components/Seo';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useSettings } from '../contexts/SettingsContext';
@@ -85,6 +85,10 @@ export default function Home() {
 
   const cardWidth = 100 / visibleCount;
 
+  const HERO_BG = settings.heroBackground || 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&q=80';
+  const PRIVATE_BG = settings.privateTripBackground || 'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=1920&q=80';
+  const TESTI_BG = settings.testimonialBackground || 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&q=80';
+
   const whyUs = t('home.whyUsItems');
   const homepageWhatsappMessage = encodeURIComponent(t('home.whatsappTemplate'));
 
@@ -109,7 +113,7 @@ export default function Home() {
           {/* Hero Section */}
               <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
                       <div className="absolute inset-0 bg-gradient-to-br from-emerald-900 via-teal-800 to-emerald-700">
-                                <div className="absolute inset-0 opacity-20" style={{backgroundImage: 'url("https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&q=80")', backgroundSize: 'cover', backgroundPosition: 'center'}} />
+                                <div className="absolute inset-0 opacity-20" style={{backgroundImage: `url("${HERO_BG}")`, backgroundSize: 'cover', backgroundPosition: 'center'}} />
                       </div>
                       <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
 
@@ -145,22 +149,51 @@ export default function Home() {
                       </div>
               </section>
 
-          {/* Stats */}
-              <section className="bg-white py-10 shadow-lg relative z-10">
-                      <div className="max-w-5xl mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-6">
-                        {[
-          { label: t('home.statsTrips'), value: '500+', icon: '✈️' },
-          { label: t('home.statsCustomers'), value: '3.000+', icon: '😊' },
-          { label: t('home.statsDestinations'), value: '50+', icon: '🗺️' },
-          { label: t('home.statsRating'), value: '4.9/5', icon: '⭐' },
-                    ].map((stat, i) => (
-                                  <div key={i} className="text-center">
-                                                <div className="text-3xl mb-1">{stat.icon}</div>
-                                                <div className="text-3xl font-bold text-emerald-600">{stat.value}</div>
-                                                <div className="text-gray-500 text-sm">{stat.label}</div>
-                                  </div>
-                                ))}
+          {/* Why Us Strip */}
+              <section className="relative z-10 bg-gradient-to-b from-emerald-50 to-white py-14">
+                <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                    {[
+                      {
+                        icon: <ShieldCheck className="w-6 h-6 text-emerald-600" />,
+                        bg: 'bg-emerald-100',
+                        title: language === 'en' ? 'Safe & Trusted' : 'Aman & Terpercaya',
+                        desc: language === 'en' ? 'Travel insurance included on every trip' : 'Asuransi perjalanan disertakan di setiap trip',
+                        stat: '500+ Trip',
+                      },
+                      {
+                        icon: <Wallet className="w-6 h-6 text-teal-600" />,
+                        bg: 'bg-teal-100',
+                        title: language === 'en' ? 'Transparent Price' : 'Harga Transparan',
+                        desc: language === 'en' ? 'No hidden fees, all costs clearly stated' : 'Tanpa biaya tersembunyi, semua jelas di awal',
+                        stat: 'Best Value',
+                      },
+                      {
+                        icon: <Clock3 className="w-6 h-6 text-violet-600" />,
+                        bg: 'bg-violet-100',
+                        title: language === 'en' ? 'Flexible Schedule' : 'Jadwal Fleksibel',
+                        desc: language === 'en' ? 'Choose dates that suit your plan' : 'Pilih tanggal sesuai rencanamu sendiri',
+                        stat: '50+ Destinasi',
+                      },
+                      {
+                        icon: <HeartHandshake className="w-6 h-6 text-amber-600" />,
+                        bg: 'bg-amber-100',
+                        title: language === 'en' ? '24/7 Support' : 'Dukungan 24/7',
+                        desc: language === 'en' ? 'Our team is always ready to assist you' : 'Tim kami siap membantu kapanpun kamu butuh',
+                        stat: '⭐ 4.9 / 5',
+                      },
+                    ].map((item, i) => (
+                      <div key={i} className="group bg-white rounded-2xl p-5 shadow-sm border border-gray-100 hover:shadow-md hover:-translate-y-1 transition-all duration-300">
+                        <div className={`inline-flex items-center justify-center w-12 h-12 rounded-xl ${item.bg} mb-4`}>
+                          {item.icon}
+                        </div>
+                        <h3 className="font-bold text-gray-900 text-base mb-1">{item.title}</h3>
+                        <p className="text-gray-500 text-sm leading-relaxed mb-3">{item.desc}</p>
+                        <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full">{item.stat}</span>
                       </div>
+                    ))}
+                  </div>
+                </div>
               </section>
 
           {/* Open Trip Section */}
@@ -261,7 +294,7 @@ export default function Home() {
               <section className="relative overflow-hidden py-24">
                 {/* Full photo background */}
                 <div className="absolute inset-0">
-                  <img src="https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=1920&q=80" alt="" className="w-full h-full object-cover" />
+                  <img src={PRIVATE_BG} alt="" className="w-full h-full object-cover" />
                   <div className="absolute inset-0 bg-gradient-to-r from-violet-950/95 via-purple-900/90 to-purple-800/75" />
                 </div>
 
@@ -378,7 +411,7 @@ export default function Home() {
             <section className="py-24 relative overflow-hidden">
               {/* Background photo + overlay */}
               <div className="absolute inset-0">
-                <div className="absolute inset-0 opacity-40" style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&q=80")', backgroundSize: 'cover', backgroundPosition: 'center' }} />
+                <div className="absolute inset-0 opacity-40" style={{ backgroundImage: `url("${TESTI_BG}")`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
                 <div className="absolute inset-0 bg-gradient-to-b from-emerald-950/80 via-emerald-900/85 to-emerald-950/90" />
               </div>
 
