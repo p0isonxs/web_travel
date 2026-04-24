@@ -63,6 +63,38 @@ function resolveMapSource(pkg, packageLocation, fallbackLocation) {
   }
 }
 
+function FaqSection({ faqs, title, accent }) {
+  const [openIdx, setOpenIdx] = useState(null);
+  if (!Array.isArray(faqs) || faqs.length === 0) return null;
+  return (
+    <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+      <div className="px-6 py-5 border-b border-gray-100">
+        <h2 className="text-lg font-bold text-gray-800">{title}</h2>
+      </div>
+      <div className="divide-y divide-gray-100">
+        {faqs.map((item, i) => (
+          <div key={i}>
+            <button
+              onClick={() => setOpenIdx(openIdx === i ? null : i)}
+              className="w-full flex items-center justify-between gap-4 px-6 py-4 text-left hover:bg-gray-50 transition-colors"
+            >
+              <span className={`font-medium text-sm text-gray-800 ${openIdx === i ? accent.text : ''}`}>{item.q}</span>
+              <span className={`shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold transition-all ${openIdx === i ? `bg-gradient-to-br ${accent.text.replace('text-', 'bg-').replace('-600', '-500')} bg-emerald-500` : 'bg-gray-200 text-gray-500'}`}>
+                {openIdx === i ? '−' : '+'}
+              </span>
+            </button>
+            {openIdx === i && (
+              <div className="px-6 pb-5">
+                <p className="text-gray-600 text-sm leading-relaxed">{item.a}</p>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 const PackageDetail = () => {
     const { id, slug } = useParams()
     const navigate = useNavigate()
@@ -391,6 +423,13 @@ const PackageDetail = () => {
                                                                                                           )}
                                                                                           </div>
                                                                         </div>
+
+                                                            {/* FAQ */}
+                                                                        <FaqSection
+                                                                          faqs={isOpenTrip ? t('packageDetail.faqOpenTrip') : t('packageDetail.faqPrivateTrip')}
+                                                                          title={t('packageDetail.faqTitle')}
+                                                                          accent={accent}
+                                                                        />
 
                                                             {/* Location Map */}
                                                                         <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
