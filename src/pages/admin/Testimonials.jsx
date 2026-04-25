@@ -1,18 +1,23 @@
 import { useState, useEffect } from 'react';
-import { getTestimonials, addTestimonial, updateTestimonial, deleteTestimonial } from '../../lib/database';
-import { Plus, Trash2, CheckCircle, X, Save, Star } from 'lucide-react';
+import { getTestimonials, addTestimonial, updateTestimonial, deleteTestimonial, getPackages } from '../../lib/database';
+import { Plus, Trash2, CheckCircle, X, Save, Star, Search, MessageSquareQuote } from 'lucide-react';
 import { toast } from 'react-toastify';
 
-const emptyForm = { name: '', packageName: '', comment: '', rating: 5, approved: false };
+const emptyForm = { name: '', packageName: '', packageId: '', comment: '', rating: 5, approved: false };
 
 export default function AdminTestimonials() {
     const [testimonials, setTestimonials] = useState([]);
+    const [packages, setPackages] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
     const [form, setForm] = useState(emptyForm);
     const [saving, setSaving] = useState(false);
+    const [search, setSearch] = useState('');
 
-  useEffect(() => { fetchTestimonials(); }, []);
+  useEffect(() => {
+    fetchTestimonials();
+    getPackages(null, false).then(pkgs => setPackages(pkgs)).catch(() => {});
+  }, []);
 
   const fetchTestimonials = async () => {
         setLoading(true);
@@ -47,6 +52,19 @@ export default function AdminTestimonials() {
   };
 
   const inputClass = 'w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500';
+  const filteredTestimonials = testimonials.filter((testimonial) => {
+    const keyword = search.toLowerCase();
+    return (
+      testimonial.name?.toLowerCase().includes(keyword) ||
+      testimonial.packageName?.toLowerCase().includes(keyword) ||
+      testimonial.comment?.toLowerCase().includes(keyword)
+    );
+  });
+  const testimonialStats = [
+    { label: 'Total Testimoni', value: testimonials.length, helper: 'Semua data yang tersimpan', cardClass: 'bg-white border-gray-100', valueClass: 'text-gray-900' },
+    { label: 'Ditampilkan', value: testimonials.filter((item) => item.approved).length, helper: 'Aktif di halaman publik', cardClass: 'bg-emerald-50 border-emerald-200', valueClass: 'text-emerald-700' },
+    { label: 'Perlu Review', value: testimonials.filter((item) => !item.approved).length, helper: 'Belum tampil di website', cardClass: 'bg-amber-50 border-amber-200', valueClass: 'text-amber-700' },
+  ];
 
   return (
         <div className="space-y-6">
@@ -59,12 +77,33 @@ export default function AdminTestimonials() {
                                 <Plus className="w-5 h-5" /> Tambah Testimoni
                       </button>
               </div>
+
+              <div className="grid gap-4 md:grid-cols-3">
+                {testimonialStats.map((stat) => (
+                  <div key={stat.label} className={`rounded-2xl border p-5 shadow-sm ${stat.cardClass}`}>
+                    <p className="text-sm text-gray-500">{stat.label}</p>
+                    <p className={`mt-2 text-3xl font-bold ${stat.valueClass}`}>{stat.value}</p>
+                    <p className="mt-1 text-xs text-gray-400">{stat.helper}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <input
+                  type="text"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Cari nama traveler, paket, atau isi testimoni..."
+                  className="w-full rounded-xl border border-gray-300 py-3 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                />
+              </div>
         
           {loading ? (
                   <div className="text-center py-8 text-gray-400">Memuat...</div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {testimonials.map(t => (
+                    {filteredTestimonials.map(t => (
                                 <div key={t.id} className={`bg-white rounded-2xl p-5 shadow-sm border-l-4 ${t.approved ? 'border-emerald-500' : 'border-gray-200'}`}>
                                               <div className="flex items-start justify-between mb-3">
                                                               <div>
@@ -84,6 +123,9 @@ export default function AdminTestimonials() {
                                                                                 </button>
                                                                                 <button onClick={() => handleDelete(t.id)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg"><Trash2 className="w-5 h-5" /></button>
                                                               </div>
+                                              </div>
+                                              <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
+                                                <MessageSquareQuote className="w-5 h-5" />
                                               </div>
                                               <p className="text-gray-600 text-sm italic">"{t.comment}"</p>
                                               <div className="mt-2">
@@ -111,7 +153,17 @@ export default function AdminTestimonials() {
                                                       </div>
                                                       <div>
                                                                       <label className="block text-sm font-medium text-gray-700 mb-1">Paket yang Diambil</label>
-                                                                      <input value={form.packageName} onChange={e => setForm({...form, packageName: e.target.value})} className={inputClass} placeholder="Nama paket wisata" />
+                                                                      <select value={form.packageId} onChange={e => {
+                                                                        const pkg = packages.find(p => p.id === e.target.value);
+                                                                        const name = typeof pkg?.title === 'string' ? pkg.title : (pkg?.title?.id || '');
+                                                                        setForm({...form, packageId: e.target.value, packageName: name});
+                                                                      }} className={inputClass}>
+                                                                        <option value="">-- Pilih Paket --</option>
+                                                                        {packages.map(p => {
+                                                                          const t = typeof p.title === 'string' ? p.title : (p.title?.id || p.title?.en || '');
+                                                                          return <option key={p.id} value={p.id}>{t}</option>;
+                                                                        })}
+                                                                      </select>
                                                       </div>
                                                       <div>
                                                                       <label className="block text-sm font-medium text-gray-700 mb-1">Rating</label>

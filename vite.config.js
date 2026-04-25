@@ -26,19 +26,13 @@ export default defineConfig({
                               return 'router-vendor';
                             }
 
-                            if (id.includes('/firebase/')) {
-                              return 'firebase-vendor';
-                            }
-
                             if (id.includes('/react-icons/') || id.includes('/lucide-react/')) {
                               return 'icons-vendor';
                             }
 
                             if (
                               id.includes('/react-helmet-async/') ||
-                              id.includes('/react-toastify/') ||
-                              id.includes('/react-datepicker/') ||
-                              id.includes('/date-fns/')
+                              id.includes('/react-toastify/')
                             ) {
                               return 'ui-vendor';
                             }

@@ -1,6 +1,26 @@
 import { supabase } from './supabase'
 import { toLocalizedField } from '../utils/localizedContent'
 
+const PUBLIC_SETTINGS_KEYS = [
+  'siteName',
+  'tagline',
+  'phone',
+  'email',
+  'address',
+  'instagram',
+  'facebook',
+  'youtube',
+  'tiktok',
+  'bankName',
+  'bankAccount',
+  'bankAccountName',
+  'metaDescription',
+  'metaKeywords',
+  'heroBackground',
+  'privateTripBackground',
+  'testimonialBackground',
+]
+
 // ─── Key converters ───────────────────────────────────────────────────────────
 const toSnake = (k) => k.replace(/[A-Z]/g, (c) => '_' + c.toLowerCase())
 const toCamel = (k) => k.replace(/_([a-z])/g, (_, c) => c.toUpperCase())
@@ -18,6 +38,13 @@ const docToRow = (data) => {
       .map(([k, v]) => [toSnake(k), v])
   )
 }
+
+const sanitizeSettings = (data) =>
+  Object.fromEntries(
+    PUBLIC_SETTINGS_KEYS
+      .filter((key) => data && data[key] !== undefined)
+      .map((key) => [key, data[key]])
+  )
 
 // ─── Package normalization (same logic as before) ────────────────────────────
 const splitList = (value) => {
@@ -76,13 +103,24 @@ const normalizePackage = (data) => {
   const departureDates = Array.isArray(data.departureDates)
     ? data.departureDates
     : splitList(data.departureDates)
+
+  // Extras (faq, metaTitle, metaDescription) disimpan di dalam description JSONB
+  const rawDesc = data.description || {}
+  const faq = Array.isArray(rawDesc._faq) ? rawDesc._faq : []
+  const metaTitle = rawDesc._metaTitle || ''
+  const metaDescription = rawDesc._metaDescription || ''
+  const cleanDesc = { id: rawDesc.id || '', en: rawDesc.en || '' }
+
   return {
     ...data,
+    faq,
+    metaTitle,
+    metaDescription,
     images: Array.isArray(data.images) ? data.images.filter(Boolean) : data.image ? [data.image] : [],
     title: normalizeLocalizedText(data.title),
     location: normalizeLocalizedText(data.location),
     duration: normalizeLocalizedText(data.duration),
-    description: normalizeLocalizedText(data.description),
+    description: normalizeLocalizedText(cleanDesc),
     itinerary: normalizeLocalizedItinerary(data.itinerary),
     includes: normalizeLocalizedList(data.includes, data.include),
     excludes: normalizeLocalizedList(data.excludes, data.exclude),
@@ -95,14 +133,13 @@ const normalizePackage = (data) => {
 }
 
 // ─── PACKAGES ────────────────────────────────────────────────────────────────
-export const getPackages = async (type = null) => {
+export const getPackages = async (type = null, activeOnly = true) => {
   let q = supabase.from('packages').select('*').order('created_at', { ascending: false })
   if (type) q = q.eq('type', type)
+  if (activeOnly) q = q.eq('active', true)
   const { data, error } = await q
   if (error) throw error
-  return (data || [])
-    .map((row) => normalizePackage(rowToDoc(row)))
-    .filter((item) => item.active !== false)
+  return (data || []).map((row) => normalizePackage(rowToDoc(row)))
 }
 
 export const getPackageById = async (id) => {
@@ -111,10 +148,26 @@ export const getPackageById = async (id) => {
   return normalizePackage(rowToDoc(data))
 }
 
+// Embed faq/metaTitle/metaDescription ke dalam field description (JSONB yang sudah ada)
+// Sehingga tidak perlu kolom baru di database
+const embedExtrasIntoDescription = (data) => {
+  const { faq, metaTitle, metaDescription, description, ...rest } = data
+  const descObj = description && typeof description === 'object' ? description : { id: description || '', en: '' }
+  return {
+    ...rest,
+    description: {
+      ...descObj,
+      _faq: Array.isArray(faq) ? faq : [],
+      _metaTitle: metaTitle || '',
+      _metaDescription: metaDescription || '',
+    },
+  }
+}
+
 export const addPackage = async (data) => {
   const { data: row, error } = await supabase
     .from('packages')
-    .insert(docToRow(data))
+    .insert(docToRow(embedExtrasIntoDescription(data)))
     .select('id')
     .single()
   if (error) throw error
@@ -122,7 +175,7 @@ export const addPackage = async (data) => {
 }
 
 export const updatePackage = async (id, data) => {
-  const row = { ...docToRow(data), updated_at: new Date().toISOString() }
+  const row = { ...docToRow(embedExtrasIntoDescription(data)), updated_at: new Date().toISOString() }
   const { error } = await supabase.from('packages').update(row).eq('id', id)
   if (error) throw error
 }
@@ -357,13 +410,13 @@ export const getSettings = async () => {
     .eq('id', 'general')
     .maybeSingle()
   if (error || !data) return {}
-  return data.data || {}
+  return sanitizeSettings(data.data || {})
 }
 
 export const updateSettings = async (settingsData) => {
   const { error } = await supabase
     .from('settings')
-    .upsert({ id: 'general', data: settingsData, updated_at: new Date().toISOString() })
+    .upsert({ id: 'general', data: sanitizeSettings(settingsData), updated_at: new Date().toISOString() })
   if (error) throw error
 }
 

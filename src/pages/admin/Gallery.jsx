@@ -3,6 +3,7 @@ import { getGallery, addGalleryItem, deleteGalleryItem } from '../../lib/databas
 import { uploadToCloudinary } from '../../utils/cloudinary';
 import { Plus, Trash2, X, Upload, Image } from 'lucide-react';
 import { toast } from 'react-toastify';
+import { getGalleryImageAlt } from '../../utils/imageAlt';
 
 const categories = ['open trip', 'private trip', 'destinasi', 'kuliner'];
 
@@ -10,10 +11,17 @@ export default function AdminGallery() {
     const [photos, setPhotos] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
-    const [form, setForm] = useState({ caption: '', category: 'destinasi', imageUrl: '' });
+    const [form, setForm] = useState({ caption: '', category: 'destinasi', imageUrl: '', imageAlt: '' });
     const [file, setFile] = useState(null);
     const [uploading, setUploading] = useState(false);
     const [preview, setPreview] = useState('');
+
+  const resetForm = () => {
+        setShowForm(false);
+        setForm({ caption: '', category: 'destinasi', imageUrl: '', imageAlt: '' });
+        setFile(null);
+        setPreview('');
+  };
 
   useEffect(() => { fetchPhotos(); }, []);
 
@@ -39,9 +47,7 @@ export default function AdminGallery() {
                 if (!imageUrl) { toast.error('Pilih foto atau masukkan URL foto'); setUploading(false); return; }
                 await addGalleryItem({ ...form, imageUrl });
                 toast.success('Foto berhasil ditambahkan!');
-                setShowForm(false);
-                setForm({ caption: '', category: 'destinasi', imageUrl: '' });
-                setFile(null); setPreview('');
+                resetForm();
                 fetchPhotos();
         } catch (e) { toast.error('Gagal: ' + e.message); }
         setUploading(false);
@@ -57,6 +63,7 @@ export default function AdminGallery() {
   };
 
   const inputClass = 'w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500';
+  const generatedAltPreview = getGalleryImageAlt(form, 'id');
 
   return (
         <div className="space-y-6">
@@ -83,7 +90,7 @@ export default function AdminGallery() {
                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                     {photos.map(photo => (
                                 <div key={photo.id} className="group relative aspect-square rounded-xl overflow-hidden bg-gray-100 shadow-sm">
-                                              <img src={photo.imageUrl} alt={photo.caption || ''} className="w-full h-full object-cover" loading="lazy" />
+                                              <img src={photo.imageUrl} alt={getGalleryImageAlt(photo, 'id')} className="w-full h-full object-cover" loading="lazy" />
                                               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-all flex items-end p-3">
                                                               <div className="translate-y-full group-hover:translate-y-0 transition-transform w-full">
                                                                 {photo.caption && <p className="text-white text-xs mb-2 line-clamp-2">{photo.caption}</p>}
@@ -106,7 +113,7 @@ export default function AdminGallery() {
                             <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl">
                                         <div className="flex items-center justify-between p-6 border-b border-gray-100">
                                                       <h2 className="text-xl font-bold">Tambah Foto</h2>
-                                                      <button onClick={() => { setShowForm(false); setFile(null); setPreview(''); }}><X className="w-6 h-6 text-gray-400" /></button>
+                                                      <button onClick={resetForm}><X className="w-6 h-6 text-gray-400" /></button>
                                         </div>
                                         <form onSubmit={handleSave} className="p-6 space-y-4">
                                           {/* Upload or URL */}
@@ -129,6 +136,12 @@ export default function AdminGallery() {
                                                       <div>
                                                                       <label className="block text-sm font-medium text-gray-700 mb-1">Keterangan Foto</label>
                                                                       <input type="text" value={form.caption} onChange={e => setForm({...form, caption: e.target.value})} className={inputClass} placeholder="Contoh: Sunset di Labuan Bajo" />
+                                                                      <p className="mt-1 text-xs text-gray-500">Keterangan ini juga dipakai sebagai `alt` gambar di website publik.</p>
+                                                      </div>
+                                                      <div>
+                                                                      <label className="block text-sm font-medium text-gray-700 mb-1">Alt Text Foto</label>
+                                                                      <input type="text" value={form.imageAlt} onChange={e => setForm({...form, imageAlt: e.target.value})} className={inputClass} placeholder="Contoh: Sunset oranye di perairan Labuan Bajo dengan siluet kapal" />
+                                                                      <p className="mt-1 text-xs text-gray-500">Opsional. Jika kosong, sistem menggunakan caption atau kategori sebagai fallback.</p>
                                                       </div>
                                                       <div>
                                                                       <label className="block text-sm font-medium text-gray-700 mb-1">Kategori</label>
@@ -136,8 +149,12 @@ export default function AdminGallery() {
                                                                         {categories.map(c => <option key={c} value={c} className="capitalize">{c}</option>)}
                                                                       </select>
                                                       </div>
+                                                      <div className="rounded-xl border border-emerald-100 bg-emerald-50 p-3 text-sm text-emerald-800">
+                                                                      <p className="font-semibold">Preview alt gambar</p>
+                                                                      <p className="mt-1">{generatedAltPreview}</p>
+                                                      </div>
                                                       <div className="flex gap-3 pt-2">
-                                                                      <button type="button" onClick={() => { setShowForm(false); setFile(null); setPreview(''); }} className="flex-1 border border-gray-300 text-gray-700 font-semibold py-2 rounded-xl hover:bg-gray-50">Batal</button>
+                                                                      <button type="button" onClick={resetForm} className="flex-1 border border-gray-300 text-gray-700 font-semibold py-2 rounded-xl hover:bg-gray-50">Batal</button>
                                                                       <button type="submit" disabled={uploading} className="flex-1 flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white font-semibold py-2 rounded-xl">
                                                                         {uploading ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <Upload className="w-5 h-5" />}
                                                                         {uploading ? 'Mengupload...' : 'Simpan Foto'}

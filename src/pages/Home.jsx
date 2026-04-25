@@ -7,6 +7,8 @@ import { MapPin, Users, Star, ChevronRight, Phone, CheckCircle, ArrowRight, Cale
 import Seo from '../components/Seo';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useSettings } from '../contexts/SettingsContext';
+import { getBlogImageAlt, getPackageImageAlt } from '../utils/imageAlt';
+import { optimizeImageUrl } from '../utils/cloudinary';
 
 export default function Home() {
     const [openPackages, setOpenPackages] = useState([]);
@@ -114,7 +116,14 @@ export default function Home() {
                     "description": language === 'en' ? "Trusted travel agency for open trips and private trips" : "Agen wisata terpercaya untuk open trip dan private trip",
                     "url": "https://liburanterus.com",
                     "telephone": `+${settings.phone}`,
-                    "address": { "@type": "PostalAddress", "addressCountry": "ID" }
+                    "address": { "@type": "PostalAddress", "addressCountry": "ID" },
+                    "aggregateRating": testimonials.length > 0 ? {
+                      "@type": "AggregateRating",
+                      "ratingValue": "4.9",
+                      "bestRating": "5",
+                      "worstRating": "1",
+                      "ratingCount": testimonials.length
+                    } : undefined
                 })}</script>
               </Helmet>
 
@@ -123,7 +132,7 @@ export default function Home() {
 
                 {/* Background photo */}
                 <div className="absolute inset-0 bg-gradient-to-br from-emerald-900 via-teal-800 to-emerald-700">
-                  {HERO_BG && <img src={HERO_BG} alt="" className="w-full h-full object-cover" />}
+                  {HERO_BG && <img src={optimizeImageUrl(HERO_BG, { width: 1600, quality: 'auto' })} alt="" fetchpriority="high" loading="eager" decoding="async" className="w-full h-full object-cover" />}
                   <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/60 to-black/20" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                 </div>
@@ -178,7 +187,9 @@ export default function Home() {
                           className="relative rounded-2xl overflow-hidden shadow-2xl group block h-[420px]">
                           {/* Slides */}
                           {openPackages.slice(0, 5).map((p, i) => (
-                            <img key={i} src={p.images?.[0]} alt={localize(p.title)}
+                            <img key={i} src={optimizeImageUrl(p.images?.[0], { width: 900, height: 1200 })} alt={getPackageImageAlt(p, language, 0)}
+                              loading={i === 0 ? 'eager' : 'lazy'}
+                              decoding="async"
                               className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${i === heroCardIdx ? 'opacity-100' : 'opacity-0'}`} />
                           ))}
                           <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
@@ -280,7 +291,7 @@ export default function Home() {
                                         <Link key={pkg.id} to={`/${pkg.type}/${pkg.slug?.id || generateSlug(pkg.title?.id || pkg.title || '')}`} className="group">
                                                           <article className="h-full bg-white rounded-[28px] overflow-hidden border border-gray-100 shadow-[0_18px_45px_-32px_rgba(15,23,42,0.45)] hover:shadow-[0_26px_60px_-32px_rgba(16,185,129,0.32)] transition-all duration-300 hover:-translate-y-1">
                                                                               <div className="relative h-52 overflow-hidden">
-                                                                                                    <img src={pkg.images?.[0] || 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&q=80'} alt={title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                                                                                                    <img src={optimizeImageUrl(pkg.images?.[0], { width: 800, height: 520 }) || 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&q=80'} alt={getPackageImageAlt(pkg, language)} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" loading="lazy" decoding="async" />
                                                                                                     <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent" />
                                                                                                     <div className="absolute top-4 left-4">
                                                                                                                       <span className="inline-flex items-center gap-2 rounded-full bg-white/90 backdrop-blur-sm text-emerald-700 text-[11px] font-bold uppercase tracking-[0.18em] px-3 py-1.5">
@@ -341,7 +352,7 @@ export default function Home() {
               <section className="relative overflow-hidden py-24">
                 {/* Full photo background */}
                 <div className="absolute inset-0 bg-gradient-to-r from-violet-950 via-purple-900 to-purple-800">
-                  {PRIVATE_BG && <img src={PRIVATE_BG} alt="" className="w-full h-full object-cover" />}
+                  {PRIVATE_BG && <img src={optimizeImageUrl(PRIVATE_BG, { width: 1600, quality: 'auto' })} alt="" className="w-full h-full object-cover" loading="lazy" decoding="async" />}
                   <div className="absolute inset-0 bg-gradient-to-r from-violet-950/95 via-purple-900/90 to-purple-800/75" />
                 </div>
 
@@ -395,8 +406,8 @@ export default function Home() {
                         return (
                           <Link to={`/${pkg.type}/${pkg.slug?.id || generateSlug(pkg.title?.id || pkg.title || '')}`}
                                 className="relative rounded-3xl overflow-hidden row-span-2 group">
-                            <img src={pkg.images?.[0] || 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&q=80'}
-                                 alt={title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                            <img src={optimizeImageUrl(pkg.images?.[0], { width: 900, height: 900 }) || 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&q=80'}
+                                 alt={getPackageImageAlt(pkg, language)} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" loading="lazy" decoding="async" />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
                             <div className="absolute bottom-5 left-5 right-5">
                               <span className="inline-block bg-purple-500/80 backdrop-blur-sm text-white text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full mb-2">Private Trip</span>
@@ -411,8 +422,8 @@ export default function Home() {
                         return (
                           <Link key={pkg.id} to={`/${pkg.type}/${pkg.slug?.id || generateSlug(pkg.title?.id || pkg.title || '')}`}
                                 className="relative rounded-3xl overflow-hidden group">
-                            <img src={pkg.images?.[0] || 'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=400&q=80'}
-                                 alt={title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                            <img src={optimizeImageUrl(pkg.images?.[0], { width: 500, height: 500 }) || 'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=400&q=80'}
+                                 alt={getPackageImageAlt(pkg, language)} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" loading="lazy" decoding="async" />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                             <p className="absolute bottom-4 left-4 right-4 text-white font-semibold text-sm leading-snug">{title}</p>
                           </Link>
@@ -572,9 +583,11 @@ export default function Home() {
                                   {/* Image */}
                                   <div className="relative aspect-[16/9] overflow-hidden">
                                     <img
-                                      src={blog.coverImage || 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=600&q=80'}
-                                      alt={title}
+                                      src={optimizeImageUrl(blog.coverImage, { width: 800, height: 450 }) || 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=600&q=80'}
+                                      alt={getBlogImageAlt(blog, language) || title}
                                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                      loading="lazy"
+                                      decoding="async"
                                     />
                                     {i === 0 && (
                                       <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />

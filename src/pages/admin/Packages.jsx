@@ -2,14 +2,36 @@ import { useState, useEffect } from 'react';
 import { getPackages, addPackage, updatePackage, deletePackage } from '../../lib/database';
 import { generateSlug } from '../../utils/slug';
 import { uploadMultiple } from '../../utils/cloudinary';
-import { Plus, Edit2, Trash2, X, Save, Eye, EyeOff, Search, Upload } from 'lucide-react';
+import { Plus, Edit2, Trash2, X, Save, Eye, EyeOff, Search, Upload, CheckSquare, Square, Zap, HelpCircle } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { useAuth } from '../../contexts/AuthContext';
+import SerpPreview from '../../components/admin/SerpPreview';
+import { getPackageImageAlt } from '../../utils/imageAlt';
+
+const FAQ_TEMPLATE = {
+  'open-trip': [
+    { q: 'Apakah bisa ikut sendiri (solo traveler)?', a: 'Tentu bisa! Open trip memang dirancang untuk peserta dari berbagai kalangan, termasuk solo traveler. Kamu akan bergabung dengan peserta lain dalam satu rombongan.' },
+    { q: 'Berapa minimal peserta agar trip bisa berjalan?', a: 'Trip akan berjalan jika kuota minimum terpenuhi. Admin akan menginformasikan melalui WhatsApp jika ada perubahan jadwal.' },
+    { q: 'Bagaimana cara pembayaran?', a: 'Pembayaran dilakukan via transfer bank. Kamu bisa melakukan booking online dan upload bukti transfer langsung di website.' },
+    { q: 'Apakah bisa refund jika membatalkan?', a: 'Kebijakan refund tergantung pada waktu pembatalan. Hubungi admin via WhatsApp untuk informasi lebih lanjut mengenai kebijakan pembatalan.' },
+    { q: 'Apa yang perlu dibawa?', a: 'Pastikan membawa pakaian yang sesuai dengan destinasi, obat pribadi, dokumen identitas, dan perlengkapan pribadi lainnya. Detail akan dikirimkan setelah booking dikonfirmasi.' },
+    { q: 'Apakah ada pemandu wisata?', a: 'Ya, setiap trip didampingi oleh pemandu wisata berpengalaman yang akan memastikan perjalananmu aman dan menyenangkan.' },
+  ],
+  'private-trip': [
+    { q: 'Apakah rute perjalanan bisa disesuaikan?', a: 'Ya, private trip bisa disesuaikan sepenuhnya dengan kebutuhan grup kamu — mulai dari destinasi, durasi, hingga aktivitas yang diinginkan.' },
+    { q: 'Berapa minimal peserta untuk private trip?', a: 'Tidak ada batas minimum peserta. Private trip bisa dilakukan berdua, berkeluarga, maupun rombongan besar. Harga akan disesuaikan dengan jumlah peserta.' },
+    { q: 'Bagaimana cara pemesanan private trip?', a: 'Hubungi kami via WhatsApp atau form kontak untuk konsultasi. Tim kami akan menyiapkan penawaran yang sesuai dengan kebutuhan dan anggaran kamu.' },
+    { q: 'Apakah bisa request tanggal keberangkatan sendiri?', a: 'Ya, salah satu keunggulan private trip adalah fleksibilitas tanggal. Kamu bisa menentukan tanggal keberangkatan yang paling sesuai.' },
+    { q: 'Apakah harga sudah termasuk akomodasi?', a: 'Detail fasilitas yang termasuk dalam paket sudah tercantum di tab Fasilitas. Jika ada kebutuhan khusus, silakan diskusikan saat konsultasi.' },
+    { q: 'Apakah ada pemandu wisata pribadi?', a: 'Ya, private trip dilengkapi dengan pemandu wisata pribadi yang berdedikasi penuh untuk grup kamu sepanjang perjalanan.' },
+  ],
+};
 
 const emptyForm = {
     titleId: '', titleEn: '', type: 'open-trip', locationId: '', locationEn: '', durationId: '', durationEn: '', price: '', originalPrice: '',
     descriptionId: '', descriptionEn: '', itineraryId: '', itineraryEn: '', includeId: '', includeEn: '', excludeId: '', excludeEn: '', maxParticipants: 15,
-    departureDates: '', mapLink: '', mapLatitude: '', mapLongitude: '', images: [], active: true, featured: false,
+    departureDates: '', mapLink: '', mapLatitude: '', mapLongitude: '', images: [], imageAlts: [], active: true, featured: false,
+    metaTitle: '', metaDescription: '', faq: [],
 };
 
 const FIRESTORE_TIMEOUT_MS = 15000;
@@ -139,18 +161,23 @@ export default function AdminPackages() {
     const [imageFiles, setImageFiles] = useState([]);
     const [imagePreviews, setImagePreviews] = useState([]);
     const [saveStatus, setSaveStatus] = useState('');
+    const [selectedIds, setSelectedIds] = useState([]);
+    const [bulkLoading, setBulkLoading] = useState(false);
     const { currentUser } = useAuth();
 
   useEffect(() => { fetchPackages(); }, []);
 
   const fetchPackages = async () => {
         setLoading(true);
-        const pkgs = await getPackages();
+        const pkgs = await getPackages(null, false);
         setPackages(pkgs);
         setLoading(false);
   };
 
-  const openCreate = () => { setForm(emptyForm); setEditId(null); setImageFiles([]); setImagePreviews([]); setSaveStatus(''); setShowForm(true); };
+  const openCreate = () => {
+    setForm({ ...emptyForm, faq: FAQ_TEMPLATE['open-trip'].map(f => ({...f})) });
+    setEditId(null); setImageFiles([]); setImagePreviews([]); setSaveStatus(''); setShowForm(true);
+  };
     const openEdit = (pkg) => {
       const title = normalizeLocalizedField(pkg.title, value => value || '');
       const location = normalizeLocalizedField(pkg.location, value => value || '');
@@ -181,7 +208,13 @@ export default function AdminPackages() {
         mapLatitude: pkg.mapLatitude ?? '',
         mapLongitude: pkg.mapLongitude ?? '',
         images: pkg.images || [],
+        imageAlts: Array.isArray(pkg.imageAlts) ? pkg.imageAlts : [],
         departureDates: formatListForTextarea(pkg.departureDates),
+        metaTitle: pkg.metaTitle || '',
+        metaDescription: pkg.metaDescription || '',
+        faq: Array.isArray(pkg.faq) && pkg.faq.length > 0
+          ? pkg.faq
+          : FAQ_TEMPLATE[pkg.type] ? FAQ_TEMPLATE[pkg.type].map(f => ({...f})) : [],
       });
       setEditId(pkg.id);
       setImageFiles([]);
@@ -210,11 +243,13 @@ export default function AdminPackages() {
         try {
                 // Upload new image files if any
                 let images = form.images || [];
+                let imageAlts = Array.isArray(form.imageAlts) ? [...form.imageAlts] : [];
                 if (imageFiles.length > 0) {
                           const uploads = await uploadMultiple(imageFiles, 'packages', ({ current, total, fileName }) => {
                                     setSaveStatus(`Mengunggah foto ${current}/${total}: ${fileName}`);
                           });
                           images = [...images, ...uploads];
+                          imageAlts = [...imageAlts, ...new Array(uploads.length).fill('')];
                 }
                 setSaveStatus('Menyimpan data paket ke database...');
                 const slugId = generateSlug(form.titleId.trim())
@@ -253,7 +288,11 @@ export default function AdminPackages() {
                           active: form.active,
                           featured: form.featured,
                           images,
+                          imageAlts: imageAlts.map(item => item || ''),
                           image: images[0] || '',
+                          metaTitle: form.metaTitle.trim(),
+                          metaDescription: form.metaDescription.trim(),
+                          faq: form.faq.filter(f => f.q.trim() && f.a.trim()),
                           departureDates: form.type === 'open-trip' ? normalizeDepartureDates(form.departureDates) : [],
                           mapLink: form.mapLink.trim(),
                           mapLatitude: form.mapLatitude === '' ? null : Number(form.mapLatitude),
@@ -296,9 +335,41 @@ export default function AdminPackages() {
   };
 
   const toggleActive = async (id, current) => {
-        await updateDoc(doc(db, 'packages', id), { active: !current });
-        fetchPackages();
+        try {
+          await updatePackage(id, { active: !current });
+          fetchPackages();
+        } catch {
+          toast.error('Gagal mengubah status paket');
+        }
   };
+
+  const bulkActivate = async (active) => {
+    if (!selectedIds.length) return;
+    setBulkLoading(true);
+    try {
+      await Promise.all(selectedIds.map(id => updatePackage(id, { active })));
+      toast.success(`${selectedIds.length} paket berhasil di${active ? 'aktifkan' : 'nonaktifkan'}`);
+      setSelectedIds([]);
+      fetchPackages();
+    } catch { toast.error('Gagal mengubah status'); }
+    setBulkLoading(false);
+  };
+
+  const bulkDelete = async () => {
+    if (!selectedIds.length) return;
+    if (!confirm(`Hapus ${selectedIds.length} paket sekaligus? Tindakan ini tidak bisa dibatalkan.`)) return;
+    setBulkLoading(true);
+    try {
+      await Promise.all(selectedIds.map(id => deletePackage(id)));
+      toast.success(`${selectedIds.length} paket dihapus`);
+      setSelectedIds([]);
+      fetchPackages();
+    } catch { toast.error('Gagal menghapus'); }
+    setBulkLoading(false);
+  };
+
+  const toggleSelect = (id) => setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+  const toggleSelectAll = () => setSelectedIds(prev => prev.length === filtered.length ? [] : filtered.map(p => p.id));
 
   const formatPrice = (p) => p ? new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(p) : '-';
 
@@ -310,6 +381,35 @@ export default function AdminPackages() {
 
   const inputClass = 'w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500';
     const labelClass = 'block text-sm font-medium text-gray-700 mb-1';
+  const packageStats = [
+    {
+      label: 'Total Paket',
+      value: packages.length,
+      helper: 'Semua data paket di sistem',
+      cardClass: 'bg-white border-gray-100',
+      valueClass: 'text-gray-900',
+    },
+    {
+      label: 'Paket Aktif',
+      value: packages.filter((pkg) => pkg.active).length,
+      helper: 'Sedang tampil di website',
+      cardClass: 'bg-emerald-50 border-emerald-200',
+      valueClass: 'text-emerald-700',
+    },
+    {
+      label: 'Paket Unggulan',
+      value: packages.filter((pkg) => pkg.featured).length,
+      helper: 'Ditandai sebagai featured',
+      cardClass: 'bg-amber-50 border-amber-200',
+      valueClass: 'text-amber-700',
+    },
+  ];
+  const coverAltPreview = getPackageImageAlt({
+    title: { id: form.titleId, en: form.titleEn },
+    location: { id: form.locationId, en: form.locationEn },
+    type: form.type,
+    imageAlts: form.imageAlts,
+  }, 'id');
 
   return (
         <div className="space-y-6">
@@ -321,6 +421,16 @@ export default function AdminPackages() {
                       <button onClick={openCreate} className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-4 py-2 rounded-xl transition-colors">
                                 <Plus className="w-5 h-5" /> Tambah Paket
                       </button>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-3">
+                {packageStats.map((stat) => (
+                  <div key={stat.label} className={`rounded-2xl border p-5 shadow-sm ${stat.cardClass}`}>
+                    <p className="text-sm text-gray-500">{stat.label}</p>
+                    <p className={`mt-2 text-3xl font-bold ${stat.valueClass}`}>{stat.value}</p>
+                    <p className="mt-1 text-xs text-gray-400">{stat.helper}</p>
+                  </div>
+                ))}
               </div>
         
           {/* Filters */}
@@ -336,6 +446,20 @@ export default function AdminPackages() {
                       </select>
               </div>
         
+          {/* Bulk Action Bar */}
+          {selectedIds.length > 0 && (
+            <div className="flex items-center gap-3 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3">
+              <Zap className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span className="text-sm font-semibold text-emerald-800">{selectedIds.length} paket dipilih</span>
+              <div className="flex gap-2 ml-auto">
+                <button onClick={() => bulkActivate(true)} disabled={bulkLoading} className="text-xs bg-green-600 hover:bg-green-700 text-white font-semibold px-3 py-1.5 rounded-lg transition-colors">Aktifkan</button>
+                <button onClick={() => bulkActivate(false)} disabled={bulkLoading} className="text-xs bg-gray-500 hover:bg-gray-600 text-white font-semibold px-3 py-1.5 rounded-lg transition-colors">Nonaktifkan</button>
+                <button onClick={bulkDelete} disabled={bulkLoading} className="text-xs bg-red-600 hover:bg-red-700 text-white font-semibold px-3 py-1.5 rounded-lg transition-colors">Hapus</button>
+                <button onClick={() => setSelectedIds([])} className="text-xs text-gray-500 hover:text-gray-700 px-2">✕ Batal</button>
+              </div>
+            </div>
+          )}
+
           {/* Table */}
               <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
                 {loading ? (
@@ -347,6 +471,11 @@ export default function AdminPackages() {
                                 <table className="w-full text-sm">
                                               <thead className="bg-gray-50 border-b border-gray-100">
                                                               <tr>
+                                                                                <th className="px-4 py-3 w-10">
+                                                                                  <button onClick={toggleSelectAll} className="text-gray-400 hover:text-emerald-600">
+                                                                                    {selectedIds.length === filtered.length && filtered.length > 0 ? <CheckSquare className="w-4 h-4 text-emerald-600" /> : <Square className="w-4 h-4" />}
+                                                                                  </button>
+                                                                                </th>
                                                                                 <th className="text-left px-4 py-3 font-semibold text-gray-700">Paket</th>
                                                                                 <th className="text-left px-4 py-3 font-semibold text-gray-700">Tipe</th>
                                                                                 <th className="text-left px-4 py-3 font-semibold text-gray-700">Lokasi</th>
@@ -357,7 +486,12 @@ export default function AdminPackages() {
                                               </thead>
                                               <tbody className="divide-y divide-gray-50">
                                                 {filtered.map(pkg => (
-                                        <tr key={pkg.id} className="hover:bg-gray-50 transition-colors">
+                                        <tr key={pkg.id} className={`hover:bg-gray-50 transition-colors ${selectedIds.includes(pkg.id) ? 'bg-emerald-50' : ''}`}>
+                                                            <td className="px-4 py-3">
+                                                                                  <button onClick={() => toggleSelect(pkg.id)} className="text-gray-400 hover:text-emerald-600">
+                                                                                    {selectedIds.includes(pkg.id) ? <CheckSquare className="w-4 h-4 text-emerald-600" /> : <Square className="w-4 h-4" />}
+                                                                                  </button>
+                                                            </td>
                                                             <td className="px-4 py-3">
                                                                                   <div className="flex items-center gap-3">
                                                                                     {pkg.images?.[0] && <img src={pkg.images[0]} alt="" className="w-10 h-10 rounded-lg object-cover" />}
@@ -410,7 +544,15 @@ export default function AdminPackages() {
                                                                       </div>
                                                                       <div>
                                                                                         <label className={labelClass}>Tipe Paket *</label>
-                                                                                        <select value={form.type} onChange={e => setForm({...form, type: e.target.value})} className={inputClass}>
+                                                                                        <select value={form.type} onChange={e => {
+                                                                                          const newType = e.target.value;
+                                                                                          const resetFaq = window.confirm('Ganti template FAQ ke tipe ' + (newType === 'open-trip' ? 'Open Trip' : 'Private Trip') + '? FAQ yang sudah diisi akan diganti.');
+                                                                                          setForm(f => ({
+                                                                                            ...f,
+                                                                                            type: newType,
+                                                                                            faq: resetFaq ? FAQ_TEMPLATE[newType].map(x => ({...x})) : f.faq,
+                                                                                          }));
+                                                                                        }} className={inputClass}>
                                                                                                             <option value="open-trip">Open Trip</option>
                                                                                                             <option value="private-trip">Private Trip</option>
                                                                                           </select>
@@ -464,18 +606,43 @@ export default function AdminPackages() {
                                                                                           {form.images?.length > 0 && (
                                                                                             <div>
                                                                                               <p className="text-xs text-gray-500 mb-1">Foto tersimpan ({form.images.length}):</p>
-                                                                                              <div className="flex gap-2 flex-wrap">
+                                                                                              <div className="space-y-3">
                                                                                                 {form.images.map((url, i) => (
-                                                                                                  <div key={i} className="relative">
-                                                                                                    <img src={url} alt="" className="w-16 h-16 object-cover rounded-lg border" />
-                                                                                                    <button type="button" onClick={() => setForm({...form, images: form.images.filter((_, idx) => idx !== i)})}
-                                                                                                      className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center text-xs">×</button>
+                                                                                                  <div key={i} className="flex gap-3 rounded-xl border border-gray-200 p-3">
+                                                                                                    <div className="relative shrink-0">
+                                                                                                      <img src={url} alt="" className="w-16 h-16 object-cover rounded-lg border" />
+                                                                                                      <button type="button" onClick={() => setForm({
+                                                                                                        ...form,
+                                                                                                        images: form.images.filter((_, idx) => idx !== i),
+                                                                                                        imageAlts: (form.imageAlts || []).filter((_, idx) => idx !== i),
+                                                                                                      })}
+                                                                                                        className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center text-xs">×</button>
+                                                                                                    </div>
+                                                                                                    <div className="flex-1">
+                                                                                                      <label className="block text-xs font-medium text-gray-600 mb-1">Alt Text Foto {i + 1}</label>
+                                                                                                      <input
+                                                                                                        type="text"
+                                                                                                        value={form.imageAlts?.[i] || ''}
+                                                                                                        onChange={e => {
+                                                                                                          const nextAlts = [...(form.imageAlts || [])];
+                                                                                                          nextAlts[i] = e.target.value;
+                                                                                                          setForm({...form, imageAlts: nextAlts});
+                                                                                                        }}
+                                                                                                        className={inputClass}
+                                                                                                        placeholder={`Contoh: ${getPackageImageAlt({ title: { id: form.titleId }, location: { id: form.locationId }, type: form.type }, 'id', i)}`}
+                                                                                                      />
+                                                                                                    </div>
                                                                                                   </div>
                                                                                                 ))}
                                                                                               </div>
                                                                                             </div>
                                                                                           )}
-                                                                                          <input type="url" value={''} onChange={e => { if(e.target.value) setForm({...form, images: [...(form.images||[]), e.target.value]}); e.target.value=''; }} className={inputClass} placeholder="Atau tambah via URL (tekan Enter)" onKeyDown={e => { if(e.key==='Enter'){e.preventDefault(); if(e.target.value) { setForm({...form, images: [...(form.images||[]), e.target.value]}); e.target.value=''; }}}} />
+                                                                                          <input type="url" value={''} onChange={e => { if(e.target.value) setForm({...form, images: [...(form.images||[]), e.target.value], imageAlts: [...(form.imageAlts || []), '']}); e.target.value=''; }} className={inputClass} placeholder="Atau tambah via URL (tekan Enter)" onKeyDown={e => { if(e.key==='Enter'){e.preventDefault(); if(e.target.value) { setForm({...form, images: [...(form.images||[]), e.target.value], imageAlts: [...(form.imageAlts || []), '']}); e.target.value=''; }}}} />
+                                                                                          <div className="rounded-xl border border-emerald-100 bg-emerald-50 p-3 text-sm text-emerald-800">
+                                                                                            <p className="font-semibold">Preview alt foto cover</p>
+                                                                                            <p className="mt-1">{coverAltPreview}</p>
+                                                                                            <p className="mt-1 text-xs text-emerald-700">Isi alt manual per foto bila ingin deskripsi yang lebih spesifik. Jika kosong, sistem memakai judul paket, lokasi, dan tipe trip.</p>
+                                                                                          </div>
                                                                                         </div>
                                                                       </div>
                                                                       <div className="col-span-2">
@@ -545,7 +712,63 @@ export default function AdminPackages() {
                                                                                           </label>
                                                                       </div>
                                                       </div>
-                                        
+
+                                                      {/* FAQ Manager */}
+                                                      <div className="border-t border-gray-100 pt-4 space-y-3">
+                                                        <div className="flex items-center justify-between flex-wrap gap-2">
+                                                          <p className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                                                            <HelpCircle className="w-4 h-4 text-emerald-600" /> FAQ Paket Ini
+                                                          </p>
+                                                          <div className="flex gap-2">
+                                                            <button type="button"
+                                                              onClick={() => setForm(f => ({...f, faq: FAQ_TEMPLATE[f.type].map(x => ({...x}))}))}
+                                                              className="text-xs bg-gray-100 text-gray-600 font-semibold px-3 py-1.5 rounded-lg hover:bg-gray-200 transition-colors">
+                                                              ↺ Reset Template
+                                                            </button>
+                                                            <button type="button" onClick={() => setForm(f => ({...f, faq: [...f.faq, {q: '', a: ''}]}))}
+                                                              className="text-xs bg-emerald-50 text-emerald-700 font-semibold px-3 py-1.5 rounded-lg hover:bg-emerald-100 transition-colors flex items-center gap-1">
+                                                              <Plus className="w-3 h-3" /> Tambah FAQ
+                                                            </button>
+                                                          </div>
+                                                        </div>
+                                                        {form.faq.length === 0 && (
+                                                          <p className="text-xs text-gray-400 py-2">Belum ada FAQ. Klik "Reset Template" untuk mengisi dengan FAQ default, atau tambah manual.</p>
+                                                        )}
+                                                        {form.faq.map((item, i) => (
+                                                          <div key={i} className="border border-gray-200 rounded-xl p-3 space-y-2 bg-gray-50">
+                                                            <div className="flex items-center justify-between">
+                                                              <span className="text-xs font-semibold text-gray-500">FAQ #{i + 1}</span>
+                                                              <button type="button" onClick={() => setForm(f => ({...f, faq: f.faq.filter((_, idx) => idx !== i)}))}
+                                                                className="text-red-400 hover:text-red-600 p-1"><X className="w-3.5 h-3.5" /></button>
+                                                            </div>
+                                                            <input type="text" value={item.q} onChange={e => setForm(f => ({...f, faq: f.faq.map((x, idx) => idx === i ? {...x, q: e.target.value} : x)}))}
+                                                              className={inputClass} placeholder="Pertanyaan..." />
+                                                            <textarea rows={2} value={item.a} onChange={e => setForm(f => ({...f, faq: f.faq.map((x, idx) => idx === i ? {...x, a: e.target.value} : x)}))}
+                                                              className={inputClass} placeholder="Jawaban..." />
+                                                          </div>
+                                                        ))}
+                                                      </div>
+
+                                                      {/* SEO Section */}
+                                                      <div className="border-t border-gray-100 pt-4 space-y-3">
+                                                        <p className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                                                          <Search className="w-4 h-4 text-emerald-600" /> SEO
+                                                        </p>
+                                                        <div>
+                                                          <label className={labelClass}>Meta Title <span className="text-gray-400 font-normal">(kosongkan = otomatis dari judul)</span></label>
+                                                          <input type="text" value={form.metaTitle} onChange={e => setForm({...form, metaTitle: e.target.value})} className={inputClass} placeholder={form.titleId || 'Meta title...'} maxLength={60} />
+                                                        </div>
+                                                        <div>
+                                                          <label className={labelClass}>Meta Description <span className="text-gray-400 font-normal">(kosongkan = otomatis dari deskripsi)</span></label>
+                                                          <textarea rows={2} value={form.metaDescription} onChange={e => setForm({...form, metaDescription: e.target.value})} className={inputClass} placeholder={form.descriptionId?.substring(0, 160) || 'Meta description...'} maxLength={160} />
+                                                        </div>
+                                                        <SerpPreview
+                                                          title={form.metaTitle || form.titleId || ''}
+                                                          description={form.metaDescription || form.descriptionId?.substring(0, 160) || ''}
+                                                          slug={`${form.type}/${generateSlug(form.titleId)}`}
+                                                        />
+                                                      </div>
+
                                                       <div className="flex gap-3 pt-4 border-t border-gray-100">
                                                                       <button type="button" onClick={closeForm} className="flex-1 border border-gray-300 text-gray-700 font-semibold py-2 rounded-xl hover:bg-gray-50 transition-colors">Batal</button>
                                                                       <button type="submit" disabled={saving} className="flex-1 flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white font-semibold py-2 rounded-xl transition-colors">

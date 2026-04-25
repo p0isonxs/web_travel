@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { getDashboardStats, getRecentBookings, getRecentPayments, getSettings, addPackage, deletePackage } from '../../lib/database';
+import { getDashboardStats, getRecentBookings, getRecentPayments, getSettings, addPackage, deletePackage, getPackages, getBookings } from '../../lib/database';
 import { useAuth } from '../../contexts/AuthContext';
-import { Package, CalendarCheck, CreditCard, Users, TrendingUp, ArrowRight, Clock } from 'lucide-react';
+import { Package, CalendarCheck, CreditCard, ArrowRight, Clock, Download } from 'lucide-react';
 import { toast } from 'react-toastify';
 
 const DIAG_TIMEOUT_MS = 15000;
@@ -48,6 +48,35 @@ export default function Dashboard() {
   };
 
   const formatPrice = (p) => p ? new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(p) : '-';
+
+  const exportPackagesJSON = async () => {
+    try {
+      const pkgs = await getPackages(null, false);
+      const blob = new Blob([JSON.stringify(pkgs, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = `packages-backup-${new Date().toISOString().slice(0,10)}.json`; a.click();
+      URL.revokeObjectURL(url);
+      toast.success('Backup paket berhasil didownload!');
+    } catch { toast.error('Gagal export paket'); }
+  };
+
+  const exportBookingsCSV = async () => {
+    try {
+      const XLSX = await import('xlsx');
+      const bookings = await getBookings();
+      const rows = bookings.map(b => ({
+        ID: b.id, Nama: b.name, Email: b.email, Telepon: b.phone || '-',
+        Paket: b.packageName || '-', Tanggal: b.date || b.tripDate || '-',
+        Peserta: b.participants || 1, Status: b.status, 'Dibuat': b.createdAt ? new Date(b.createdAt).toLocaleDateString('id-ID') : '-',
+      }));
+      const ws = XLSX.utils.json_to_sheet(rows);
+      ws['!cols'] = [20,20,25,15,30,15,10,12,15].map(w => ({ wch: w }));
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Bookings');
+      XLSX.writeFile(wb, `bookings-${new Date().toISOString().slice(0,10)}.xlsx`);
+      toast.success('Export booking berhasil!');
+    } catch { toast.error('Gagal export booking'); }
+  };
 
   const statCards = [
     { label: 'Total Paket', value: stats.packages, icon: <Package className="w-7 h-7" />, color: 'emerald', to: '/admin/packages' },
@@ -220,6 +249,34 @@ export default function Dashboard() {
                       </div>
               </div>
         
+          {/* Export & Backup */}
+              <div className="bg-white rounded-2xl shadow-sm p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <Download className="w-5 h-5 text-emerald-600" />
+                  <h2 className="font-semibold text-gray-900">Export & Backup Data</h2>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <button onClick={exportPackagesJSON} className="flex items-center gap-3 border border-gray-200 rounded-xl px-4 py-3 hover:bg-gray-50 transition-colors text-left">
+                    <div className="w-9 h-9 bg-emerald-100 rounded-lg flex items-center justify-center shrink-0">
+                      <Package className="w-4 h-4 text-emerald-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-gray-900">Backup Paket Wisata</p>
+                      <p className="text-xs text-gray-500">Download semua data paket (.json)</p>
+                    </div>
+                  </button>
+                  <button onClick={exportBookingsCSV} className="flex items-center gap-3 border border-gray-200 rounded-xl px-4 py-3 hover:bg-gray-50 transition-colors text-left">
+                    <div className="w-9 h-9 bg-blue-100 rounded-lg flex items-center justify-center shrink-0">
+                      <CalendarCheck className="w-4 h-4 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-gray-900">Export Data Booking</p>
+                      <p className="text-xs text-gray-500">Download semua booking (.xlsx)</p>
+                    </div>
+                  </button>
+                </div>
+              </div>
+
           {/* Quick Links */}
               <div className="bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl p-6 text-white">
                       <h2 className="font-bold text-xl mb-4">Aksi Cepat</h2>

@@ -5,6 +5,8 @@ import { generateSlug } from '../utils/slug'
 import { FaSearch, FaMapMarkerAlt, FaClock, FaUsers, FaStar, FaFilter } from 'react-icons/fa'
 import Seo from '../components/Seo'
 import { useLanguage } from '../contexts/LanguageContext'
+import { getPackageImageAlt } from '../utils/imageAlt'
+import { optimizeImageUrl } from '../utils/cloudinary'
 
 const OpenTrip = () => {
     const [packages, setPackages] = useState([])
@@ -12,7 +14,7 @@ const OpenTrip = () => {
     const [loading, setLoading] = useState(true)
     const [search, setSearch] = useState('')
     const [sortBy, setSortBy] = useState('newest')
-    const { t, localize } = useLanguage()
+    const { t, localize, language } = useLanguage()
 
     useEffect(() => {
           const fetchPackages = async () => {
@@ -156,8 +158,10 @@ const OpenTrip = () => {
                                                               {/* Image */}
                                                                                 <div className="relative h-52 overflow-hidden">
                                                                                                       <img
-                                                                                                                                src={pkg.images?.[0] || pkg.image || 'https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?w=600'}
-                                                                                                                                alt={title}
+                                                                                                                                src={optimizeImageUrl(pkg.images?.[0] || pkg.image, { width: 800, height: 520 }) || 'https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?w=600'}
+                                                                                                                                alt={getPackageImageAlt(pkg, language)}
+                                                                                                                                loading="lazy"
+                                                                                                                                decoding="async"
                                                                                                                                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                                                                                                                               />
                                                                                                       <div className="absolute top-3 left-3">
@@ -210,7 +214,6 @@ const OpenTrip = () => {
                                                                                                                                                 </span>
                                                                                                                               </div>
                                                                                                         </div>
-                                                                                
                                                                                   {/* Price */}
                                                                                                       <div className="flex items-end justify-between border-t border-gray-100 pt-4">
                                                                                                                               <div>

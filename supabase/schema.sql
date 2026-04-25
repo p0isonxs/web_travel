@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS packages (
   excludes JSONB,
   slug JSONB,
   images JSONB DEFAULT '[]',
+  image_alts JSONB DEFAULT '[]',
   image TEXT,
   type TEXT,
   price NUMERIC,
@@ -84,6 +85,7 @@ CREATE TABLE IF NOT EXISTS blog (
   excerpt JSONB,
   content JSONB,
   cover_image TEXT,
+  cover_alt TEXT,
   author TEXT DEFAULT 'Admin',
   published BOOLEAN DEFAULT FALSE,
   read_time INTEGER DEFAULT 5,
@@ -97,6 +99,7 @@ CREATE TABLE IF NOT EXISTS gallery (
   caption TEXT,
   category TEXT,
   image_url TEXT,
+  image_alt TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -104,6 +107,7 @@ CREATE TABLE IF NOT EXISTS gallery (
 CREATE TABLE IF NOT EXISTS testimonials (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   name TEXT,
+  package_id TEXT,
   package_name TEXT,
   rating INTEGER DEFAULT 5,
   comment TEXT,
@@ -146,18 +150,21 @@ ALTER TABLE settings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE contacts ENABLE ROW LEVEL SECURITY;
 
 -- Public read: packages, blog, gallery, testimonials, settings
+-- IMPORTANT: hanya simpan field aman-publik di settings.data
 CREATE POLICY "public_read_packages" ON packages FOR SELECT USING (true);
 CREATE POLICY "public_read_blog" ON blog FOR SELECT USING (true);
 CREATE POLICY "public_read_gallery" ON gallery FOR SELECT USING (true);
 CREATE POLICY "public_read_testimonials" ON testimonials FOR SELECT USING (true);
 CREATE POLICY "public_read_settings" ON settings FOR SELECT USING (true);
 
--- Public insert: bookings, payments, contacts (guest users)
+-- Public insert/read/update untuk flow booking + upload bukti pembayaran oleh user
 CREATE POLICY "public_insert_bookings" ON bookings FOR INSERT WITH CHECK (true);
-CREATE POLICY "public_insert_payments" ON payments FOR INSERT WITH CHECK (true);
-CREATE POLICY "public_insert_contacts" ON contacts FOR INSERT WITH CHECK (true);
 CREATE POLICY "public_read_bookings" ON bookings FOR SELECT USING (true);
+CREATE POLICY "public_update_bookings" ON bookings FOR UPDATE USING (true) WITH CHECK (true);
+CREATE POLICY "public_insert_payments" ON payments FOR INSERT WITH CHECK (true);
 CREATE POLICY "public_read_payments" ON payments FOR SELECT USING (true);
+CREATE POLICY "public_update_payments" ON payments FOR UPDATE USING (true) WITH CHECK (true);
+CREATE POLICY "public_insert_contacts" ON contacts FOR INSERT WITH CHECK (true);
 
 -- Authenticated (admin) full access
 CREATE POLICY "admin_all_packages" ON packages FOR ALL USING (auth.role() = 'authenticated');

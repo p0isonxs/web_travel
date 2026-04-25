@@ -1,13 +1,14 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import {
     LayoutDashboard, Package, CalendarCheck, CreditCard,
     FileText, Star, Settings, LogOut, Menu, X,
-    Globe, ChevronRight, MessageSquare
+    Globe, ChevronRight, MessageSquare, Bell
 } from 'lucide-react';
-import { useEffect } from 'react';
 import { getContacts } from '../../lib/database';
+import { supabase } from '../../lib/supabase';
+import { toast } from 'react-toastify';
 
 const navItems = [
   { to: '/admin', icon: <LayoutDashboard className="w-5 h-5" />, label: 'Dashboard', exact: true },
@@ -23,10 +24,28 @@ const navItems = [
 export default function AdminLayout() {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [unreadCount, setUnreadCount] = useState(0);
+    const [newBookings, setNewBookings] = useState(0);
     const { logout, currentUser } = useAuth();
 
   useEffect(() => {
     getContacts().then(list => setUnreadCount(list.filter(c => c.status === 'unread').length)).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (!supabase) return;
+    const channel = supabase.channel('admin-realtime')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'bookings' }, (payload) => {
+        const name = payload.new?.name || 'pelanggan baru';
+        toast.info(`🔔 Booking baru dari ${name}!`, { autoClose: 6000 });
+        setNewBookings(n => n + 1);
+      })
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'contacts' }, (payload) => {
+        const sender = payload.new?.name || 'seseorang';
+        toast.info(`💬 Pesan baru dari ${sender}!`, { autoClose: 6000 });
+        setUnreadCount(n => n + 1);
+      })
+      .subscribe();
+    return () => supabase.removeChannel(channel);
   }, []);
     const location = useLocation();
     const navigate = useNavigate();
@@ -134,7 +153,14 @@ export default function AdminLayout() {
                                                 {navItems.find(n => isActive(n.to, n.exact))?.label || 'Admin Panel'}
                                               </h1>
                                   </div>
-                                  <div className="text-sm text-gray-500">{new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
+                                  {newBookings > 0 && (
+                                    <Link to="/admin/bookings" onClick={() => setNewBookings(0)}
+                                      className="flex items-center gap-2 bg-emerald-50 text-emerald-700 text-xs font-semibold px-3 py-1.5 rounded-full border border-emerald-200 hover:bg-emerald-100 transition-colors">
+                                      <Bell className="w-3.5 h-3.5" />
+                                      {newBookings} booking baru
+                                    </Link>
+                                  )}
+                                  <div className="text-sm text-gray-500 hidden sm:block">{new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
                         </header>
                 
                   {/* Page Content */}

@@ -5,6 +5,7 @@ import { getPackageById, addBooking, getOpenTripSlotUsage } from '../lib/databas
 import { FaUser, FaEnvelope, FaPhone, FaCalendar, FaUsers, FaArrowLeft } from 'react-icons/fa'
 import { toast } from 'react-toastify'
 import { useLanguage } from '../contexts/LanguageContext'
+import { getPackageImageAlt } from '../utils/imageAlt'
 
 const Booking = () => {
     const { id } = useParams()
@@ -153,6 +154,28 @@ const Booking = () => {
     const totalPrice = pkg.price * form.participants
     const packageTitle = localize(pkg.title)
     const packageLocation = localize(pkg.location)
+    const packageImage = pkg.images?.[0] || pkg.image || 'https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?w=200'
+    const bookingHighlights = [
+      {
+        title: 'Konfirmasi cepat',
+        description: 'Data booking langsung masuk ke admin setelah kamu lanjut ke pembayaran.',
+      },
+      {
+        title: 'Jadwal lebih jelas',
+        description: isOpenTrip
+          ? 'Slot tersisa diperbarui berdasarkan booking yang sudah masuk.'
+          : 'Kamu bebas pilih tanggal keberangkatan yang paling sesuai.',
+      },
+      {
+        title: 'Pendampingan via WhatsApp',
+        description: 'Tim admin akan follow up untuk verifikasi dan kebutuhan perjalananmu.',
+      },
+    ]
+    const bookingChecklist = [
+      'Pastikan email dan nomor WhatsApp aktif.',
+      isOpenTrip ? 'Pilih jadwal yang masih tersedia sebelum lanjut.' : 'Isi tanggal keberangkatan dengan benar.',
+      'Siapkan kontak darurat untuk kebutuhan operasional trip.',
+    ]
       
         return (
               <>
@@ -194,8 +217,16 @@ const Booking = () => {
                                       </div>
                             </div>
                     
-                            <div className="max-w-5xl mx-auto px-4 py-8">
-                                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        <div className="max-w-5xl mx-auto px-4 py-8 space-y-6">
+                                  <div className="grid gap-3 md:grid-cols-3">
+                                    {bookingHighlights.map((item) => (
+                                      <div key={item.title} className="rounded-2xl border border-emerald-100 bg-white px-5 py-4 shadow-sm">
+                                        <p className="text-sm font-semibold text-gray-900">{item.title}</p>
+                                        <p className="mt-1 text-sm leading-relaxed text-gray-500">{item.description}</p>
+                                      </div>
+                                    ))}
+                                  </div>
+                                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                                         {/* Form */}
                                                   <div className="lg:col-span-2">
                                                                 <form onSubmit={handleSubmit} className="space-y-6">
@@ -363,11 +394,26 @@ const Booking = () => {
                                       
                                         {/* Order Summary */}
                                                   <div className="lg:col-span-1">
-                                                                <div className="bg-white rounded-2xl p-6 shadow-sm sticky top-24">
+                                                                <div className="space-y-4 sticky top-24">
+                                                                                <div className="bg-gradient-to-br from-emerald-600 via-teal-600 to-emerald-500 rounded-3xl p-6 text-white shadow-lg">
+                                                                                                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-emerald-100">Ringkasan Pemesanan</p>
+                                                                                                  <h3 className="mt-2 text-xl font-bold leading-tight">{packageTitle}</h3>
+                                                                                                  <p className="mt-1 text-sm text-emerald-50">{packageLocation}</p>
+                                                                                                  <div className="mt-4 flex items-center gap-3">
+                                                                                                                    <img src={packageImage}
+                                                                                                                        alt={getPackageImageAlt(pkg, language)}
+                                                                                                                        className="h-16 w-20 rounded-2xl object-cover ring-2 ring-white/25" />
+                                                                                                                    <div className="text-sm">
+                                                                                                                      <p className="font-semibold">{isOpenTrip ? t('common.openTrip') : t('common.privateTrip')}</p>
+                                                                                                                      <p className="text-emerald-50">{form.participants} {t('booking.participantUnit')}</p>
+                                                                                                                    </div>
+                                                                                                  </div>
+                                                                                </div>
+                                                                <div className="bg-white rounded-2xl p-6 shadow-sm">
                                                                                 <h3 className="font-bold text-gray-800 mb-4">{t('booking.orderSummary')}</h3>
                                                                                 <div className="flex gap-3 mb-4">
-                                                                                                  <img src={pkg.image || 'https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?w=200'}
-                                                                                                                        alt={packageTitle}
+                                                                                                  <img src={packageImage}
+                                                                                                                        alt={getPackageImageAlt(pkg, language)}
                                                                                                                         className="w-20 h-16 object-cover rounded-xl shrink-0" />
                                                                                                   <div>
                                                                                                                       <p className="font-semibold text-gray-800 text-sm line-clamp-2">{packageTitle}</p>
@@ -378,7 +424,13 @@ const Booking = () => {
                                                                                                     </div>
                                                                                 </div>
                                                                 
-                                                                                <div className="border-t pt-4 space-y-2.5 text-sm">
+                                                                                                  <div className="border-t pt-4 space-y-2.5 text-sm">
+                                                                                  {isOpenTrip && form.date && (
+                                    <div className="flex justify-between text-gray-600">
+                                                          <span>Slot tersisa</span>
+                                                          <span className={`font-semibold ${selectedRemainingSlots <= 3 ? 'text-amber-600' : 'text-gray-800'}`}>{selectedRemainingSlots}</span>
+                                    </div>
+                                                                                                  )}
                                                                                   {form.date && (
                                     <div className="flex justify-between text-gray-600">
                                                           <span>{t('booking.date')}</span>
@@ -398,6 +450,21 @@ const Booking = () => {
                                                                                                                       <span className="text-emerald-600">{formatPrice(totalPrice)}</span>
                                                                                                     </div>
                                                                                 </div>
+                                                                                <div className="mt-4 rounded-2xl bg-emerald-50 px-4 py-3 text-xs leading-relaxed text-emerald-800">
+                                                                                  Setelah klik lanjut, sistem akan membuat ID booking dan mengarahkanmu ke halaman upload bukti pembayaran.
+                                                                                </div>
+                                                                </div>
+                                                                <div className="bg-white rounded-2xl p-6 shadow-sm">
+                                                                                <h3 className="font-bold text-gray-800">Sebelum Lanjut</h3>
+                                                                                <div className="mt-4 space-y-3">
+                                                                                  {bookingChecklist.map((item) => (
+                                                                                    <div key={item} className="flex gap-3 text-sm text-gray-600">
+                                                                                      <span className="mt-1 h-2.5 w-2.5 shrink-0 rounded-full bg-emerald-500" />
+                                                                                      <span>{item}</span>
+                                                                                    </div>
+                                                                                  ))}
+                                                                                </div>
+                                                                </div>
                                                                 </div>
                                                   </div>
                                       </div>

@@ -2,7 +2,6 @@ import { useState, useEffect, useMemo } from 'react';
 import { getPayments, updatePayment, updateBooking } from '../../lib/database';
 import { Search, CheckCircle, XCircle, Eye, X, BarChart2, Download, TrendingUp, Calendar } from 'lucide-react';
 import { toast } from 'react-toastify';
-import * as XLSX from 'xlsx';
 
 const statusBadge = (s) => ({
   pending: 'bg-yellow-100 text-yellow-700',
@@ -90,6 +89,33 @@ export default function AdminPayments() {
 
   const pendingCount = payments.filter(p => p.status === 'pending').length;
   const verifiedPayments = payments.filter(p => p.status === 'verified');
+  const totalRevenue = verifiedPayments.reduce((sum, payment) => sum + (Number(payment.amount) || 0), 0);
+  const totalPendingAmount = payments
+    .filter((payment) => payment.status === 'pending')
+    .reduce((sum, payment) => sum + (Number(payment.amount) || 0), 0);
+  const managementStats = [
+    {
+      label: 'Menunggu Verifikasi',
+      value: pendingCount,
+      helper: formatPrice(totalPendingAmount),
+      cardClass: 'bg-amber-50 border-amber-200',
+      valueClass: 'text-amber-700',
+    },
+    {
+      label: 'Pembayaran Lunas',
+      value: verifiedPayments.length,
+      helper: formatPrice(totalRevenue),
+      cardClass: 'bg-emerald-50 border-emerald-200',
+      valueClass: 'text-emerald-700',
+    },
+    {
+      label: 'Pembayaran Ditolak',
+      value: payments.filter((payment) => payment.status === 'rejected').length,
+      helper: 'Perlu follow up admin',
+      cardClass: 'bg-red-50 border-red-200',
+      valueClass: 'text-red-700',
+    },
+  ];
 
   // Available years from data
   const availableYears = useMemo(() => {
@@ -148,7 +174,7 @@ export default function AdminPayments() {
   const grandTotal = reportData.reduce((s, r) => s + r.total, 0);
   const grandCount = reportData.reduce((s, r) => s + r.count, 0);
 
-  const exportExcel = () => {
+  const exportExcel = async () => {
     const rows = reportData
       .filter(r => r.count > 0)
       .flatMap(r => [
@@ -170,6 +196,7 @@ export default function AdminPayments() {
     // Grand total
     rows.push({ Periode: 'TOTAL KESELURUHAN', Nama: `${grandCount} transaksi`, 'ID Booking': '', Metode: '', 'Jumlah (IDR)': grandTotal });
 
+    const XLSX = await import('xlsx');
     const ws = XLSX.utils.json_to_sheet(rows);
     ws['!cols'] = [{ wch: 32 }, { wch: 22 }, { wch: 20 }, { wch: 16 }, { wch: 18 }];
 
@@ -217,14 +244,11 @@ export default function AdminPayments() {
         <>
           {/* Summary Cards */}
           <div className="grid grid-cols-3 gap-4">
-            {[
-              { label: 'Menunggu', count: payments.filter(p => p.status === 'pending').length, color: 'amber' },
-              { label: 'Terverifikasi', count: payments.filter(p => p.status === 'verified').length, color: 'green' },
-              { label: 'Ditolak', count: payments.filter(p => p.status === 'rejected').length, color: 'red' },
-            ].map((s, i) => (
-              <div key={i} className={`bg-${s.color}-50 border border-${s.color}-200 rounded-xl p-4 text-center`}>
-                <div className={`text-3xl font-bold text-${s.color}-600`}>{s.count}</div>
-                <p className={`text-${s.color}-700 text-sm`}>{s.label}</p>
+            {managementStats.map((stat) => (
+              <div key={stat.label} className={`rounded-2xl border p-4 ${stat.cardClass}`}>
+                <p className="text-sm font-medium text-gray-600">{stat.label}</p>
+                <div className={`mt-2 text-3xl font-bold ${stat.valueClass}`}>{stat.value}</div>
+                <p className="mt-1 text-xs text-gray-500">{stat.helper}</p>
               </div>
             ))}
           </div>
@@ -270,7 +294,8 @@ export default function AdminPayments() {
                       <tr key={p.id} className={`hover:bg-gray-50 transition-colors ${p.status === 'pending' ? 'bg-amber-50/30' : ''}`}>
                         <td className="px-4 py-3">
                           <p className="font-medium text-gray-900">{p.bookingName || '-'}</p>
-                          <p className="text-xs text-gray-500 font-mono">{p.bookingId?.slice(0, 12)}...</p>
+                          <p className="text-xs text-gray-500 font-mono">{p.bookingId ? `${p.bookingId.slice(0, 12)}...` : '-'}</p>
+                          <p className="text-xs text-gray-400">{p.packageName || 'Paket wisata'}</p>
                         </td>
                         <td className="px-4 py-3 font-semibold text-emerald-600">{formatPrice(p.amount)}</td>
                         <td className="px-4 py-3">
@@ -431,11 +456,25 @@ export default function AdminPayments() {
                 {detail.status === 'rejected' && <XCircle className="w-4 h-4" />}
                 {detail.status?.charAt(0).toUpperCase() + detail.status?.slice(1)}
               </div>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                <div className="rounded-2xl bg-emerald-50 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">Nominal</p>
+                  <p className="mt-2 text-lg font-bold text-emerald-700">{formatPrice(detail.amount)}</p>
+                </div>
+                <div className="rounded-2xl bg-gray-50 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Metode</p>
+                  <p className="mt-2 text-sm font-semibold text-gray-900">{detail.method || 'Transfer Bank'}</p>
+                </div>
+                <div className="rounded-2xl bg-gray-50 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Tanggal</p>
+                  <p className="mt-2 text-sm font-semibold text-gray-900">{formatDate(detail.createdAt)}</p>
+                </div>
+              </div>
               <div className="bg-gray-50 rounded-xl p-4 space-y-2 text-sm">
                 <p><span className="font-medium">ID Pembayaran:</span> <span className="font-mono text-xs">{detail.id}</span></p>
                 <p><span className="font-medium">ID Booking:</span> <span className="font-mono text-xs">{detail.bookingId}</span></p>
                 <p><span className="font-medium">Nama Pemesan:</span> {detail.bookingName}</p>
-                <p><span className="font-medium">Jumlah:</span> <span className="text-emerald-600 font-bold">{formatPrice(detail.amount)}</span></p>
+                <p><span className="font-medium">Paket:</span> {detail.packageName || '-'}</p>
                 <p><span className="font-medium">Metode:</span> {detail.method || 'Transfer Bank'}</p>
                 {detail.bank && <p><span className="font-medium">Bank:</span> {detail.bank}</p>}
                 {detail.accountName && <p><span className="font-medium">Nama Rekening:</span> {detail.accountName}</p>}

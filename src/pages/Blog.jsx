@@ -4,6 +4,8 @@ import { getBlogPosts } from '../lib/database';
 import { Calendar, User, ArrowRight, Search } from 'lucide-react';
 import Seo from '../components/Seo';
 import { useLanguage } from '../contexts/LanguageContext';
+import { getBlogImageAlt } from '../utils/imageAlt';
+import { optimizeImageUrl } from '../utils/cloudinary';
 
 function getCategoryLabel(category, t) {
   switch ((category || '').toLowerCase()) {
@@ -142,9 +144,11 @@ export default function Blog() {
                                     <Link key={post.id} to={`/blog/${post.slug || post.id}`} className="bg-white rounded-2xl overflow-hidden shadow hover:shadow-xl transition-all group">
                                                     <div className="relative h-48 overflow-hidden">
                                                                       <img
-                                                                                            src={post.coverImage || 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&q=80'}
-                                                                                            alt={title}
+                                                                                            src={optimizeImageUrl(post.coverImage, { width: 800, height: 480 }) || 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&q=80'}
+                                                                                            alt={getBlogImageAlt(post, language) || title}
                                                                                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                                                                            loading="lazy"
+                                                                                            decoding="async"
                                                                                           />
                                                       {post.category && (
                                                           <span className="absolute top-3 left-3 bg-emerald-500 text-white text-xs font-bold px-3 py-1 rounded-full capitalize">

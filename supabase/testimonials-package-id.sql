@@ -1,0 +1,2 @@
+ALTER TABLE testimonials
+ADD COLUMN IF NOT EXISTS package_id TEXT;

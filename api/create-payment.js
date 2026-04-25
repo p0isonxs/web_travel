@@ -1,4 +1,6 @@
 // Vercel Serverless Function - Midtrans Snap Token Generator
+import { getSupabaseAdmin } from './_supabaseAdmin'
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -10,10 +12,30 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { bookingId, amount, customerName, customerEmail, customerPhone, itemName } = req.body;
+    const { bookingId, customerName, customerEmail, customerPhone, itemName } = req.body;
 
-    if (!bookingId || !amount) {
-      return res.status(400).json({ error: 'bookingId and amount are required' });
+    if (!bookingId) {
+      return res.status(400).json({ error: 'bookingId is required' });
+    }
+
+    const supabase = getSupabaseAdmin();
+    const { data: booking, error: bookingError } = await supabase
+      .from('bookings')
+      .select('id, total_price, name, email, phone, package_name, package_title')
+      .eq('id', bookingId)
+      .maybeSingle();
+
+    if (bookingError) {
+      throw bookingError;
+    }
+
+    if (!booking) {
+      return res.status(404).json({ error: 'Booking not found' });
+    }
+
+    const grossAmount = Math.round(Number(booking.total_price) || 0);
+    if (grossAmount <= 0) {
+      return res.status(400).json({ error: 'Booking total amount is invalid' });
     }
 
     const isProduction = process.env.MIDTRANS_ENV === 'production';
@@ -26,19 +48,19 @@ export default async function handler(req, res) {
     const payload = {
       transaction_details: {
         order_id: `${bookingId}-${Date.now()}`,
-        gross_amount: Math.round(amount),
+        gross_amount: grossAmount,
       },
       customer_details: {
-        first_name: customerName || 'Pelanggan',
-        email: customerEmail || 'customer@email.com',
-        phone: customerPhone || '',
+        first_name: customerName || booking.name || 'Pelanggan',
+        email: customerEmail || booking.email || 'customer@email.com',
+        phone: customerPhone || booking.phone || '',
       },
       item_details: [
         {
           id: bookingId,
-          price: Math.round(amount),
+          price: grossAmount,
           quantity: 1,
-          name: itemName || 'Paket Wisata',
+          name: itemName || booking.package_name || booking.package_title || 'Paket Wisata',
         },
       ],
     };

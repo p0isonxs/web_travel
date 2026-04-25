@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import { getBookingById, updateBooking, upsertPaymentByBookingId, getPaymentByBookingId } from '../lib/database'
 import { uploadToCloudinary } from '../utils/cloudinary'
-import { FaUniversity, FaCheckCircle, FaUpload, FaArrowLeft, FaExclamationTriangle } from 'react-icons/fa'
+import { FaUniversity, FaCheckCircle, FaUpload, FaArrowLeft, FaExclamationTriangle, FaRegCopy } from 'react-icons/fa'
 import { toast } from 'react-toastify'
 import { useSettings } from '../contexts/SettingsContext'
 import { useLanguage } from '../contexts/LanguageContext'
@@ -43,6 +43,15 @@ const Payment = () => {
 
     const formatPrice = (price) => {
           return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(price)
+    }
+
+    const copyText = async (value, label) => {
+          try {
+                  await navigator.clipboard.writeText(String(value || ''))
+                  toast.success(`${label} berhasil disalin`)
+          } catch {
+                  toast.error(`Gagal menyalin ${label.toLowerCase()}`)
+          }
     }
 
     const navigateToSuccess = (data = booking) => {
@@ -148,6 +157,12 @@ const Payment = () => {
                   </>
                 )
     }
+
+    const paymentGuide = [
+      'Transfer sesuai nominal agar verifikasi lebih cepat.',
+      'Upload bukti yang jelas, tidak blur, dan menampilkan nominal transfer.',
+      'Admin akan memverifikasi pembayaran lalu menghubungimu via WhatsApp.',
+    ]
   
     return (
           <>
@@ -221,18 +236,42 @@ const Payment = () => {
                                                                                                                           <span className="text-gray-500">{t('payment.bank')}</span>
                                                                                                                           <span className="font-semibold text-gray-800">{settings.bankName}</span>
                                                                                                   </div>
-                                                                                                <div className="flex justify-between">
+                                                                                                <div className="flex items-center justify-between gap-3">
                                                                                                                           <span className="text-gray-500">{t('payment.accountNumber')}</span>
-                                                                                                                          <span className="font-semibold text-gray-800 font-mono">{settings.bankAccount}</span>
+                                                                                                                          <div className="flex items-center gap-2">
+                                                                                                                            <span className="font-semibold text-gray-800 font-mono">{settings.bankAccount}</span>
+                                                                                                                            <button type="button" onClick={() => copyText(settings.bankAccount, 'Nomor rekening')} className="rounded-lg bg-white px-2 py-1 text-xs font-semibold text-emerald-700 transition-colors hover:bg-emerald-100">
+                                                                                                                              <FaRegCopy className="inline mr-1" />
+                                                                                                                              Salin
+                                                                                                                            </button>
+                                                                                                                          </div>
                                                                                                   </div>
                                                                                                 <div className="flex justify-between">
                                                                                                                           <span className="text-gray-500">{t('payment.accountName')}</span>
                                                                                                                           <span className="font-semibold text-gray-800">{settings.bankAccountName}</span>
                                                                                                   </div>
-                                                                                                <div className="flex justify-between border-t pt-2 mt-2">
+                                                                                                <div className="flex items-center justify-between gap-3 border-t pt-2 mt-2">
                                                                                                                           <span className="text-gray-500 font-semibold">{t('payment.transferAmount')}</span>
-                                                                                                                          <span className="font-bold text-emerald-600">{formatPrice(booking.totalPrice)}</span>
+                                                                                                                          <div className="flex items-center gap-2">
+                                                                                                                            <span className="font-bold text-emerald-600">{formatPrice(booking.totalPrice)}</span>
+                                                                                                                            <button type="button" onClick={() => copyText(booking.totalPrice, 'Nominal transfer')} className="rounded-lg bg-white px-2 py-1 text-xs font-semibold text-emerald-700 transition-colors hover:bg-emerald-100">
+                                                                                                                              <FaRegCopy className="inline mr-1" />
+                                                                                                                              Salin
+                                                                                                                            </button>
+                                                                                                                          </div>
                                                                                                   </div>
+                                                                        </div>
+                                                  </div>
+
+                                                  <div className="rounded-2xl border border-emerald-100 bg-emerald-50/70 p-4">
+                                                                        <p className="text-sm font-semibold text-emerald-900">Checklist pembayaran</p>
+                                                                        <div className="mt-3 space-y-2.5 text-sm text-emerald-900/80">
+                                                                          {paymentGuide.map((item) => (
+                                                                            <div key={item} className="flex gap-3">
+                                                                              <span className="mt-1 h-2.5 w-2.5 shrink-0 rounded-full bg-emerald-500" />
+                                                                              <span>{item}</span>
+                                                                            </div>
+                                                                          ))}
                                                                         </div>
                                                   </div>
                               
@@ -278,7 +317,19 @@ const Payment = () => {
                                   
                                     {/* Summary */}
                                               <div className="lg:col-span-1">
-                                                            <div className="bg-white rounded-2xl p-6 shadow-sm sticky top-24">
+                                                            <div className="space-y-4 sticky top-24">
+                                                                            <div className="rounded-3xl bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-500 p-6 text-white shadow-lg">
+                                                                                              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-100">Status Pembayaran</p>
+                                                                                              <h3 className="mt-2 text-2xl font-bold">
+                                                                                                {paymentRecord?.status === 'pending' ? 'Menunggu verifikasi' : 'Belum dikirim'}
+                                                                                              </h3>
+                                                                                              <p className="mt-2 text-sm text-emerald-50">
+                                                                                                {paymentRecord?.status === 'pending'
+                                                                                                  ? 'Bukti transfer sudah masuk. Tim admin akan mengecek dan menghubungimu.'
+                                                                                                  : 'Selesaikan transfer lalu upload bukti pembayaran agar booking segera diproses.'}
+                                                                                              </p>
+                                                                            </div>
+                                                            <div className="bg-white rounded-2xl p-6 shadow-sm">
                                                                             <h3 className="font-bold text-gray-800 mb-4">{t('payment.bookingDetail')}</h3>
                                                                             <div className="space-y-3 text-sm">
                                                                                               <div>
@@ -310,6 +361,24 @@ const Payment = () => {
                                                                                                                   <span className="font-mono">{bookingId?.substring(0, 8)}</span>
                                                                                                 </div>
                                                                             </div>
+                                                            </div>
+                                                            <div className="bg-white rounded-2xl p-6 shadow-sm">
+                                                                            <h3 className="font-bold text-gray-800">Langkah Selanjutnya</h3>
+                                                                            <div className="mt-4 space-y-3 text-sm text-gray-600">
+                                                                              <div className="flex gap-3">
+                                                                                <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-xs font-bold text-emerald-700">1</span>
+                                                                                <span>Transfer ke rekening tujuan sesuai nominal total.</span>
+                                                                              </div>
+                                                                              <div className="flex gap-3">
+                                                                                <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-xs font-bold text-emerald-700">2</span>
+                                                                                <span>Upload bukti pembayaran yang jelas dan mudah dibaca.</span>
+                                                                              </div>
+                                                                              <div className="flex gap-3">
+                                                                                <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-xs font-bold text-emerald-700">3</span>
+                                                                                <span>Tunggu verifikasi admin. Informasi lanjutan akan dikirim lewat WhatsApp.</span>
+                                                                              </div>
+                                                                            </div>
+                                                            </div>
                                                             </div>
                                               </div>
                                   </div>

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getBookings, updateBooking, deleteBooking } from '../../lib/database';
-import { Search, Eye, Trash2, ChevronDown, X } from 'lucide-react';
+import { Search, Eye, Trash2, X, CalendarCheck, Wallet, Clock3, CheckCircle2 } from 'lucide-react';
 import { toast } from 'react-toastify';
 
 const statusOptions = ['pending', 'confirmed', 'completed', 'cancelled'];
@@ -17,6 +17,7 @@ export default function AdminBookings() {
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
     const [filterStatus, setFilterStatus] = useState('semua');
+    const [filterType, setFilterType] = useState('semua');
     const [detail, setDetail] = useState(null);
 
   useEffect(() => { fetchBookings(); }, []);
@@ -50,14 +51,42 @@ export default function AdminBookings() {
 
   const filtered = bookings.filter(b => {
         const matchStatus = filterStatus === 'semua' || b.status === filterStatus;
+        const matchType = filterType === 'semua' || b.packageType === filterType;
         const matchSearch = b.name?.toLowerCase().includes(search.toLowerCase()) ||
                 b.email?.toLowerCase().includes(search.toLowerCase()) ||
                 b.packageName?.toLowerCase().includes(search.toLowerCase()) ||
                 b.id?.toLowerCase().includes(search.toLowerCase());
-        return matchStatus && matchSearch;
+        return matchStatus && matchType && matchSearch;
   });
 
   const tripDateLabel = (booking) => booking.date || booking.tripDate || '-';
+  const formatPrice = (value) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(value) || 0);
+  const stats = [
+    {
+      label: 'Pending',
+      value: bookings.filter((booking) => booking.status === 'pending').length,
+      icon: <Clock3 className="w-5 h-5" />,
+      iconClass: 'bg-amber-100 text-amber-700',
+    },
+    {
+      label: 'Terkonfirmasi',
+      value: bookings.filter((booking) => booking.status === 'confirmed').length,
+      icon: <CheckCircle2 className="w-5 h-5" />,
+      iconClass: 'bg-emerald-100 text-emerald-700',
+    },
+    {
+      label: 'Total Peserta',
+      value: bookings.reduce((sum, booking) => sum + (Number(booking.participants) || 0), 0),
+      icon: <CalendarCheck className="w-5 h-5" />,
+      iconClass: 'bg-blue-100 text-blue-700',
+    },
+    {
+      label: 'Nilai Booking',
+      value: formatPrice(bookings.reduce((sum, booking) => sum + (Number(booking.totalPrice) || 0), 0)),
+      icon: <Wallet className="w-5 h-5" />,
+      iconClass: 'bg-teal-100 text-teal-700',
+    },
+  ];
 
   return (
         <div className="space-y-6">
@@ -67,17 +96,36 @@ export default function AdminBookings() {
                                 <p className="text-gray-500 text-sm">{bookings.length} total booking</p>
                       </div>
               </div>
+
+              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                {stats.map((stat) => (
+                  <div key={stat.label} className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+                    <div className={`flex h-11 w-11 items-center justify-center rounded-2xl ${stat.iconClass}`}>
+                      {stat.icon}
+                    </div>
+                    <p className="mt-4 text-sm text-gray-500">{stat.label}</p>
+                    <p className="mt-1 text-2xl font-bold text-gray-900">{stat.value}</p>
+                  </div>
+                ))}
+              </div>
         
           {/* Filters */}
-              <div className="flex flex-col sm:flex-row gap-3">
+              <div className="flex flex-col gap-3 lg:flex-row">
                       <div className="relative flex-1">
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
                                 <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Cari nama, email, paket, atau ID..." className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
                       </div>
-                      <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                                <option value="semua">Semua Status</option>
-                        {statusOptions.map(s => <option key={s} value={s} className="capitalize">{s}</option>)}
-                      </select>
+                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:w-[340px]">
+                        <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                                  <option value="semua">Semua Status</option>
+                          {statusOptions.map(s => <option key={s} value={s} className="capitalize">{s}</option>)}
+                        </select>
+                        <select value={filterType} onChange={e => setFilterType(e.target.value)} className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                          <option value="semua">Semua Tipe</option>
+                          <option value="open-trip">Open Trip</option>
+                          <option value="private-trip">Private Trip</option>
+                        </select>
+                      </div>
               </div>
         
           {/* Table */}
@@ -108,10 +156,18 @@ export default function AdminBookings() {
                                                             </td>
                                                             <td className="px-4 py-3">
                                                                                   <p className="text-gray-800 line-clamp-1">{b.packageName || '-'}</p>
-                                                                                  <p className="text-xs text-gray-500">{tripDateLabel(b)}</p>
+                                                                                  <div className="mt-1 flex items-center gap-2">
+                                                                                    <p className="text-xs text-gray-500">{tripDateLabel(b)}</p>
+                                                                                    <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${b.packageType === 'private-trip' ? 'bg-purple-100 text-purple-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                                                                                      {b.packageType === 'private-trip' ? 'Private' : 'Open'}
+                                                                                    </span>
+                                                                                  </div>
                                                             </td>
                                                             <td className="px-4 py-3 text-gray-600">{formatDate(b.createdAt)}</td>
-                                                            <td className="px-4 py-3 text-gray-600">{b.participants || 1} orang</td>
+                                                            <td className="px-4 py-3 text-gray-600">
+                                                              <p>{b.participants || 1} orang</p>
+                                                              <p className="text-xs text-gray-400">{formatPrice(b.totalPrice)}</p>
+                                                            </td>
                                                             <td className="px-4 py-3">
                                                                                   <select
                                                                                                             value={b.status || 'pending'}

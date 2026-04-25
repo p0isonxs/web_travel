@@ -23,13 +23,11 @@ const Login = () => {
                   toast.success('Login berhasil!')
                   navigate('/admin')
           } catch (error) {
-                  const code = error?.code || ''
-                  if (code === 'auth/invalid-credential' || code === 'auth/wrong-password' || code === 'auth/user-not-found') {
+                  const message = String(error?.message || '').toLowerCase()
+                  if (message.includes('invalid login credentials') || message.includes('email not confirmed')) {
                     toast.error('Email atau password salah!')
-                  } else if (code === 'auth/too-many-requests') {
+                  } else if (message.includes('too many requests') || message.includes('rate limit')) {
                     toast.error('Terlalu banyak percobaan. Coba lagi nanti.')
-                  } else if (code === 'auth/unauthorized-domain') {
-                    toast.error('Domain tidak diizinkan. Tambahkan domain di Firebase Auth settings.')
                   } else {
                     toast.error('Login gagal: ' + (error?.message || 'Unknown error'))
                   }

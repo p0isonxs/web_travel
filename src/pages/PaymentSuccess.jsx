@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useLocation, useNavigate, Link } from 'react-router-dom';
+import { useLocation, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { CheckCircle, Home, MessageCircle, Calendar, User, Package } from 'lucide-react';
 import { useSettings } from '../contexts/SettingsContext';
@@ -7,7 +7,6 @@ import { useLanguage } from '../contexts/LanguageContext';
 
 export default function PaymentSuccess() {
     const location = useLocation();
-    const navigate = useNavigate();
     const booking = location.state?.booking || {};
     const settings = useSettings();
     const { t } = useLanguage();
@@ -113,7 +112,7 @@ export default function PaymentSuccess() {
                                                                                               </li>
                                                                           </ol>
                                                           </div>
-                                            
+
                                               {/* CTA Buttons */}
                                                           <div className="space-y-3">
                                                                           <a

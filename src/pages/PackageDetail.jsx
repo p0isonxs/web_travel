@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import { getPackageById, getPackageBySlug, getOpenTripSlotUsage } from '../lib/database'
@@ -6,6 +6,8 @@ import { FaMapMarkerAlt, FaClock, FaUsers, FaStar, FaCheck, FaTimes, FaChevronLe
 import Seo from '../components/Seo'
 import { useLanguage } from '../contexts/LanguageContext'
 import { useSettings } from '../contexts/SettingsContext'
+import { getPackageImageAlt } from '../utils/imageAlt'
+import { optimizeImageUrl } from '../utils/cloudinary'
 
 function resolveMapSource(pkg, packageLocation, fallbackLocation) {
   const rawLink = typeof pkg.mapLink === 'string' ? pkg.mapLink.trim() : ''
@@ -106,6 +108,8 @@ const PackageDetail = () => {
     const [selectedDate, setSelectedDate] = useState('')
     const [participants, setParticipants] = useState(1)
     const [slotUsage, setSlotUsage] = useState({})
+    const scheduleScrollerRef = useRef(null)
+    const scheduleDragRef = useRef({ isDragging: false, startX: 0, scrollLeft: 0, moved: false })
     const { t, language, localize } = useLanguage()
     const settings = useSettings()
 
@@ -178,6 +182,34 @@ const PackageDetail = () => {
           navigate(`/booking/${pkg.id}?${params.toString()}`)
     }
 
+    const handleScheduleMouseDown = (event) => {
+          const scroller = scheduleScrollerRef.current
+          if (!scroller) return
+          scheduleDragRef.current = {
+            isDragging: true,
+            startX: event.pageX,
+            scrollLeft: scroller.scrollLeft,
+            moved: false,
+          }
+    }
+
+    const handleScheduleMouseMove = (event) => {
+          const scroller = scheduleScrollerRef.current
+          const dragState = scheduleDragRef.current
+          if (!scroller || !dragState.isDragging) return
+
+          const delta = event.pageX - dragState.startX
+          if (Math.abs(delta) > 4) {
+            dragState.moved = true
+          }
+
+          scroller.scrollLeft = dragState.scrollLeft - delta
+    }
+
+    const stopScheduleDragging = () => {
+          scheduleDragRef.current.isDragging = false
+    }
+
     if (loading) {
           return (
                   <>
@@ -225,13 +257,18 @@ const PackageDetail = () => {
             const mapSource = resolveMapSource(pkg, packageLocation, t('packageDetail.locationFallback'))
             const mapEmbedUrl = `https://maps.google.com/maps?q=${encodeURIComponent(mapSource.embedQuery)}&z=12&output=embed`
             const mapOpenUrl = mapSource.openUrl
+            const bookingReasons = [
+              isOpenTrip ? 'Jadwal dan slot terus diperbarui dari booking yang masuk.' : 'Tanggal keberangkatan bisa kamu sesuaikan dengan kebutuhan grup.',
+              'Proses booking dibuat ringkas: isi data, lanjut pembayaran, lalu upload bukti.',
+              'Admin akan follow up via WhatsApp untuk verifikasi dan kebutuhan perjalanan.',
+            ]
               
                 return (
                       <>
                             <Seo
-                              title={`${packageTitle} - Liburan Terus`}
-                              description={packageDescription?.substring(0, 160) || `${t(isOpenTrip ? 'packageDetail.openTrip' : 'packageDetail.privateTrip')} ${packageTitle} di ${packageLocation}`}
-                              image={images[0]}
+                              title={pkg.metaTitle || `${packageTitle} - Liburan Terus`}
+                              description={pkg.metaDescription || packageDescription?.substring(0, 160) || `${t(isOpenTrip ? 'packageDetail.openTrip' : 'packageDetail.privateTrip')} ${packageTitle} di ${packageLocation}`}
+                              image={optimizeImageUrl(images[0], { width: 1200, height: 630 })}
                             />
                             <Helmet>
                                     <script type="application/ld+json">{JSON.stringify({
@@ -239,13 +276,29 @@ const PackageDetail = () => {
                                   "@type": "TouristTrip",
                                   "name": packageTitle,
                                   "description": packageDescription,
-                                  "touristType": pkg.type,
-                                  "image": images[0],
+                                  "touristType": isOpenTrip ? "Open Trip" : "Private Trip",
+                                  "image": images,
                                   "offers": {
-                                                "@type": "Offer",
-                                                "price": pkg.price,
-                                                "priceCurrency": "IDR"
+                                    "@type": "Offer",
+                                    "price": pkg.price,
+                                    "priceCurrency": "IDR",
+                                    "availability": "https://schema.org/InStock",
+                                    "priceSpecification": {
+                                      "@type": "UnitPriceSpecification",
+                                      "price": pkg.price,
+                                      "priceCurrency": "IDR",
+                                      "unitText": "per orang"
+                                    }
                                   }
+                      })}</script>
+                                    <script type="application/ld+json">{JSON.stringify({
+                                  "@context": "https://schema.org",
+                                  "@type": "BreadcrumbList",
+                                  "itemListElement": [
+                                    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://liburanterus.com" },
+                                    { "@type": "ListItem", "position": 2, "name": isOpenTrip ? "Open Trip" : "Private Trip", "item": `https://liburanterus.com/${isOpenTrip ? 'open-trip' : 'private-trip'}` },
+                                    { "@type": "ListItem", "position": 3, "name": packageTitle }
+                                  ]
                       })}</script>
                             </Helmet>
                       
@@ -273,8 +326,11 @@ const PackageDetail = () => {
                                                                         <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
                                                                                         <div className="relative aspect-[16/9] overflow-hidden">
                                                                                                           <img
-                                                                                                                                src={images[activeImage]}
-                                                                                                                                alt={packageTitle}
+                                                                                                                                src={optimizeImageUrl(images[activeImage], { width: 1400, height: 790 }) || images[activeImage]}
+                                                                                                                                alt={getPackageImageAlt(pkg, language, activeImage)}
+                                                                                                                                fetchpriority={activeImage === 0 ? 'high' : 'auto'}
+                                                                                                                                loading={activeImage === 0 ? 'eager' : 'lazy'}
+                                                                                                                                decoding="async"
                                                                                                                                 className="w-full h-full object-cover"
                                                                                                                               />
                                                                                           {images.length > 1 && (
@@ -298,7 +354,7 @@ const PackageDetail = () => {
                                             {images.map((img, i) => (
                                                                   <button key={i} onClick={() => setActiveImage(i)}
                                                                                             className={`shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-colors ${activeImage === i ? `${accent.border}` : 'border-transparent'}`}>
-                                                                                          <img src={img} alt="" className="w-full h-full object-cover" />
+                                                                                          <img src={optimizeImageUrl(img, { width: 160, height: 160 }) || img} alt={getPackageImageAlt(pkg, language, i)} className="w-full h-full object-cover" loading="lazy" decoding="async" />
                                                                   </button>
                                                                 ))}
                                           </div>
@@ -424,9 +480,11 @@ const PackageDetail = () => {
                                                                                           </div>
                                                                         </div>
 
-                                                            {/* FAQ */}
+                                                            {/* FAQ — pakai data dari admin jika ada, fallback ke translations */}
                                                                         <FaqSection
-                                                                          faqs={isOpenTrip ? t('packageDetail.faqOpenTrip') : t('packageDetail.faqPrivateTrip')}
+                                                                          faqs={Array.isArray(pkg.faq) && pkg.faq.length > 0
+                                                                            ? pkg.faq
+                                                                            : (isOpenTrip ? t('packageDetail.faqOpenTrip') : t('packageDetail.faqPrivateTrip'))}
                                                                           title={t('packageDetail.faqTitle')}
                                                                           accent={accent}
                                                                         />
@@ -461,7 +519,25 @@ const PackageDetail = () => {
                                               
                                                 {/* Right - Booking Card */}
                                                           <div className="lg:col-span-1">
-                                                                        <div className="bg-white rounded-2xl shadow-sm p-6 sticky top-24">
+                                                                        <div className="space-y-4 sticky top-24">
+                                                                          <div className={`rounded-3xl bg-gradient-to-br ${isOpenTrip ? 'from-emerald-600 via-teal-600 to-cyan-500' : 'from-violet-600 via-purple-600 to-fuchsia-500'} p-6 text-white shadow-lg`}>
+                                                                            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/70">
+                                                                              {isOpenTrip ? t('packageDetail.openTrip') : t('packageDetail.privateTrip')}
+                                                                            </p>
+                                                                            <h2 className="mt-2 text-2xl font-bold leading-tight">{packageTitle}</h2>
+                                                                            <p className="mt-2 text-sm text-white/80">{packageLocation || t('packageDetail.locationFallback')}</p>
+                                                                            <div className="mt-4 grid grid-cols-2 gap-3">
+                                                                              <div className="rounded-2xl bg-white/10 px-4 py-3 backdrop-blur-sm">
+                                                                                <p className="text-[11px] uppercase tracking-wide text-white/60">{t('packageDetail.durationFallback')}</p>
+                                                                                <p className="mt-1 text-sm font-semibold">{packageDuration || '-'}</p>
+                                                                              </div>
+                                                                              <div className="rounded-2xl bg-white/10 px-4 py-3 backdrop-blur-sm">
+                                                                                <p className="text-[11px] uppercase tracking-wide text-white/60">{t('packageDetail.total')}</p>
+                                                                                <p className="mt-1 text-sm font-semibold">{formatPrice(pkg.price * participants)}</p>
+                                                                              </div>
+                                                                            </div>
+                                                                          </div>
+                                                                        <div className="bg-white rounded-2xl shadow-sm p-6">
                                                                           {/* Price */}
                                                                                         <div className="mb-6 rounded-2xl border border-gray-100 bg-gray-50 px-5 py-4">
                                                                                           {pkg.originalPrice && pkg.originalPrice > pkg.price && (
@@ -482,7 +558,14 @@ const PackageDetail = () => {
                                                                                                           {isOpenTrip ? (
                                                                                                             pkg.departureDates?.length > 0 ? (
                                                                                                               <div className="space-y-3">
-                                                                                                                <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                                                                                                                <div
+                                                                                                                  ref={scheduleScrollerRef}
+                                                                                                                  onMouseDown={handleScheduleMouseDown}
+                                                                                                                  onMouseMove={handleScheduleMouseMove}
+                                                                                                                  onMouseUp={stopScheduleDragging}
+                                                                                                                  onMouseLeave={stopScheduleDragging}
+                                                                                                                  className="flex gap-2 overflow-x-auto pb-1 select-none [scrollbar-width:none] [&::-webkit-scrollbar]:hidden cursor-grab active:cursor-grabbing"
+                                                                                                                >
                                                                                                                   {pkg.departureDates.map((date) => {
                                                                                                                     const isSelected = selectedDate === date
                                                                                                                     const booked = slotUsage[date] || 0
@@ -492,7 +575,10 @@ const PackageDetail = () => {
                                                                                                                       <button
                                                                                                                         key={date}
                                                                                                                         type="button"
-                                                                                                                        onClick={() => !isFull && setSelectedDate(date)}
+                                                                                                                        onClick={() => {
+                                                                                                                          if (scheduleDragRef.current.moved || isFull) return
+                                                                                                                          setSelectedDate(date)
+                                                                                                                        }}
                                                                                                                         disabled={isFull}
                                                                                                                         className={`min-w-[168px] shrink-0 rounded-2xl border px-4 py-3 text-left transition-all ${
                                                                                                                           isFull
@@ -599,6 +685,18 @@ const PackageDetail = () => {
                                                                                                           <FaWhatsapp size={16} />
                                                                                                           {t('packageDetail.askWhatsapp')}
                                                                                           </a>
+                                                                        </div>
+                                                                        <div className="bg-white rounded-2xl shadow-sm p-6">
+                                                                          <h3 className="text-lg font-bold text-gray-800">Kenapa booking di sini?</h3>
+                                                                          <div className="mt-4 space-y-3">
+                                                                            {bookingReasons.map((reason) => (
+                                                                              <div key={reason} className="flex gap-3 text-sm text-gray-600">
+                                                                                <span className={`mt-1 h-2.5 w-2.5 shrink-0 rounded-full ${isOpenTrip ? 'bg-emerald-500' : 'bg-purple-500'}`} />
+                                                                                <span>{reason}</span>
+                                                                              </div>
+                                                                            ))}
+                                                                          </div>
+                                                                        </div>
                                                                         </div>
                                                           </div>
                                               </div>

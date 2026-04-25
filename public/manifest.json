@@ -1,0 +1,20 @@
+{
+  "name": "Liburan Terus",
+  "short_name": "Liburan Terus",
+  "description": "Paket wisata open trip dan private trip terbaik ke berbagai destinasi indah di Indonesia.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#059669",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["travel", "lifestyle"],
+  "lang": "id"
+}

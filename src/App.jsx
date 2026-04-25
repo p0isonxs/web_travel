@@ -110,13 +110,19 @@ export default function App() {
           </Suspense>
           <ToastContainer
             position="top-right"
-            autoClose={4000}
+            autoClose={4200}
             hideProgressBar={false}
             newestOnTop
             closeOnClick
             pauseOnFocusLoss
             draggable
             pauseOnHover
+            theme="light"
+            icon={false}
+            toastClassName={(context) => `lt-toast lt-toast--${context?.type || 'default'}`}
+            bodyClassName="lt-toast__body"
+            progressClassName="lt-toast__progress"
+            closeButton={false}
           />
         </BrowserRouter>
         </LanguageProvider>

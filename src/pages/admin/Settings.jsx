@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { getSettings, updateSettings } from '../../lib/database';
 import { uploadToCloudinary } from '../../utils/cloudinary';
-import { Save, RefreshCw, Upload, X } from 'lucide-react';
+import { Save, RefreshCw, Upload, X, ShieldCheck, Globe2, Landmark, AlertTriangle, Phone, Mail, MapPin, Undo2 } from 'lucide-react';
 import { toast } from 'react-toastify';
 
 const defaultSettings = {
@@ -20,11 +20,49 @@ const defaultSettings = {
     bankName: 'BCA',
     bankAccount: '1234567890',
     bankAccountName: 'PT Liburan Terus Indonesia',
-    midtransClientKey: '',
-    midtransServerKey: '',
     metaDescription: 'Liburan Terus menyediakan paket wisata open trip dan private trip terbaik ke berbagai destinasi indah di Indonesia.',
     metaKeywords: 'wisata indonesia, open trip, private trip, paket wisata, liburan terus',
 };
+
+const SOCIAL_LABELS = {
+  instagram: 'Instagram',
+  facebook: 'Facebook',
+  youtube: 'YouTube',
+  tiktok: 'TikTok',
+};
+
+const PHONE_REGEX = /^[0-9]{9,16}$/;
+const urlFields = ['instagram', 'facebook', 'youtube', 'tiktok'];
+
+function normalizeSettingsInput(settings) {
+  return {
+    ...settings,
+    phone: String(settings.phone || '').replace(/[^\d]/g, ''),
+    siteName: String(settings.siteName || '').trim(),
+    tagline: String(settings.tagline || '').trim(),
+    email: String(settings.email || '').trim(),
+    address: String(settings.address || '').trim(),
+    bankName: String(settings.bankName || '').trim(),
+    bankAccount: String(settings.bankAccount || '').replace(/\s+/g, ''),
+    bankAccountName: String(settings.bankAccountName || '').trim(),
+    metaDescription: String(settings.metaDescription || '').trim(),
+    metaKeywords: String(settings.metaKeywords || '').trim(),
+    instagram: String(settings.instagram || '').trim(),
+    facebook: String(settings.facebook || '').trim(),
+    youtube: String(settings.youtube || '').trim(),
+    tiktok: String(settings.tiktok || '').trim(),
+  };
+}
+
+function isValidUrl(value) {
+  if (!value) return true;
+  try {
+    const parsed = new URL(value);
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
 
 function ImageUploadField({ label, value, settingKey, onUploaded }) {
   const [uploading, setUploading] = useState(false);
@@ -74,6 +112,7 @@ function ImageUploadField({ label, value, settingKey, onUploaded }) {
 
 export default function AdminSettings() {
     const [settings, setSettings] = useState(defaultSettings);
+    const [savedSettings, setSavedSettings] = useState(defaultSettings);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
 
@@ -83,7 +122,15 @@ export default function AdminSettings() {
         setLoading(true);
         try {
                 const data = await getSettings();
-                if (data && Object.keys(data).length > 0) setSettings({ ...defaultSettings, ...data });
+                if (data && Object.keys(data).length > 0) {
+                  const normalized = normalizeSettingsInput({ ...defaultSettings, ...data });
+                  setSettings(normalized);
+                  setSavedSettings(normalized);
+                } else {
+                  const fallback = normalizeSettingsInput(defaultSettings);
+                  setSettings(fallback);
+                  setSavedSettings(fallback);
+                }
         } catch (e) { console.error(e); }
         setLoading(false);
   };
@@ -92,7 +139,18 @@ export default function AdminSettings() {
         e.preventDefault();
         setSaving(true);
         try {
-                await updateSettings(settings);
+                const normalized = normalizeSettingsInput(settings);
+                if (!normalized.siteName) throw new Error('Nama website wajib diisi');
+                if (!normalized.phone || !PHONE_REGEX.test(normalized.phone)) throw new Error('Nomor WhatsApp harus berupa 9-16 digit angka');
+                if (normalized.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized.email)) throw new Error('Format email belum valid');
+                for (const field of urlFields) {
+                  if (!isValidUrl(normalized[field])) {
+                    throw new Error(`URL ${SOCIAL_LABELS[field]} belum valid`);
+                  }
+                }
+                await updateSettings(normalized);
+                setSettings(normalized);
+                setSavedSettings(normalized);
                 toast.success('Pengaturan berhasil disimpan!');
         } catch (e) { toast.error('Gagal menyimpan: ' + e.message); }
         setSaving(false);
@@ -100,6 +158,25 @@ export default function AdminSettings() {
 
   const inputClass = 'w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500';
     const labelClass = 'block text-sm font-medium text-gray-700 mb-1';
+    const isDirty = JSON.stringify(settings) !== JSON.stringify(savedSettings);
+    const publicChecks = [
+      { label: 'Kontak utama siap tampil', done: Boolean(settings.phone && settings.email) },
+      { label: 'Rekening transfer sudah lengkap', done: Boolean(settings.bankName && settings.bankAccount && settings.bankAccountName) },
+      { label: 'SEO dasar homepage tersedia', done: Boolean(settings.metaDescription && settings.metaKeywords) },
+      { label: 'Hero background sudah terpasang', done: Boolean(settings.heroBackground) },
+    ];
+    const statCards = [
+      { label: 'WhatsApp publik', value: settings.phone ? `+${settings.phone}` : '-', icon: Phone, tone: 'emerald' },
+      { label: 'Email publik', value: settings.email || '-', icon: Mail, tone: 'blue' },
+      { label: 'Bank transfer', value: settings.bankName || '-', icon: Landmark, tone: 'amber' },
+      { label: 'Alamat tampil', value: settings.address ? 'Aktif' : 'Kosong', icon: MapPin, tone: 'rose' },
+    ];
+    const toneClasses = {
+      emerald: 'bg-emerald-50 text-emerald-600',
+      blue: 'bg-blue-50 text-blue-600',
+      amber: 'bg-amber-50 text-amber-600',
+      rose: 'bg-rose-50 text-rose-600',
+    };
 
   const Section = ({ title, children }) => (
         <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
@@ -119,11 +196,71 @@ export default function AdminSettings() {
                 <div className="flex items-center justify-between">
                         <div>
                                   <h1 className="text-2xl font-bold text-gray-900">Pengaturan Website</h1>
-                                  <p className="text-gray-500 text-sm">Kelola informasi dan konfigurasi website</p>
+                                  <p className="text-gray-500 text-sm">Kelola informasi publik, pembayaran manual, dan aset visual website</p>
                         </div>
-                        <button onClick={fetchSettings} className="flex items-center gap-2 text-gray-600 border border-gray-300 px-3 py-2 rounded-xl hover:bg-gray-50 text-sm">
-                                  <RefreshCw className="w-4 h-4" /> Refresh
-                        </button>
+                        <div className="flex items-center gap-2">
+                          {isDirty && (
+                            <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700">
+                              Ada perubahan belum disimpan
+                            </span>
+                          )}
+                          <button onClick={fetchSettings} type="button" className="flex items-center gap-2 text-gray-600 border border-gray-300 px-3 py-2 rounded-xl hover:bg-gray-50 text-sm">
+                                    <RefreshCw className="w-4 h-4" /> Refresh
+                          </button>
+                        </div>
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                  {statCards.map(({ label, value, icon: Icon, tone }) => (
+                    <div key={label} className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+                      <div className={`mb-4 flex h-11 w-11 items-center justify-center rounded-2xl ${toneClasses[tone]}`}>
+                        <Icon className="w-5 h-5" />
+                      </div>
+                      <p className="text-sm text-gray-500">{label}</p>
+                      <p className="mt-1 text-sm font-semibold text-gray-900 break-words">{value}</p>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
+                  <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+                    <p className="mb-4 flex items-center gap-2 text-sm font-semibold text-gray-900">
+                      <Globe2 className="w-4 h-4 text-emerald-600" />
+                      Ringkasan Tampilan Publik
+                    </p>
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">Brand</p>
+                        <p className="mt-2 text-lg font-bold text-gray-900">{settings.siteName || '-'}</p>
+                        <p className="mt-1 text-sm text-gray-600">{settings.tagline || 'Tagline belum diisi'}</p>
+                      </div>
+                      <div className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">Transfer Manual</p>
+                        <p className="mt-2 text-lg font-bold text-gray-900">{settings.bankName || '-'}</p>
+                        <p className="mt-1 text-sm text-gray-600">{settings.bankAccount || '-'}</p>
+                        <p className="text-sm text-gray-600">{settings.bankAccountName || '-'}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-5 shadow-sm">
+                    <p className="mb-4 flex items-center gap-2 text-sm font-semibold text-emerald-900">
+                      <ShieldCheck className="w-4 h-4" />
+                      Checklist Aman Dipakai
+                    </p>
+                    <div className="space-y-3 text-sm text-emerald-900">
+                      {publicChecks.map((item) => (
+                        <div key={item.label} className="flex items-start gap-2">
+                          <span className={`mt-1 h-2.5 w-2.5 rounded-full ${item.done ? 'bg-emerald-500' : 'bg-amber-400'}`} />
+                          <span>{item.label}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+                      <p className="font-semibold">Guardrail penting</p>
+                      <p className="mt-1">Server key Midtrans tetap harus disimpan di environment deployment, bukan di form admin.</p>
+                    </div>
+                  </div>
                 </div>
           
                 <form onSubmit={handleSave} className="space-y-6">
@@ -185,16 +322,16 @@ export default function AdminSettings() {
                         </Section>
                 
                         <Section title="Midtrans Payment Gateway">
-                                  <div>
-                                              <label className={labelClass}>Client Key</label>
-                                              <input value={settings.midtransClientKey} onChange={e => setSettings({...settings, midtransClientKey: e.target.value})} className={inputClass} placeholder="SB-Mid-client-..." />
-                                  </div>
-                                  <div>
-                                              <label className={labelClass}>Server Key</label>
-                                              <input type="password" value={settings.midtransServerKey} onChange={e => setSettings({...settings, midtransServerKey: e.target.value})} className={inputClass} placeholder="SB-Mid-server-..." />
-                                  </div>
-                                  <div className="md:col-span-2 bg-amber-50 border border-amber-200 rounded-xl p-3 text-sm text-amber-700">
-                                              ⚠️ Server Key sebaiknya disimpan hanya di backend/environment variables, bukan di Firestore. Gunakan ini hanya untuk referensi admin.
+                                  <div className="md:col-span-2 bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800 space-y-2">
+                                              <p className="font-semibold">Secret Midtrans tidak disimpan di database.</p>
+                                              <p>
+                                                Simpan `MIDTRANS_SERVER_KEY`, `MIDTRANS_ENV`, `SUPABASE_URL`, dan `SUPABASE_SERVICE_ROLE_KEY`
+                                                di environment variable deployment agar payment diproses aman dari backend.
+                                              </p>
+                                              <p className="flex items-start gap-2 rounded-xl border border-amber-200 bg-white/80 p-3 text-amber-900">
+                                                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                                                Jangan pernah menaruh server key ke kolom teks admin atau konten website.
+                                              </p>
                                   </div>
                         </Section>
                 
@@ -230,11 +367,25 @@ export default function AdminSettings() {
                                   </div>
                         </Section>
                 
-                        <div className="flex justify-end">
+                        <div className="sticky bottom-4 z-10 flex flex-col gap-3 rounded-2xl border border-gray-200 bg-white/95 p-4 shadow-lg backdrop-blur sm:flex-row sm:items-center sm:justify-between">
+                                  <div className="text-sm text-gray-600">
+                                    {isDirty ? 'Perubahan belum disimpan. Simpan agar halaman publik memakai data terbaru.' : 'Semua perubahan sudah tersimpan.'}
+                                  </div>
+                                  <div className="flex gap-3">
+                                    <button
+                                      type="button"
+                                      onClick={() => setSettings(savedSettings)}
+                                      disabled={!isDirty || saving}
+                                      className="flex items-center gap-2 rounded-xl border border-gray-300 px-4 py-3 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                                    >
+                                      <Undo2 className="w-4 h-4" />
+                                      Batalkan Perubahan
+                                    </button>
                                   <button type="submit" disabled={saving} className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white font-bold px-8 py-3 rounded-xl transition-colors text-lg">
                                     {saving ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <Save className="w-5 h-5" />}
                                     {saving ? 'Menyimpan...' : 'Simpan Pengaturan'}
                                   </button>
+                                  </div>
                         </div>
                 </form>
           </div>

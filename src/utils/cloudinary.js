@@ -2,8 +2,33 @@ const CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
 const UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
 const UPLOAD_TIMEOUT_MS = 30000;
 
+export function optimizeImageUrl(url, options = {}) {
+  if (!url || !url.includes('res.cloudinary.com') || !url.includes('/image/upload/')) {
+    return url;
+  }
+
+  const {
+    width,
+    height,
+    quality = 'auto',
+    format = 'auto',
+    crop = 'fill',
+  } = options;
+
+  const transforms = [
+    format && `f_${format}`,
+    quality && `q_${quality}`,
+    crop && `c_${crop}`,
+    width && `w_${width}`,
+    height && `h_${height}`,
+  ].filter(Boolean).join(',');
+
+  if (!transforms) return url;
+
+  return url.replace('/image/upload/', `/image/upload/${transforms}/`);
+}
+
 export async function uploadToCloudinary(file, folder = 'general') {
-  console.log('Cloudinary config:', { CLOUD_NAME, UPLOAD_PRESET });
   if (!CLOUD_NAME || !UPLOAD_PRESET) {
     throw new Error('Cloudinary belum dikonfigurasi. Isi VITE_CLOUDINARY_CLOUD_NAME dan VITE_CLOUDINARY_UPLOAD_PRESET di file .env');
   }

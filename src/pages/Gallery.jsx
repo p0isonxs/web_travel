@@ -3,6 +3,8 @@ import { getGallery } from '../lib/database';
 import { X, ZoomIn } from 'lucide-react';
 import Seo from '../components/Seo';
 import { useLanguage } from '../contexts/LanguageContext';
+import { getGalleryImageAlt } from '../utils/imageAlt';
+import { optimizeImageUrl } from '../utils/cloudinary';
 
 export default function Gallery() {
     const [photos, setPhotos] = useState([]);
@@ -108,10 +110,11 @@ export default function Gallery() {
                                                       onClick={() => openLightbox(photo)}
                                                     >
                                                     <img
-                                                                        src={photo.imageUrl}
-                                                                        alt={photo.caption || t('gallery.imageAlt')}
+                                                                        src={optimizeImageUrl(photo.imageUrl, { width: 900, quality: 'auto' }) || photo.imageUrl}
+                                                                        alt={getGalleryImageAlt(photo, language) || t('gallery.imageAlt')}
                                                                         className="w-full object-cover group-hover:scale-105 transition-transform duration-300"
                                                                         loading="lazy"
+                                                                        decoding="async"
                                                                       />
                                                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all flex items-center justify-center">
                                                                       <ZoomIn className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -149,9 +152,10 @@ export default function Gallery() {
                   
                             <div onClick={e => e.stopPropagation()} className="max-w-4xl max-h-[90vh] relative">
                                         <img
-                                                        src={lightbox.imageUrl}
-                                                        alt={lightbox.caption || ''}
+                                                        src={optimizeImageUrl(lightbox.imageUrl, { width: 1600, quality: 'auto' }) || lightbox.imageUrl}
+                                                        alt={getGalleryImageAlt(lightbox, language)}
                                                         className="max-h-[80vh] max-w-full object-contain rounded-lg"
+                                                        decoding="async"
                                                       />
                               {lightbox.caption && (
                                             <p className="text-white text-center mt-3 text-lg">{lightbox.caption}</p>

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getContacts, updateContact, deleteContact } from '../../lib/database';
-import { Trash2, Mail, Phone, Clock, CheckCheck, Inbox } from 'lucide-react';
+import { Trash2, Mail, Phone, Clock, CheckCheck, Inbox, Search } from 'lucide-react';
 import { toast } from 'react-toastify';
 
 export default function AdminContacts() {
@@ -8,6 +8,7 @@ export default function AdminContacts() {
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState(null);
   const [filter, setFilter] = useState('all');
+  const [search, setSearch] = useState('');
 
   useEffect(() => { fetchContacts(); }, []);
 
@@ -44,8 +45,14 @@ export default function AdminContacts() {
     return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
   };
 
-  const filtered = contacts.filter(c => filter === 'all' ? true : c.status === filter);
+  const filtered = contacts.filter(c => {
+    const matchFilter = filter === 'all' ? true : c.status === filter;
+    const keyword = search.toLowerCase();
+    const matchSearch = !keyword || c.name?.toLowerCase().includes(keyword) || c.email?.toLowerCase().includes(keyword) || c.subject?.toLowerCase().includes(keyword) || c.message?.toLowerCase().includes(keyword);
+    return matchFilter && matchSearch;
+  });
   const unreadCount = contacts.filter(c => c.status === 'unread').length;
+  const readCount = contacts.filter(c => c.status === 'read').length;
 
   return (
     <div className="space-y-6">
@@ -72,6 +79,32 @@ export default function AdminContacts() {
             </button>
           ))}
         </div>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-3">
+        <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+          <p className="text-sm text-gray-500">Total Pesan</p>
+          <p className="mt-2 text-3xl font-bold text-gray-900">{contacts.length}</p>
+        </div>
+        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 shadow-sm">
+          <p className="text-sm text-emerald-700">Belum Dibaca</p>
+          <p className="mt-2 text-3xl font-bold text-emerald-700">{unreadCount}</p>
+        </div>
+        <div className="rounded-2xl border border-gray-200 bg-gray-50 p-5 shadow-sm">
+          <p className="text-sm text-gray-500">Sudah Dibaca</p>
+          <p className="mt-2 text-3xl font-bold text-gray-900">{readCount}</p>
+        </div>
+      </div>
+
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Cari nama, email, subject, atau isi pesan..."
+          className="w-full rounded-xl border border-gray-300 py-3 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+        />
       </div>
 
       {loading ? (

@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link, useLocation } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { getBlogBySlug, getBlogPosts } from '../lib/database';
 import { Calendar, User, Tag, ArrowLeft, Share2, Facebook, Twitter } from 'lucide-react';
 import Seo from '../components/Seo';
 import { useLanguage } from '../contexts/LanguageContext';
+import { getBlogImageAlt } from '../utils/imageAlt';
+import { optimizeImageUrl } from '../utils/cloudinary';
 
 function getCategoryLabel(category, t) {
   switch ((category || '').toLowerCase()) {
@@ -27,7 +29,7 @@ function getCategoryLabel(category, t) {
 
 export default function BlogDetail() {
     const { slug } = useParams();
-    const navigate = useNavigate();
+    const location = useLocation();
     const [post, setPost] = useState(null);
     const [related, setRelated] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -67,6 +69,7 @@ export default function BlogDetail() {
   };
 
   const shareUrl = window.location.href;
+  const siteUrl = (import.meta.env.VITE_APP_URL || import.meta.env.VITE_SITE_URL || 'https://web-travel-pi.vercel.app').replace(/\/$/, '');
 
   if (loading) {
         return (
@@ -88,25 +91,39 @@ export default function BlogDetail() {
     const title = localize(post.title);
     const excerpt = localize(post.excerpt);
     const content = localize(post.content);
+    const publishedDate = post.createdAt ? new Date(post.createdAt).toISOString() : undefined;
+    const modifiedDate = post.updatedAt ? new Date(post.updatedAt).toISOString() : publishedDate;
+    const articleUrl = `${siteUrl}${location.pathname}`;
+    const articleImage = optimizeImageUrl(post.coverImage, { width: 1200, height: 630 }) || post.coverImage;
   
     return (
           <>
                 <Seo
                   title={`${title} - Liburan Terus`}
                   description={excerpt || title}
-                  image={post.coverImage}
+                  image={articleImage}
                   type="article"
                 />
                 <Helmet>
                         <script type="application/ld+json">{JSON.stringify({
                       "@context": "https://schema.org",
                       "@type": "BlogPosting",
+                      "mainEntityOfPage": {
+                        "@type": "WebPage",
+                        "@id": articleUrl,
+                      },
+                      "url": articleUrl,
                       "headline": title,
                       "description": excerpt,
-                      "image": post.coverImage,
+                      "image": articleImage ? [articleImage] : undefined,
                       "author": { "@type": "Person", "name": post.author || "Liburan Terus" },
-                      "publisher": { "@type": "Organization", "name": "Liburan Terus" },
-                      "datePublished": post.createdAt?.toDate?.()?.toISOString(),
+                      "publisher": {
+                        "@type": "Organization",
+                        "name": "Liburan Terus",
+                        "url": siteUrl,
+                      },
+                      "datePublished": publishedDate,
+                      "dateModified": modifiedDate,
           })}</script>
                 </Helmet>
           
@@ -114,7 +131,7 @@ export default function BlogDetail() {
                   {/* Cover */}
                   {post.coverImage && (
                       <div className="w-full h-72 md:h-96 overflow-hidden">
-                                  <img src={post.coverImage} alt={title} className="w-full h-full object-cover" />
+                                  <img src={optimizeImageUrl(post.coverImage, { width: 1400, height: 720 })} alt={getBlogImageAlt(post, language) || title} className="w-full h-full object-cover" fetchpriority="high" decoding="async" />
                       </div>
                         )}
                 
@@ -194,7 +211,7 @@ export default function BlogDetail() {
                                             <Link key={p.id} to={`/blog/${p.slug || p.id}`} className="bg-white rounded-2xl overflow-hidden shadow hover:shadow-lg transition-all group flex gap-4 p-4">
                                               {p.coverImage && (
                                                                     <div className="w-24 h-24 shrink-0 rounded-xl overflow-hidden">
-                                                                                            <img src={p.coverImage} alt={relatedTitle} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                                                                                            <img src={optimizeImageUrl(p.coverImage, { width: 320, height: 320 })} alt={getBlogImageAlt(p, language) || relatedTitle} className="w-full h-full object-cover group-hover:scale-105 transition-transform" loading="lazy" decoding="async" />
                                                                     </div>
                                                                 )}
                                                                 <div>
