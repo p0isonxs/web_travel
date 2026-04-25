@@ -86,6 +86,8 @@ CREATE TABLE IF NOT EXISTS blog (
   content JSONB,
   cover_image TEXT,
   cover_alt TEXT,
+  meta_title TEXT,
+  meta_description TEXT,
   author TEXT DEFAULT 'Admin',
   published BOOLEAN DEFAULT FALSE,
   read_time INTEGER DEFAULT 5,
