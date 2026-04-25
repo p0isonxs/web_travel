@@ -28,6 +28,32 @@ export function optimizeImageUrl(url, options = {}) {
   return url.replace('/image/upload/', `/image/upload/${transforms}/`);
 }
 
+export function buildResponsiveImageProps(url, options = {}) {
+  if (!url || !url.includes('res.cloudinary.com') || !url.includes('/image/upload/')) {
+    return {
+      src: url,
+      srcSet: undefined,
+      sizes: options.sizes,
+    };
+  }
+
+  const {
+    widths = [],
+    sizes,
+    ...imageOptions
+  } = options;
+
+  const uniqueWidths = [...new Set(widths.filter(Boolean))].sort((a, b) => a - b);
+
+  return {
+    src: optimizeImageUrl(url, { ...imageOptions, width: uniqueWidths[0] || imageOptions.width }),
+    srcSet: uniqueWidths.length
+      ? uniqueWidths.map((width) => `${optimizeImageUrl(url, { ...imageOptions, width })} ${width}w`).join(', ')
+      : undefined,
+    sizes,
+  };
+}
+
 export async function uploadToCloudinary(file, folder = 'general') {
   if (!CLOUD_NAME || !UPLOAD_PRESET) {
     throw new Error('Cloudinary belum dikonfigurasi. Isi VITE_CLOUDINARY_CLOUD_NAME dan VITE_CLOUDINARY_UPLOAD_PRESET di file .env');

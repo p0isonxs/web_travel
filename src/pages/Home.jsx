@@ -8,7 +8,7 @@ import Seo from '../components/Seo';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useSettings } from '../contexts/SettingsContext';
 import { getBlogImageAlt, getPackageImageAlt } from '../utils/imageAlt';
-import { optimizeImageUrl } from '../utils/cloudinary';
+import { buildResponsiveImageProps, optimizeImageUrl } from '../utils/cloudinary';
 
 export default function Home() {
     const [openPackages, setOpenPackages] = useState([]);
@@ -18,6 +18,7 @@ export default function Home() {
     const [slideIdx, setSlideIdx] = useState(0);
     const [heroCardIdx, setHeroCardIdx] = useState(0);
     const [visibleCount, setVisibleCount] = useState(4);
+    const [isDesktop, setIsDesktop] = useState(false);
     const timerRef = useRef(null);
     const { t, language, localize } = useLanguage();
     const settings = useSettings();
@@ -32,6 +33,7 @@ export default function Home() {
         const update = () => {
                   const w = window.innerWidth;
                   setVisibleCount(w >= 1024 ? 3 : w >= 640 ? 2 : 1);
+                  setIsDesktop(w >= 1024);
         };
         update();
         window.addEventListener('resize', update);
@@ -101,6 +103,25 @@ export default function Home() {
 
   const whyUs = t('home.whyUsItems');
   const homepageWhatsappMessage = encodeURIComponent(t('home.whatsappTemplate'));
+  const deferredSectionStyle = {
+    contentVisibility: 'auto',
+    containIntrinsicSize: '900px',
+  };
+  const heroBackgroundImage = buildResponsiveImageProps(HERO_BG, {
+    widths: [640, 960, 1280, 1600],
+    quality: 'auto',
+    sizes: '100vw',
+  });
+  const privateBackgroundImage = buildResponsiveImageProps(PRIVATE_BG, {
+    widths: [640, 960, 1280, 1600],
+    quality: 'auto',
+    sizes: '100vw',
+  });
+  const testimonialBackgroundImage = buildResponsiveImageProps(TESTI_BG, {
+    widths: [640, 960, 1280, 1600],
+    quality: 'auto',
+    sizes: '100vw',
+  });
 
   return (
         <>
@@ -132,7 +153,17 @@ export default function Home() {
 
                 {/* Background photo */}
                 <div className="absolute inset-0 bg-gradient-to-br from-emerald-900 via-teal-800 to-emerald-700">
-                  {HERO_BG && <img src={optimizeImageUrl(HERO_BG, { width: 1600, quality: 'auto' })} alt="" fetchpriority="high" loading="eager" decoding="async" className="w-full h-full object-cover" />}
+                  {HERO_BG && (
+                    <img
+                      src={heroBackgroundImage.src}
+                      srcSet={heroBackgroundImage.srcSet}
+                      sizes={heroBackgroundImage.sizes}
+                      alt=""
+                      loading="eager"
+                      decoding="async"
+                      className="w-full h-full object-cover"
+                    />
+                  )}
                   <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/60 to-black/20" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                 </div>
@@ -179,7 +210,7 @@ export default function Home() {
                   </div>
 
                   {/* RIGHT — auto-slide card */}
-                  {openPackages.length > 0 && (() => {
+                  {isDesktop && openPackages.length > 0 && (() => {
                     const pkg = openPackages[heroCardIdx];
                     return (
                       <div className="hidden lg:block w-full max-w-sm ml-auto">
@@ -203,6 +234,7 @@ export default function Home() {
                           <div className="absolute top-4 right-4 flex gap-1.5">
                             {openPackages.slice(0, 5).map((_, i) => (
                               <button key={i} onClick={e => { e.preventDefault(); setHeroCardIdx(i); }}
+                                aria-label={`Pilih slide ${i + 1}`}
                                 className={`w-1.5 h-1.5 rounded-full transition-all ${i === heroCardIdx ? 'bg-white w-4' : 'bg-white/40'}`} />
                             ))}
                           </div>
@@ -255,7 +287,7 @@ export default function Home() {
               </section>
 
           {/* Open Trip Section */}
-              <section className="py-20 bg-gray-50">
+              <section className="py-20 bg-gray-50" style={deferredSectionStyle}>
                       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                                 <div className="flex items-end justify-between mb-10">
                                             <div>
@@ -349,10 +381,20 @@ export default function Home() {
               </section>
 
           {/* Private Trip */}
-              <section className="relative overflow-hidden py-24">
+              <section className="relative overflow-hidden py-24" style={deferredSectionStyle}>
                 {/* Full photo background */}
                 <div className="absolute inset-0 bg-gradient-to-r from-violet-950 via-purple-900 to-purple-800">
-                  {PRIVATE_BG && <img src={optimizeImageUrl(PRIVATE_BG, { width: 1600, quality: 'auto' })} alt="" className="w-full h-full object-cover" loading="lazy" decoding="async" />}
+                  {PRIVATE_BG && (
+                    <img
+                      src={privateBackgroundImage.src}
+                      srcSet={privateBackgroundImage.srcSet}
+                      sizes={privateBackgroundImage.sizes}
+                      alt=""
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  )}
                   <div className="absolute inset-0 bg-gradient-to-r from-violet-950/95 via-purple-900/90 to-purple-800/75" />
                 </div>
 
@@ -398,7 +440,7 @@ export default function Home() {
                     </div>
 
                     {/* Right — package photo grid */}
-                    <div className="hidden lg:grid grid-cols-2 gap-4 h-[440px]">
+                    {isDesktop && <div className="hidden lg:grid grid-cols-2 gap-4 h-[440px]">
                       {/* Big card */}
                       {privatePackages[0] && (() => {
                         const pkg = privatePackages[0];
@@ -437,14 +479,14 @@ export default function Home() {
                           <div className="rounded-3xl bg-purple-600/30 animate-pulse" />
                         </>
                       )}
-                    </div>
+                    </div>}
 
                   </div>
                 </div>
               </section>
 
           {/* Why Us */}
-              <section className="py-20 bg-white">
+              <section className="py-20 bg-white" style={deferredSectionStyle}>
                       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                                 <div className="text-center mb-14">
                                             <span className="text-emerald-600 font-semibold text-sm uppercase tracking-wider">{t('home.whyUsEyebrow')}</span>
@@ -466,10 +508,20 @@ export default function Home() {
 
           {/* Testimonials Carousel */}
           {testimonials.length > 0 && (
-            <section className="py-24 relative overflow-hidden">
+            <section className="py-24 relative overflow-hidden" style={deferredSectionStyle}>
               {/* Background photo + overlay */}
               <div className="absolute inset-0 bg-emerald-950">
-                {TESTI_BG && <div className="absolute inset-0 opacity-40" style={{ backgroundImage: `url("${TESTI_BG}")`, backgroundSize: 'cover', backgroundPosition: 'center' }} />}
+                {TESTI_BG && (
+                  <img
+                    src={testimonialBackgroundImage.src}
+                    srcSet={testimonialBackgroundImage.srcSet}
+                    sizes={testimonialBackgroundImage.sizes}
+                    alt=""
+                    className="absolute inset-0 w-full h-full object-cover opacity-40"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                )}
                 <div className="absolute inset-0 bg-gradient-to-b from-emerald-950/80 via-emerald-900/85 to-emerald-950/90" />
               </div>
 
@@ -543,6 +595,7 @@ export default function Home() {
                       <button
                         key={i}
                         onClick={() => goToSlide(i)}
+                        aria-label={`Pilih testimonial ${i + 1}`}
                         className={`h-2 rounded-full transition-all duration-300 ${i === slideIdx ? 'bg-white w-7' : 'bg-white/30 w-2 hover:bg-white/60'}`}
                       />
                     ))}
@@ -554,7 +607,7 @@ export default function Home() {
 
           {/* Blog Section */}
           {blogs.length > 0 && (
-                  <section className="py-20 bg-white">
+                  <section className="py-20 bg-white" style={deferredSectionStyle}>
                             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                                         <div className="flex items-end justify-between mb-10">
                                                       <div>
@@ -628,7 +681,7 @@ export default function Home() {
               )}
 
           {/* CTA Banner */}
-              <section className="py-20 bg-gradient-to-r from-emerald-600 to-teal-700">
+              <section className="py-20 bg-gradient-to-r from-emerald-600 to-teal-700" style={deferredSectionStyle}>
                       <div className="max-w-4xl mx-auto px-4 text-center">
                                 <h2 className="text-4xl font-bold text-white mb-4">{t('home.ctaTitle')}</h2>
                                 <p className="text-emerald-100 text-lg mb-8">{t('home.ctaDescription')}</p>
