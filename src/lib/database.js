@@ -19,6 +19,7 @@ const PUBLIC_SETTINGS_KEYS = [
   'heroBackground',
   'privateTripBackground',
   'testimonialBackground',
+  'ogImage',
 ]
 
 // ─── Key converters ───────────────────────────────────────────────────────────

@@ -8,6 +8,7 @@ const defaultSettings = {
     heroBackground: '',
     privateTripBackground: '',
     testimonialBackground: '',
+    ogImage: '',
     siteName: 'Liburan Terus',
     tagline: 'Jelajahi Keindahan Indonesia Bersama Kami',
     phone: '6281234567890',
@@ -64,7 +65,7 @@ function isValidUrl(value) {
   }
 }
 
-function ImageUploadField({ label, value, settingKey, onUploaded }) {
+function ImageUploadField({ label, value, settingKey, onUploaded, folder = 'backgrounds', hint }) {
   const [uploading, setUploading] = useState(false);
 
   const handleFile = async (e) => {
@@ -73,7 +74,7 @@ function ImageUploadField({ label, value, settingKey, onUploaded }) {
     if (file.size > 5 * 1024 * 1024) { toast.error('Ukuran file maksimal 5MB'); return; }
     setUploading(true);
     try {
-      const url = await uploadToCloudinary(file, 'backgrounds');
+      const url = await uploadToCloudinary(file, folder);
       onUploaded(settingKey, url);
       toast.success('Gambar berhasil diupload!');
     } catch (err) { toast.error('Gagal upload: ' + (err.message || err)); }
@@ -103,7 +104,7 @@ function ImageUploadField({ label, value, settingKey, onUploaded }) {
             <span>{uploading ? 'Mengupload...' : 'Upload Foto'}</span>
             <input type="file" accept="image/*" className="hidden" onChange={handleFile} disabled={uploading} />
           </label>
-          <p className="text-xs text-gray-400 mt-2">JPG/PNG/WebP, maks 5MB. Rekomendasi: 1920×1080px</p>
+          <p className="text-xs text-gray-400 mt-2">{hint || 'JPG/PNG/WebP, maks 5MB. Rekomendasi: 1920×1080px'}</p>
         </div>
       </div>
     </div>
@@ -365,6 +366,14 @@ export default function AdminSettings() {
                                               <label className={labelClass}>Meta Keywords (pisahkan koma)</label>
                                               <input value={settings.metaKeywords} onChange={e => setSettings({...settings, metaKeywords: e.target.value})} className={inputClass} />
                                   </div>
+                                  <ImageUploadField
+                                    label="Gambar Thumbnail Share (OG Image)"
+                                    value={settings.ogImage}
+                                    settingKey="ogImage"
+                                    folder="og"
+                                    hint="JPG/PNG, maks 5MB. Wajib 1200×630px. Muncul saat link dibagikan di WhatsApp, Telegram, Discord, Twitter, dll."
+                                    onUploaded={(key, url) => setSettings({ ...settings, [key]: url })}
+                                  />
                         </Section>
                 
                         <div className="sticky bottom-4 z-10 flex flex-col gap-3 rounded-2xl border border-gray-200 bg-white/95 p-4 shadow-lg backdrop-blur sm:flex-row sm:items-center sm:justify-between">

@@ -19,6 +19,7 @@ export const defaultSettings = {
   heroBackground: '',
   privateTripBackground: '',
   testimonialBackground: '',
+  ogImage: '',
 };
 
 // Module-level cache: fetched once per app session, survives re-renders & StrictMode double-invoke
