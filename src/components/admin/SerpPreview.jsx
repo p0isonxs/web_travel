@@ -1,7 +1,11 @@
+import { SITE_URL } from '../../lib/siteConfig'
+
 const MAX_TITLE = 60
 const MAX_DESC = 160
 
-export default function SerpPreview({ title, description, slug, baseUrl = 'liburanterus.com' }) {
+const DEFAULT_BASE = SITE_URL.replace(/^https?:\/\//, '')
+
+export default function SerpPreview({ title, description, slug, baseUrl = DEFAULT_BASE }) {
   const displayTitle = title ? (title.length > MAX_TITLE ? title.slice(0, MAX_TITLE) + '…' : title) : 'Judul halaman...'
   const displayDesc = description ? (description.length > MAX_DESC ? description.slice(0, MAX_DESC) + '…' : description) : 'Meta description akan muncul di sini...'
   const displayUrl = slug ? `${baseUrl}/${slug}` : `${baseUrl}/...`

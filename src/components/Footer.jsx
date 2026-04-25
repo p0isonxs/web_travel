@@ -20,7 +20,7 @@ const Footer = () => {
                                                                             <FaPlane className="text-white text-xl" />
                                                             </div>
                                                             <div>
-                                                                            <span className="font-bold text-lg text-white block">Liburan Terus</span>
+                                                                            <span className="font-bold text-lg text-white block">{settings.siteName}</span>
                                                                             <span className="text-xs text-emerald-400 block">{t('common.brandTagline')}</span>
                                                             </div>
                                               </Link>
@@ -130,7 +130,7 @@ const Footer = () => {
                 <div className="border-t border-gray-800">
                         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex flex-col sm:flex-row items-center justify-between gap-3">
                                   <p className="text-sm text-gray-500">
-                                              © {currentYear} Liburan Terus. {t('footer.rights')}
+                                              © {currentYear} {settings.siteName}. {t('footer.rights')}
                                   </p>
                                   <p className="text-sm text-gray-500">
                                               {t('footer.madeFor')}

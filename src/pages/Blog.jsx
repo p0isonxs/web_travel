@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { getBlogPosts } from '../lib/database';
@@ -9,7 +9,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { getBlogImageAlt } from '../utils/imageAlt';
 import { optimizeImageUrl } from '../utils/cloudinary';
 
-const SITE_URL = (import.meta.env.VITE_APP_URL || import.meta.env.VITE_SITE_URL || 'https://web-travel-pi.vercel.app').replace(/\/$/, '')
+import { SITE_URL, SITE_NAME } from '../lib/siteConfig';
 
 function getCategoryLabel(category, t) {
   switch ((category || '').toLowerCase()) {
@@ -31,7 +31,7 @@ function getCategoryLabel(category, t) {
 }
 
 export default function Blog() {
-    const [posts, setPosts] = useState([]);
+    const [allPosts, setAllPosts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
     const [activeCategory, setActiveCategory] = useState('semua');
@@ -47,26 +47,30 @@ export default function Blog() {
   ];
 
   useEffect(() => {
-        fetchPosts();
-        window.scrollTo(0, 0);
+    const fetchPosts = async () => {
+      try {
+        const data = await getBlogPosts({ publishedOnly: true });
+        setAllPosts(data);
+      } catch (error) {
+        console.error('Error fetching blog posts:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchPosts();
+    window.scrollTo(0, 0);
+  }, []);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
   }, [activeCategory]);
 
-  const fetchPosts = async () => {
-        setLoading(true);
-        try {
-                const allPosts = await getBlogPosts({ publishedOnly: true });
-
-                const visiblePosts = allPosts
-                  .filter(post => activeCategory === 'semua' || post.category === activeCategory)
-                  .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-
-                setPosts(visiblePosts);
-        } catch (error) {
-                console.error('Error fetching blog posts:', error);
-                setPosts([]);
-        }
-        setLoading(false);
-  };
+  const posts = useMemo(() =>
+    allPosts
+      .filter(post => activeCategory === 'semua' || post.category === activeCategory)
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)),
+    [allPosts, activeCategory]
+  );
 
   const filtered = posts.filter(p =>
         localize(p.title)?.toLowerCase().includes(search.toLowerCase()) ||
@@ -82,7 +86,7 @@ export default function Blog() {
   const blogListSchema = posts.length > 0 ? {
     '@context': 'https://schema.org',
     '@type': 'Blog',
-    name: language === 'en' ? 'Liburan Terus Travel Blog' : 'Blog Wisata Liburan Terus',
+    name: language === 'en' ? `${SITE_NAME} Travel Blog` : `Blog Wisata ${SITE_NAME}`,
     description: t('blog.seoDescription'),
     url: `${SITE_URL}/blog`,
     blogPost: posts.slice(0, 10).map(post => ({
@@ -91,7 +95,7 @@ export default function Blog() {
       url: `${SITE_URL}/blog/${post.slug}`,
       datePublished: post.createdAt ? new Date(post.createdAt).toISOString() : undefined,
       image: post.coverImage || undefined,
-      author: { '@type': 'Person', name: post.author || 'Liburan Terus' },
+      author: { '@type': 'Person', name: post.author || SITE_NAME },
     })),
   } : null
 

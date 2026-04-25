@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 
-const SITE_URL = (import.meta.env.VITE_APP_URL || import.meta.env.VITE_SITE_URL || 'https://web-travel-pi.vercel.app').replace(/\/$/, '')
 import { Helmet } from 'react-helmet-async';
+import { SITE_URL, SITE_NAME } from '../lib/siteConfig';
 import { getPackages, getApprovedTestimonials, getBlogPosts } from '../lib/database';
 import { generateSlug } from '../utils/slug';
 import { MapPin, Users, Star, ChevronRight, Phone, CheckCircle, ArrowRight, Calendar } from 'lucide-react';
@@ -21,7 +21,7 @@ export default function Home() {
     const [slideIdx, setSlideIdx] = useState(0);
     const [heroCardIdx, setHeroCardIdx] = useState(0);
     const [visibleCount, setVisibleCount] = useState(4);
-    const [isDesktop, setIsDesktop] = useState(false);
+    const [isDesktop, setIsDesktop] = useState(() => window.innerWidth >= 1024);
     const timerRef = useRef(null);
     const { t, language, localize } = useLanguage();
     const settings = useSettings();
@@ -139,7 +139,7 @@ export default function Home() {
                 <script type="application/ld+json">{JSON.stringify({
                     "@context": "https://schema.org",
                     "@type": "TravelAgency",
-                    "name": "Liburan Terus",
+                    "name": SITE_NAME,
                     "description": language === 'en' ? "Trusted travel agency for open trips and private trips" : "Agen wisata terpercaya untuk open trip dan private trip",
                     "url": SITE_URL,
                     "telephone": `+${settings.phone}`,
@@ -215,51 +215,134 @@ export default function Home() {
 
                   </div>
 
-                  {/* RIGHT — auto-slide card */}
+                  {/* RIGHT — featured card + thumbnail nav */}
                   {isDesktop && openPackages.length > 0 && (() => {
-                    const pkg = openPackages[heroCardIdx];
+                    const cards = openPackages.slice(0, 5);
+                    const pkg = cards[heroCardIdx];
+
                     return (
-                      <div className="hidden lg:block w-full max-w-sm ml-auto">
-                        <Link to={`/${pkg.type}/${pkg.slug?.id || generateSlug(pkg.title?.id || '')}`}
-                          className="relative rounded-2xl overflow-hidden shadow-2xl group block h-[420px]">
-                          {/* Slides */}
-                          {openPackages.slice(0, 5).map((p, i) => (
-                            <img key={i} src={optimizeImageUrl(p.images?.[0], { width: 900, height: 1200 })} alt={getPackageImageAlt(p, language, 0)}
+                      <div className="hidden lg:flex flex-col gap-2.5 w-full max-w-[380px] ml-auto">
+
+                        {/* ── Main card ── */}
+                        <Link
+                          to={`/open-trip/${pkg.slug?.id || generateSlug(pkg.title?.id || '')}`}
+                          className="relative rounded-[28px] overflow-hidden h-[400px] group block shadow-2xl shadow-black/50"
+                        >
+                          {/* Image crossfade */}
+                          {cards.map((p, i) => (
+                            <img
+                              key={i}
+                              src={optimizeImageUrl(p.images?.[0], { width: 800, height: 1100 })}
+                              alt={getPackageImageAlt(p, language, 0)}
                               loading={i === 0 ? 'eager' : 'lazy'}
                               decoding="async"
-                              className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${i === heroCardIdx ? 'opacity-100' : 'opacity-0'}`} />
+                              className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 group-hover:scale-105 ${i === heroCardIdx ? 'opacity-100' : 'opacity-0'}`}
+                            />
                           ))}
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
 
-                          {/* Badge */}
-                          <div className="absolute top-4 left-4">
-                            <span className="bg-emerald-500 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow">Open Trip</span>
-                          </div>
+                          {/* Gradient */}
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/25 to-transparent" />
 
-                          {/* Dots */}
-                          <div className="absolute top-4 right-4 flex gap-1.5">
-                            {openPackages.slice(0, 5).map((_, i) => (
-                              <button key={i} onClick={e => { e.preventDefault(); setHeroCardIdx(i); }}
-                                aria-label={`Pilih slide ${i + 1}`}
-                                className={`w-1.5 h-1.5 rounded-full transition-all ${i === heroCardIdx ? 'bg-white w-4' : 'bg-white/40'}`} />
-                            ))}
-                          </div>
-
-                          {/* Info */}
-                          <div className="absolute bottom-0 left-0 right-0 p-5">
-                            <div className="flex items-center gap-1.5 mb-1.5">
-                              <MapPin className="w-3.5 h-3.5 text-emerald-400" />
-                              <span className="text-white/70 text-sm">{localize(pkg.location) || 'Indonesia'}</span>
+                          {/* Top row: badge + counter */}
+                          <div className="absolute top-4 left-4 right-4 flex items-center justify-between">
+                            <span className="bg-emerald-500/90 backdrop-blur-sm text-white text-[11px] font-bold px-3 py-1.5 rounded-full shadow-lg">
+                              Open Trip
+                            </span>
+                            <div className="flex items-center gap-1.5">
+                              {pkg.rating && (
+                                <div className="flex items-center gap-1 bg-black/50 backdrop-blur-sm text-white text-[11px] px-2.5 py-1.5 rounded-full border border-white/10">
+                                  <FaStar className="text-yellow-400" size={10} />
+                                  <span className="font-bold">{pkg.rating}</span>
+                                </div>
+                              )}
+                              <div className="bg-black/50 backdrop-blur-sm text-white/55 text-[11px] font-semibold tabular-nums px-2.5 py-1.5 rounded-full border border-white/10">
+                                {heroCardIdx + 1}&thinsp;/&thinsp;{cards.length}
+                              </div>
                             </div>
-                            <p className="text-white font-bold text-lg leading-snug line-clamp-2 mb-3">{localize(pkg.title)}</p>
-                            <div className="flex items-center justify-between">
-                              <p className="text-emerald-300 font-semibold text-base">{formatPrice(pkg.price)}</p>
-                              <span className="inline-flex items-center gap-1 bg-white/15 backdrop-blur-sm border border-white/20 text-white text-xs px-3 py-1.5 rounded-full">
-                                {t('home.heroPrimaryCta')} <ArrowRight className="w-3 h-3" />
-                              </span>
+                          </div>
+
+                          {/* Bottom content */}
+                          <div className="absolute bottom-0 left-0 right-0 p-5">
+                            {/* Location */}
+                            <div className="inline-flex items-center gap-1.5 bg-white/10 backdrop-blur-sm border border-white/10 text-white/70 text-[11px] px-3 py-1.5 rounded-full mb-3">
+                              <MapPin className="w-3 h-3 text-emerald-400 shrink-0" />
+                              <span className="truncate">{localize(pkg.location) || 'Indonesia'}</span>
+                            </div>
+
+                            {/* Title */}
+                            <h3 className="text-white font-bold text-[1.15rem] leading-snug line-clamp-2 mb-3 group-hover:text-emerald-300 transition-colors duration-300">
+                              {localize(pkg.title)}
+                            </h3>
+
+                            {/* Info chips */}
+                            <div className="flex items-center gap-2 mb-4 flex-wrap">
+                              {localize(pkg.duration) && (
+                                <div className="flex items-center gap-1.5 bg-white/10 backdrop-blur-sm text-white/75 text-[11px] px-3 py-1.5 rounded-full border border-white/10">
+                                  <FaClock size={9} className="text-teal-300 shrink-0" />
+                                  <span>{localize(pkg.duration)}</span>
+                                </div>
+                              )}
+                              <div className="flex items-center gap-1.5 bg-white/10 backdrop-blur-sm text-white/75 text-[11px] px-3 py-1.5 rounded-full border border-white/10">
+                                <FaUsers size={9} className="text-teal-300 shrink-0" />
+                                <span>Maks. {pkg.maxParticipants || 15} orang</span>
+                              </div>
+                            </div>
+
+                            <div className="h-px bg-white/15 mb-4" />
+
+                            {/* Price + CTA */}
+                            <div className="flex items-end justify-between">
+                              <div>
+                                {pkg.originalPrice && pkg.originalPrice > pkg.price && (
+                                  <p className="text-white/35 text-[11px] line-through leading-none mb-0.5">{formatPrice(pkg.originalPrice)}</p>
+                                )}
+                                <p className="text-[1.6rem] font-black text-white leading-none">{formatPrice(pkg.price)}</p>
+                                <p className="text-emerald-400/75 text-[10px] font-semibold uppercase tracking-[0.14em] mt-1">{t('openTrip.perPerson')}</p>
+                              </div>
+                              <div className="flex items-center gap-1.5 bg-emerald-500 group-hover:bg-emerald-400 text-white text-[11px] font-bold px-4 py-3 rounded-2xl shadow-lg shadow-emerald-700/40 transition-all duration-300 group-hover:scale-105 shrink-0">
+                                {t('openTrip.viewDetail')} <ArrowRight className="w-3.5 h-3.5" />
+                              </div>
                             </div>
                           </div>
                         </Link>
+
+                        {/* ── Thumbnail strip ── */}
+                        {cards.length > 1 && (
+                          <div
+                            className="grid gap-2"
+                            style={{ gridTemplateColumns: `repeat(${cards.length}, 1fr)` }}
+                          >
+                            {cards.map((p, i) => (
+                              <button
+                                key={i}
+                                type="button"
+                                onClick={() => setHeroCardIdx(i)}
+                                aria-label={`Tampilkan: ${localize(p.title)}`}
+                                className="relative rounded-2xl overflow-hidden h-[58px] transition-all duration-300 focus:outline-none"
+                                style={{
+                                  opacity: i === heroCardIdx ? 1 : 0.45,
+                                  transform: i === heroCardIdx ? 'scale(1.04)' : 'scale(1)',
+                                  boxShadow: i === heroCardIdx ? '0 0 0 2px #34d399, 0 4px 12px rgba(0,0,0,0.4)' : '0 2px 8px rgba(0,0,0,0.25)',
+                                }}
+                              >
+                                <img
+                                  src={optimizeImageUrl(p.images?.[0], { width: 180, height: 120 })}
+                                  alt=""
+                                  loading="lazy"
+                                  className="w-full h-full object-cover"
+                                />
+                                {/* Active tint */}
+                                {i === heroCardIdx && (
+                                  <div className="absolute inset-0 bg-emerald-400/10" />
+                                )}
+                                {/* Dark overlay on inactive */}
+                                {i !== heroCardIdx && (
+                                  <div className="absolute inset-0 bg-black/20 hover:bg-black/5 transition-colors duration-200" />
+                                )}
+                              </button>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     );
                   })()}

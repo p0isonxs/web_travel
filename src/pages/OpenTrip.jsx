@@ -9,7 +9,7 @@ import { useLanguage } from '../contexts/LanguageContext'
 import { getPackageImageAlt } from '../utils/imageAlt'
 import { optimizeImageUrl } from '../utils/cloudinary'
 
-const SITE_URL = (import.meta.env.VITE_APP_URL || import.meta.env.VITE_SITE_URL || 'https://web-travel-pi.vercel.app').replace(/\/$/, '')
+import { SITE_URL } from '../lib/siteConfig';
 
 const OpenTrip = () => {
     const [packages, setPackages] = useState([])

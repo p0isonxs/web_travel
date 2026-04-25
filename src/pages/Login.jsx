@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { Helmet } from 'react-helmet-async'
 import { FaPlane, FaEye, FaEyeSlash, FaLock, FaEnvelope } from 'react-icons/fa'
 import { toast } from 'react-toastify'
+import { SITE_NAME } from '../lib/siteConfig'
 
 const Login = () => {
     const [email, setEmail] = useState('')
@@ -39,7 +40,7 @@ const Login = () => {
     return (
           <>
                 <Helmet>
-                        <title>Login Admin - Liburan Terus</title>
+                        <title>Login Admin - {SITE_NAME}</title>
                         <meta name="robots" content="noindex, nofollow" />
                 </Helmet>
                 <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 flex items-center justify-center p-4">
@@ -51,7 +52,7 @@ const Login = () => {
                                                             <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl mb-4 shadow-lg">
                                                                             <FaPlane className="text-white text-2xl" />
                                                             </div>
-                                                            <h1 className="text-2xl font-bold text-gray-800">Liburan Terus</h1>
+                                                            <h1 className="text-2xl font-bold text-gray-800">{SITE_NAME}</h1>
                                                             <p className="text-gray-500 text-sm mt-1">Panel Admin</p>
                                               </div>
                                   
@@ -67,7 +68,7 @@ const Login = () => {
                                                                                                                     type="email"
                                                                                                                     value={email}
                                                                                                                     onChange={(e) => setEmail(e.target.value)}
-                                                                                                                    placeholder="admin@liburanterus.com"
+                                                                                                                    placeholder="admin@example.com"
                                                                                                                     required
                                                                                                                     className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all bg-gray-50 text-sm"
                                                                                                                   />
@@ -115,7 +116,7 @@ const Login = () => {
                                               </form>
                                   
                                               <p className="text-center text-xs text-gray-400 mt-6">
-                                                            Hanya untuk administrator Liburan Terus
+                                                            Hanya untuk administrator {SITE_NAME}
                                               </p>
                                   </div>
                         </div>

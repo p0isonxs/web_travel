@@ -2,12 +2,14 @@ import { useState, useEffect } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import { FaBars, FaTimes, FaPlane } from 'react-icons/fa'
 import { useLanguage } from '../contexts/LanguageContext'
+import { useSettings } from '../contexts/SettingsContext'
 
 const Navbar = () => {
     const [isOpen, setIsOpen] = useState(false)
     const [scrolled, setScrolled] = useState(false)
     const location = useLocation()
     const { language, setLanguage, t } = useLanguage()
+    const settings = useSettings()
 
     useEffect(() => {
           const handleScroll = () => setScrolled(window.scrollY > 20)
@@ -46,7 +48,7 @@ const Navbar = () => {
                                                 <div>
                                                               <span className={`font-bold text-lg leading-tight block ${
                             scrolled || !isHomePage ? 'text-gray-800' : 'text-white'
-          }`}>Liburan Terus</span>
+          }`}>{settings.siteName}</span>
                                                               <span className={`text-xs leading-tight block ${
                             scrolled || !isHomePage ? 'text-emerald-600' : 'text-emerald-300'
           }`}>{t('common.brandTagline')}</span>

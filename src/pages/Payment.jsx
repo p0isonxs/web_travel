@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
+import { SITE_NAME } from '../lib/siteConfig'
 import { getBookingById, updateBooking, upsertPaymentByBookingId, getPaymentByBookingId } from '../lib/database'
 import { uploadToCloudinary } from '../utils/cloudinary'
 import { FaUniversity, FaCheckCircle, FaUpload, FaArrowLeft, FaExclamationTriangle, FaRegCopy } from 'react-icons/fa'
@@ -167,7 +168,7 @@ const Payment = () => {
     return (
           <>
                 <Helmet>
-                        <title>{t('payment.title')} - Liburan Terus</title>
+                        <title>{t('payment.title')} - {SITE_NAME}</title>
                         <meta name="robots" content="noindex" />
                 </Helmet>
           

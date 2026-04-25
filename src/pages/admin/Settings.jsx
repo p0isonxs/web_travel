@@ -3,26 +3,27 @@ import { getSettings, updateSettings } from '../../lib/database';
 import { uploadToCloudinary } from '../../utils/cloudinary';
 import { Save, RefreshCw, Upload, X, ShieldCheck, Globe2, Landmark, AlertTriangle, Phone, Mail, MapPin, Undo2 } from 'lucide-react';
 import { toast } from 'react-toastify';
+import { SITE_NAME } from '../../lib/siteConfig';
 
 const defaultSettings = {
     heroBackground: '',
     privateTripBackground: '',
     testimonialBackground: '',
     ogImage: '',
-    siteName: 'Liburan Terus',
+    siteName: SITE_NAME,
     tagline: 'Jelajahi Keindahan Indonesia Bersama Kami',
-    phone: '6281234567890',
-    email: 'info@liburanterus.com',
-    address: 'Jl. Wisata Indah No. 123, Jakarta Selatan',
-    instagram: 'https://instagram.com/liburanterus',
-    facebook: 'https://facebook.com/liburanterus',
+    phone: '',
+    email: '',
+    address: '',
+    instagram: '',
+    facebook: '',
     youtube: '',
     tiktok: '',
-    bankName: 'BCA',
-    bankAccount: '1234567890',
-    bankAccountName: 'PT Liburan Terus Indonesia',
-    metaDescription: 'Liburan Terus menyediakan paket wisata open trip dan private trip terbaik ke berbagai destinasi indah di Indonesia.',
-    metaKeywords: 'wisata indonesia, open trip, private trip, paket wisata, liburan terus',
+    bankName: '',
+    bankAccount: '',
+    bankAccountName: '',
+    metaDescription: '',
+    metaKeywords: 'wisata indonesia, open trip, private trip, paket wisata',
 };
 
 const SOCIAL_LABELS = {

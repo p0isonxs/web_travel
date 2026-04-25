@@ -1,13 +1,15 @@
 import { Link } from 'react-router-dom';
-import { Helmet } from 'react-helmet-async';
 import { Home, ArrowLeft } from 'lucide-react';
+import Seo from '../components/Seo';
 
 export default function NotFound() {
   return (
     <>
-      <Helmet>
-        <title>404 - Halaman Tidak Ditemukan</title>
-      </Helmet>
+      <Seo
+        title="404 - Halaman Tidak Ditemukan"
+        description="Halaman yang kamu cari tidak ada atau telah dipindahkan."
+        noindex={true}
+      />
       <div className="min-h-[70vh] flex items-center justify-center px-4">
         <div className="text-center">
           <div className="text-8xl font-bold text-emerald-500 mb-4">404</div>

@@ -3,6 +3,7 @@ import { useParams, Link, useLocation } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import DOMPurify from 'dompurify';
 import { getBlogBySlug, getBlogPostsByCategory } from '../lib/database';
+import { SITE_URL, SITE_NAME } from '../lib/siteConfig';
 import { Calendar, User, Tag, ArrowLeft, Share2, Facebook, Twitter } from 'lucide-react';
 import Seo from '../components/Seo';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -65,7 +66,6 @@ export default function BlogDetail() {
   };
 
   const shareUrl = window.location.href;
-  const siteUrl = (import.meta.env.VITE_APP_URL || import.meta.env.VITE_SITE_URL || 'https://web-travel-pi.vercel.app').replace(/\/$/, '');
 
   if (loading) {
         return (
@@ -89,13 +89,13 @@ export default function BlogDetail() {
     const content = localize(post.content);
     const publishedDate = post.createdAt ? new Date(post.createdAt).toISOString() : undefined;
     const modifiedDate = post.updatedAt ? new Date(post.updatedAt).toISOString() : publishedDate;
-    const articleUrl = `${siteUrl}${location.pathname}`;
+    const articleUrl = `${SITE_URL}${location.pathname}`;
     const articleImage = optimizeImageUrl(post.coverImage, { width: 1200, height: 630 }) || post.coverImage;
   
     return (
           <>
                 <Seo
-                  title={`${title} - Liburan Terus`}
+                  title={`${title} - ${SITE_NAME}`}
                   description={excerpt || title}
                   image={articleImage}
                   type="article"
@@ -112,11 +112,11 @@ export default function BlogDetail() {
                       "headline": title,
                       "description": excerpt,
                       "image": articleImage ? [articleImage] : undefined,
-                      "author": { "@type": "Person", "name": post.author || "Liburan Terus" },
+                      "author": { "@type": "Person", "name": post.author || SITE_NAME },
                       "publisher": {
                         "@type": "Organization",
-                        "name": "Liburan Terus",
-                        "url": siteUrl,
+                        "name": SITE_NAME,
+                        "url": SITE_URL,
                       },
                       "datePublished": publishedDate,
                       "dateModified": modifiedDate,

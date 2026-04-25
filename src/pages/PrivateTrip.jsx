@@ -3,13 +3,12 @@ import { Link } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import { getPackages } from '../lib/database'
 import { generateSlug } from '../utils/slug'
+import { SITE_URL } from '../lib/siteConfig';
 import { FaSearch, FaMapMarkerAlt, FaClock, FaUserFriends, FaStar, FaFilter, FaCheck } from 'react-icons/fa'
 import Seo from '../components/Seo'
 import { useLanguage } from '../contexts/LanguageContext'
 import { getPackageImageAlt } from '../utils/imageAlt'
 import { optimizeImageUrl } from '../utils/cloudinary'
-
-const SITE_URL = (import.meta.env.VITE_APP_URL || import.meta.env.VITE_SITE_URL || 'https://web-travel-pi.vercel.app').replace(/\/$/, '')
 
 const PrivateTrip = () => {
     const [packages, setPackages] = useState([])

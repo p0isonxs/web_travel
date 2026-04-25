@@ -11,6 +11,7 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import WhatsAppButton from './components/WhatsAppButton';
 import PrivateRoute from './components/PrivateRoute';
+import ErrorBoundary from './components/ErrorBoundary';
 
 const Home = lazy(() => import('./pages/Home'));
 const OpenTrip = lazy(() => import('./pages/OpenTrip'));
@@ -69,6 +70,7 @@ function PublicLayout() {
 export default function App() {
   return (
     <HelmetProvider>
+      <ErrorBoundary>
       <AuthProvider>
         <SettingsProvider>
         <LanguageProvider>
@@ -134,6 +136,7 @@ export default function App() {
         </LanguageProvider>
         </SettingsProvider>
       </AuthProvider>
+      </ErrorBoundary>
     </HelmetProvider>
   );
 }

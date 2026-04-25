@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { getBookings, updateBooking, deleteBooking } from '../../lib/database';
 import { Search, Eye, Trash2, X, CalendarCheck, Wallet, Clock3, CheckCircle2 } from 'lucide-react';
 import { toast } from 'react-toastify';
+import { SITE_NAME } from '../../lib/siteConfig';
 
 const statusOptions = ['pending', 'confirmed', 'completed', 'cancelled'];
 
@@ -223,7 +224,7 @@ export default function AdminBookings() {
                                                                       </select>
                                                       </div>
                                                       <a
-                                                                        href={`https://wa.me/${detail.phone?.replace(/\D/g, '')}?text=Halo ${detail.name}, terima kasih telah memesan paket ${detail.packageName} di Liburan Terus!`}
+                                                                        href={`https://wa.me/${detail.phone?.replace(/\D/g, '')}?text=Halo ${detail.name}, terima kasih telah memesan paket ${detail.packageName} di ${SITE_NAME}!`}
                                                                         target="_blank" rel="noopener noreferrer"
                                                                         className="block w-full text-center bg-green-500 hover:bg-green-600 text-white font-semibold py-2 rounded-xl transition-colors text-sm"
                                                                       >

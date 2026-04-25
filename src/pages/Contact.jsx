@@ -7,7 +7,7 @@ import { useSettings } from '../contexts/SettingsContext';
 import Seo from '../components/Seo';
 import { useLanguage } from '../contexts/LanguageContext';
 
-const SITE_URL = (import.meta.env.VITE_APP_URL || import.meta.env.VITE_SITE_URL || 'https://web-travel-pi.vercel.app').replace(/\/$/, '')
+import { SITE_URL, SITE_NAME } from '../lib/siteConfig';
 
 const iconColorMap = {
   emerald: { bg: 'bg-emerald-100', text: 'text-emerald-600' },
@@ -65,7 +65,7 @@ export default function Contact() {
                   "url": `${SITE_URL}/kontak`,
                   "mainEntity": {
                     "@type": "Organization",
-                    "name": "Liburan Terus",
+                    "name": SITE_NAME,
                     "telephone": `+${settings.phone}`,
                     "email": settings.email,
                     "address": { "@type": "PostalAddress", "addressCountry": "ID", "streetAddress": settings.address }

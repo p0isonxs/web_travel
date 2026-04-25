@@ -9,7 +9,7 @@ import { useSettings } from '../contexts/SettingsContext'
 import { getPackageImageAlt } from '../utils/imageAlt'
 import { optimizeImageUrl } from '../utils/cloudinary'
 
-const SITE_URL = (import.meta.env.VITE_APP_URL || import.meta.env.VITE_SITE_URL || 'https://web-travel-pi.vercel.app').replace(/\/$/, '')
+import { SITE_URL, SITE_NAME } from '../lib/siteConfig'
 
 function resolveMapSource(pkg, packageLocation, fallbackLocation) {
   const rawLink = typeof pkg.mapLink === 'string' ? pkg.mapLink.trim() : ''
@@ -268,7 +268,7 @@ const PackageDetail = () => {
                 return (
                       <>
                             <Seo
-                              title={pkg.metaTitle || `${packageTitle} - Liburan Terus`}
+                              title={pkg.metaTitle || `${packageTitle} - ${SITE_NAME}`}
                               description={pkg.metaDescription || packageDescription?.substring(0, 160) || `${t(isOpenTrip ? 'packageDetail.openTrip' : 'packageDetail.privateTrip')} ${packageTitle} di ${packageLocation}`}
                               image={optimizeImageUrl(images[0], { width: 1200, height: 630 })}
                             />

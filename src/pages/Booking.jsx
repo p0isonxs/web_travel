@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import { getPackageById, addBooking, getOpenTripSlotUsage } from '../lib/database'
+import { SITE_NAME } from '../lib/siteConfig'
 import { FaUser, FaEnvelope, FaPhone, FaCalendar, FaUsers, FaArrowLeft } from 'react-icons/fa'
 import { toast } from 'react-toastify'
 import { useLanguage } from '../contexts/LanguageContext'
@@ -180,7 +181,7 @@ const Booking = () => {
         return (
               <>
                     <Helmet>
-                            <title>{t('booking.seoTitle')} - {packageTitle} | Liburan Terus</title>
+                            <title>{t('booking.seoTitle')} - {packageTitle} | {SITE_NAME}</title>
                             <meta name="robots" content="noindex" />
                     </Helmet>
               

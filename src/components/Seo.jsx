@@ -1,10 +1,9 @@
 import { Helmet } from 'react-helmet-async';
 import { useLocation } from 'react-router-dom';
 import { useSettings } from '../contexts/SettingsContext';
+import { SITE_URL, SITE_NAME, TWITTER_HANDLE } from '../lib/siteConfig';
 
-const SITE_NAME = 'Liburan Terus';
-const SITE_URL = (import.meta.env.VITE_APP_URL || import.meta.env.VITE_SITE_URL || 'https://web-travel-pi.vercel.app').replace(/\/$/, '');
-const DEFAULT_TITLE = 'Liburan Terus - Wisata Open Trip & Private Trip';
+const DEFAULT_TITLE = `${SITE_NAME} - Wisata Open Trip & Private Trip`;
 const DEFAULT_DESCRIPTION = 'Paket wisata open trip dan private trip terbaik ke berbagai destinasi indah di Indonesia. Harga terjangkau, pemandu profesional, aman & terpercaya.';
 
 export default function Seo({
@@ -28,9 +27,6 @@ export default function Seo({
       <meta name="description" content={description} />
       <link rel="canonical" href={url} />
       <meta name="robots" content={robotsContent} />
-      <link rel="alternate" hreflang="id" href={url} />
-      <link rel="alternate" hreflang="en" href={url} />
-      <link rel="alternate" hreflang="x-default" href={url} />
 
       {/* Open Graph */}
       <meta property="og:site_name" content={SITE_NAME} />
@@ -47,7 +43,7 @@ export default function Seo({
 
       {/* Twitter / X */}
       <meta name="twitter:card" content={ogImage ? 'summary_large_image' : 'summary'} />
-      <meta name="twitter:site" content="@liburanterus" />
+      {TWITTER_HANDLE && <meta name="twitter:site" content={TWITTER_HANDLE} />}
       <meta name="twitter:title" content={title} />
       <meta name="twitter:description" content={description} />
       {ogImage && <meta name="twitter:image" content={ogImage} />}

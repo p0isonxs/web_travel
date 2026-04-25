@@ -1,20 +1,21 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { getSettings } from '../lib/database';
+import { SITE_NAME } from '../lib/siteConfig';
 
 export const defaultSettings = {
-  siteName: 'Liburan Terus',
+  siteName: SITE_NAME,
   tagline: 'Jelajahi Keindahan Indonesia Bersama Kami',
-  phone: '6281234567890',
-  email: 'info@liburanterus.com',
-  address: 'Jl. Wisata Indah No. 123, Jakarta Selatan',
+  phone: '',
+  email: '',
+  address: '',
   instagram: '',
   facebook: '',
   youtube: '',
   tiktok: '',
-  bankName: 'BCA',
-  bankAccount: '1234567890',
-  bankAccountName: 'PT Liburan Terus Indonesia',
-  metaDescription: 'Liburan Terus menyediakan paket wisata open trip dan private trip terbaik ke berbagai destinasi indah di Indonesia.',
+  bankName: '',
+  bankAccount: '',
+  bankAccountName: '',
+  metaDescription: '',
   metaKeywords: 'wisata indonesia, open trip, private trip, paket wisata',
   heroBackground: '',
   privateTripBackground: '',

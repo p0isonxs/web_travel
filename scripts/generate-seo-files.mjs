@@ -172,6 +172,9 @@ Allow: /
 Disallow: /admin
 Disallow: /admin/
 Disallow: /login
+Disallow: /booking/
+Disallow: /payment/
+Disallow: /pembayaran-berhasil
 
 Sitemap: ${siteUrl}/sitemap.xml
 `;

@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
+import { SITE_NAME } from '../lib/siteConfig';
 import { CheckCircle, Home, MessageCircle, Calendar, User, Package } from 'lucide-react';
 import { useSettings } from '../contexts/SettingsContext';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -28,7 +29,7 @@ export default function PaymentSuccess() {
   return (
         <>
               <Helmet>
-                      <title>{t('paymentSuccess.title')} - Liburan Terus</title>
+                      <title>{t('paymentSuccess.title')} - {SITE_NAME}</title>
                       <meta name="robots" content="noindex" />
               </Helmet>
         
