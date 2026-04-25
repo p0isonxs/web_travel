@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { useAuth } from '../../contexts/AuthContext';
 import {
     LayoutDashboard, Package, CalendarCheck, CreditCard,
@@ -125,6 +126,10 @@ export default function AdminLayout() {
       );
   
     return (
+          <>
+          <Helmet>
+            <meta name="robots" content="noindex, nofollow" />
+          </Helmet>
           <div className="flex h-screen bg-gray-100 overflow-hidden">
             {/* Desktop Sidebar */}
                 <div className="hidden lg:flex w-64 shrink-0 flex-col">
@@ -169,5 +174,6 @@ export default function AdminLayout() {
                         </main>
                 </div>
           </div>
+          </>
         );
 }

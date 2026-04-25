@@ -1,10 +1,20 @@
 import { useState, useEffect } from 'react';
 import { MapPin, Phone, Mail, Clock, MessageCircle, Send } from 'lucide-react';
+import { Helmet } from 'react-helmet-async';
 import { addContact } from '../lib/database';
 import { toast } from 'react-toastify';
 import { useSettings } from '../contexts/SettingsContext';
 import Seo from '../components/Seo';
 import { useLanguage } from '../contexts/LanguageContext';
+
+const SITE_URL = (import.meta.env.VITE_APP_URL || import.meta.env.VITE_SITE_URL || 'https://web-travel-pi.vercel.app').replace(/\/$/, '')
+
+const iconColorMap = {
+  emerald: { bg: 'bg-emerald-100', text: 'text-emerald-600' },
+  teal:    { bg: 'bg-teal-100',    text: 'text-teal-600' },
+  blue:    { bg: 'bg-blue-100',    text: 'text-blue-600' },
+  purple:  { bg: 'bg-purple-100',  text: 'text-purple-600' },
+}
 
 export default function Contact() {
     const [form, setForm] = useState({ name: '', email: '', phone: '', subject: '', message: '' });
@@ -46,6 +56,22 @@ export default function Contact() {
                 description={t('contact.seoDescription')}
                 image="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&h=630&fit=crop&q=80"
               />
+              <Helmet>
+                <script type="application/ld+json">{JSON.stringify({
+                  "@context": "https://schema.org",
+                  "@type": "ContactPage",
+                  "name": t('contact.seoTitle'),
+                  "description": t('contact.seoDescription'),
+                  "url": `${SITE_URL}/kontak`,
+                  "mainEntity": {
+                    "@type": "Organization",
+                    "name": "Liburan Terus",
+                    "telephone": `+${settings.phone}`,
+                    "email": settings.email,
+                    "address": { "@type": "PostalAddress", "addressCountry": "ID", "streetAddress": settings.address }
+                  }
+                })}</script>
+              </Helmet>
         
           {/* Hero */}
               <div className="bg-gradient-to-r from-emerald-700 to-teal-600 py-24 mt-16">
@@ -63,13 +89,13 @@ export default function Contact() {
                                             <div className="space-y-6 mb-10">
                                               {contactInfo.map((info, i) => (
                           <div key={i} className="flex gap-4">
-                                            <div className={`w-12 h-12 bg-${info.color}-100 rounded-xl flex items-center justify-center text-${info.color}-600 shrink-0`}>
+                                            <div className={`w-12 h-12 ${iconColorMap[info.color]?.bg} rounded-xl flex items-center justify-center ${iconColorMap[info.color]?.text} shrink-0`}>
                                               {info.icon}
                                             </div>
                                             <div>
                                                                 <p className="font-semibold text-gray-900">{info.label}</p>
                                               {info.link ? (
-                                                  <a href={info.link} className={`text-${info.color}-600 hover:underline whitespace-pre-line`}>{info.value}</a>
+                                                  <a href={info.link} className={`${iconColorMap[info.color]?.text} hover:underline whitespace-pre-line`}>{info.value}</a>
                                                 ) : (
                                                   <p className="text-gray-600 whitespace-pre-line">{info.value}</p>
                                                                 )}

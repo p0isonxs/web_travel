@@ -21,6 +21,9 @@ export const defaultSettings = {
   testimonialBackground: '',
 };
 
+// Module-level cache: fetched once per app session, survives re-renders & StrictMode double-invoke
+let settingsCache = null;
+
 const SettingsContext = createContext(defaultSettings);
 
 export function useSettings() {
@@ -28,13 +31,15 @@ export function useSettings() {
 }
 
 export function SettingsProvider({ children }) {
-  const [settings, setSettings] = useState(defaultSettings);
+  const [settings, setSettings] = useState(settingsCache || defaultSettings);
 
   useEffect(() => {
+    if (settingsCache) return;
     getSettings()
       .then((data) => {
         if (data && Object.keys(data).length > 0) {
-          setSettings({ ...defaultSettings, ...data });
+          settingsCache = { ...defaultSettings, ...data };
+          setSettings(settingsCache);
         }
       })
       .catch(() => {});

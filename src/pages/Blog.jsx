@@ -1,11 +1,15 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { getBlogPosts } from '../lib/database';
-import { Calendar, User, ArrowRight, Search } from 'lucide-react';
+import { Calendar, User, ArrowRight } from 'lucide-react';
+import { FaSearch } from 'react-icons/fa';
 import Seo from '../components/Seo';
 import { useLanguage } from '../contexts/LanguageContext';
 import { getBlogImageAlt } from '../utils/imageAlt';
 import { optimizeImageUrl } from '../utils/cloudinary';
+
+const SITE_URL = (import.meta.env.VITE_APP_URL || import.meta.env.VITE_SITE_URL || 'https://web-travel-pi.vercel.app').replace(/\/$/, '')
 
 function getCategoryLabel(category, t) {
   switch ((category || '').toLowerCase()) {
@@ -50,10 +54,9 @@ export default function Blog() {
   const fetchPosts = async () => {
         setLoading(true);
         try {
-                const allPosts = await getBlogPosts();
+                const allPosts = await getBlogPosts({ publishedOnly: true });
 
                 const visiblePosts = allPosts
-                  .filter(post => post.published === true)
                   .filter(post => activeCategory === 'semua' || post.category === activeCategory)
                   .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
@@ -76,6 +79,22 @@ export default function Blog() {
         return d.toLocaleDateString(language === 'en' ? 'en-US' : 'id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
   };
 
+  const blogListSchema = posts.length > 0 ? {
+    '@context': 'https://schema.org',
+    '@type': 'Blog',
+    name: language === 'en' ? 'Liburan Terus Travel Blog' : 'Blog Wisata Liburan Terus',
+    description: t('blog.seoDescription'),
+    url: `${SITE_URL}/blog`,
+    blogPost: posts.slice(0, 10).map(post => ({
+      '@type': 'BlogPosting',
+      headline: localize(post.title),
+      url: `${SITE_URL}/blog/${post.slug}`,
+      datePublished: post.createdAt ? new Date(post.createdAt).toISOString() : undefined,
+      image: post.coverImage || undefined,
+      author: { '@type': 'Person', name: post.author || 'Liburan Terus' },
+    })),
+  } : null
+
   return (
         <>
               <Seo
@@ -83,6 +102,11 @@ export default function Blog() {
                 description={t('blog.seoDescription')}
                 image="https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1200&h=630&fit=crop&q=80"
               />
+              {blogListSchema && (
+                <Helmet>
+                  <script type="application/ld+json">{JSON.stringify(blogListSchema)}</script>
+                </Helmet>
+              )}
         
           {/* Hero */}
               <div className="bg-gradient-to-r from-emerald-700 to-teal-600 py-24 mt-16">
@@ -90,13 +114,28 @@ export default function Blog() {
                                 <h1 className="text-5xl font-bold text-white mb-4">{t('blog.heroTitle')}</h1>
                                 <p className="text-emerald-100 text-xl mb-8">{t('blog.heroDescription')}</p>
                         {/* Search */}
-                                <div className="relative max-w-lg mx-auto">
-                                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-                                            <input
-                                                            type="text" value={search} onChange={e => setSearch(e.target.value)}
-                                                            placeholder={t('blog.searchPlaceholder')}
-                                                            className="w-full pl-12 pr-4 py-4 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-300 text-lg"
-                                                          />
+                                <div className="max-w-2xl mx-auto">
+                                            <div className="relative bg-white rounded-2xl shadow-xl p-2 flex gap-2">
+                                                          <div className="flex-1 relative">
+                                                                          <label htmlFor="blog-search" className="sr-only">{t('blog.searchPlaceholder')}</label>
+                                                                          <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
+                                                                          <input
+                                                                                              id="blog-search"
+                                                                                              type="text"
+                                                                                              value={search}
+                                                                                              onChange={e => setSearch(e.target.value)}
+                                                                                              placeholder={t('blog.searchPlaceholder')}
+                                                                                              className="w-full pl-10 pr-4 py-3 rounded-xl text-gray-700 focus:outline-none text-sm"
+                                                                                            />
+                                                          </div>
+                                                          <button
+                                                            type="button"
+                                                            onClick={() => document.getElementById('blog-search').focus()}
+                                                            className="bg-gradient-to-r from-emerald-500 to-teal-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all text-sm"
+                                                          >
+                                                                          {t('blog.searchButton')}
+                                                          </button>
+                                            </div>
                                 </div>
                       </div>
               </div>
@@ -137,7 +176,7 @@ export default function Blog() {
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                      {filtered.map(post => {
+                      {filtered.map((post, i) => {
                         const title = localize(post.title);
                         const excerpt = localize(post.excerpt);
                         return (
@@ -147,7 +186,8 @@ export default function Blog() {
                                                                                             src={optimizeImageUrl(post.coverImage, { width: 800, height: 480 }) || 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&q=80'}
                                                                                             alt={getBlogImageAlt(post, language) || title}
                                                                                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                                                                                            loading="lazy"
+                                                                                            loading={i === 0 ? 'eager' : 'lazy'}
+                                                                                            fetchpriority={i === 0 ? 'high' : undefined}
                                                                                             decoding="async"
                                                                                           />
                                                       {post.category && (

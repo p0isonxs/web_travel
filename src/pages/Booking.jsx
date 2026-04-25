@@ -50,7 +50,7 @@ const Booking = () => {
                                     }
                             }
                   } catch (error) {
-                            console.error('Error:', error)
+                            if (import.meta.env.DEV) console.error('Error:', error)
                   } finally {
                             setLoading(false)
                   }

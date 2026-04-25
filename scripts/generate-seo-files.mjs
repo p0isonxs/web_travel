@@ -169,6 +169,9 @@ ${urls}
 function buildRobotsTxt(siteUrl) {
   return `User-agent: *
 Allow: /
+Disallow: /admin
+Disallow: /admin/
+Disallow: /login
 
 Sitemap: ${siteUrl}/sitemap.xml
 `;

@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useLocation } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
-import { getBlogBySlug, getBlogPosts } from '../lib/database';
+import DOMPurify from 'dompurify';
+import { getBlogBySlug, getBlogPostsByCategory } from '../lib/database';
 import { Calendar, User, Tag, ArrowLeft, Share2, Facebook, Twitter } from 'lucide-react';
 import Seo from '../components/Seo';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -47,13 +48,8 @@ export default function BlogDetail() {
                 if (data) {
                           setPost(data);
                           if (data.category) {
-                              const allPosts = await getBlogPosts();
-                              setRelated(
-                                allPosts
-                                  .filter(p => p.published === true && p.category === data.category && p.id !== data.id)
-                                  .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-                                  .slice(0, 3)
-                              );
+                              const relatedPosts = await getBlogPostsByCategory(data.category, data.id);
+                              setRelated(relatedPosts.slice(0, 3));
                   }
                 }
         } catch (e) {
@@ -160,7 +156,7 @@ export default function BlogDetail() {
                                                 {/* Content */}
                                                             <div
                                                                               className="prose prose-lg max-w-none prose-headings:text-gray-900 prose-p:text-gray-600 prose-a:text-emerald-600 prose-img:rounded-2xl"
-                                                                              dangerouslySetInnerHTML={{ __html: content || '<p>' + (excerpt || '') + '</p>' }}
+                                                                              dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(content || '<p>' + (excerpt || '') + '</p>') }}
                                                                             />
                                               
                                                 {/* Share */}

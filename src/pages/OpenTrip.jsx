@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import { Helmet } from 'react-helmet-async'
 import { getPackages } from '../lib/database'
 import { generateSlug } from '../utils/slug'
 import { FaSearch, FaMapMarkerAlt, FaClock, FaUsers, FaStar, FaFilter } from 'react-icons/fa'
@@ -7,6 +8,8 @@ import Seo from '../components/Seo'
 import { useLanguage } from '../contexts/LanguageContext'
 import { getPackageImageAlt } from '../utils/imageAlt'
 import { optimizeImageUrl } from '../utils/cloudinary'
+
+const SITE_URL = (import.meta.env.VITE_APP_URL || import.meta.env.VITE_SITE_URL || 'https://web-travel-pi.vercel.app').replace(/\/$/, '')
 
 const OpenTrip = () => {
     const [packages, setPackages] = useState([])
@@ -48,6 +51,27 @@ const OpenTrip = () => {
           return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(price)
     }
 
+    const itemListSchema = packages.length > 0 ? {
+      '@context': 'https://schema.org',
+      '@type': 'ItemList',
+      name: language === 'en' ? 'Open Trip Packages' : 'Paket Open Trip',
+      description: t('openTrip.seoDescription'),
+      url: `${SITE_URL}/open-trip`,
+      numberOfItems: packages.length,
+      itemListElement: packages.slice(0, 10).map((pkg, i) => ({
+        '@type': 'ListItem',
+        position: i + 1,
+        item: {
+          '@type': 'Product',
+          name: localize(pkg.title),
+          description: localize(pkg.location),
+          url: `${SITE_URL}/open-trip/${pkg.slug?.id || generateSlug(pkg.title?.id || '')}`,
+          image: pkg.images?.[0] || undefined,
+          offers: { '@type': 'Offer', price: pkg.price, priceCurrency: 'IDR', availability: 'https://schema.org/InStock' },
+        },
+      })),
+    } : null
+
     return (
           <>
                 <Seo
@@ -55,6 +79,11 @@ const OpenTrip = () => {
                   description={t('openTrip.seoDescription')}
                   image="https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=1200&h=630&fit=crop&q=80"
                 />
+                {itemListSchema && (
+                  <Helmet>
+                    <script type="application/ld+json">{JSON.stringify(itemListSchema)}</script>
+                  </Helmet>
+                )}
           
             {/* Hero */}
                 <section className="relative pt-20 pb-16 bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-700 overflow-hidden">
@@ -78,8 +107,10 @@ const OpenTrip = () => {
                                   <div className="max-w-2xl mx-auto">
                                               <div className="relative bg-white rounded-2xl shadow-xl p-2 flex gap-2">
                                                             <div className="flex-1 relative">
+                                                                            <label htmlFor="open-trip-search" className="sr-only">{t('openTrip.searchPlaceholder')}</label>
                                                                             <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
                                                                             <input
+                                                                                                id="open-trip-search"
                                                                                                 type="text"
                                                                                                 value={search}
                                                                                                 onChange={e => setSearch(e.target.value)}
@@ -87,7 +118,11 @@ const OpenTrip = () => {
                                                                                                 className="w-full pl-10 pr-4 py-3 rounded-xl text-gray-700 focus:outline-none text-sm"
                                                                                               />
                                                             </div>
-                                                            <button className="bg-gradient-to-r from-emerald-500 to-teal-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all text-sm">
+                                                            <button
+                                                              type="button"
+                                                              onClick={() => document.getElementById('open-trip-search').focus()}
+                                                              className="bg-gradient-to-r from-emerald-500 to-teal-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all text-sm"
+                                                            >
                                                                             {t('openTrip.searchButton')}
                                                             </button>
                                               </div>

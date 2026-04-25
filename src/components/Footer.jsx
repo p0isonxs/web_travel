@@ -30,28 +30,33 @@ const Footer = () => {
                                               <div className="flex gap-3">
                                                 {settings.instagram && (
                                                   <a href={settings.instagram} target="_blank" rel="noopener noreferrer"
+                                                    aria-label="Instagram"
                                                     className="bg-gray-800 hover:bg-pink-600 p-2.5 rounded-lg transition-colors">
                                                     <FaInstagram size={16} />
                                                   </a>
                                                 )}
                                                 <a href={`https://wa.me/${settings.phone}`} target="_blank" rel="noopener noreferrer"
+                                                  aria-label="WhatsApp"
                                                   className="bg-gray-800 hover:bg-green-600 p-2.5 rounded-lg transition-colors">
                                                   <FaWhatsapp size={16} />
                                                 </a>
                                                 {settings.facebook && (
                                                   <a href={settings.facebook} target="_blank" rel="noopener noreferrer"
+                                                    aria-label="Facebook"
                                                     className="bg-gray-800 hover:bg-blue-700 p-2.5 rounded-lg transition-colors">
                                                     <FaFacebook size={16} />
                                                   </a>
                                                 )}
                                                 {settings.youtube && (
                                                   <a href={settings.youtube} target="_blank" rel="noopener noreferrer"
+                                                    aria-label="YouTube"
                                                     className="bg-gray-800 hover:bg-red-600 p-2.5 rounded-lg transition-colors">
                                                     <FaYoutube size={16} />
                                                   </a>
                                                 )}
                                                 {settings.tiktok && (
                                                   <a href={settings.tiktok} target="_blank" rel="noopener noreferrer"
+                                                    aria-label="TikTok"
                                                     className="bg-gray-800 hover:bg-gray-600 p-2.5 rounded-lg transition-colors">
                                                     <FaTiktok size={16} />
                                                   </a>

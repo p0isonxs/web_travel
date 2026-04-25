@@ -133,10 +133,11 @@ const normalizePackage = (data) => {
 }
 
 // ─── PACKAGES ────────────────────────────────────────────────────────────────
-export const getPackages = async (type = null, activeOnly = true) => {
+export const getPackages = async (type = null, activeOnly = true, limit = null) => {
   let q = supabase.from('packages').select('*').order('created_at', { ascending: false })
   if (type) q = q.eq('type', type)
   if (activeOnly) q = q.eq('active', true)
+  if (limit) q = q.limit(limit)
   const { data, error } = await q
   if (error) throw error
   return (data || []).map((row) => normalizePackage(rowToDoc(row)))
@@ -295,12 +296,26 @@ export const updatePayment = async (id, data) => {
 }
 
 // ─── BLOG ────────────────────────────────────────────────────────────────────
-export const getBlogPosts = async () => {
-  const { data, error } = await supabase
+export const getBlogPosts = async ({ publishedOnly = false, limit = null } = {}) => {
+  let q = supabase.from('blog').select('*').order('created_at', { ascending: false })
+  if (publishedOnly) q = q.eq('published', true)
+  if (limit) q = q.limit(limit)
+  const { data, error } = await q
+  if (error) throw error
+  return (data || []).map(rowToDoc)
+}
+
+export const getBlogPostsByCategory = async (category, excludeId = null) => {
+  let q = supabase
     .from('blog')
     .select('*')
+    .eq('published', true)
+    .eq('category', category)
     .order('created_at', { ascending: false })
-  if (error) throw error
+    .limit(4)
+  if (excludeId) q = q.neq('id', excludeId)
+  const { data, error } = await q
+  if (error) return []
   return (data || []).map(rowToDoc)
 }
 
@@ -335,30 +350,6 @@ export const deleteBlogPost = async (id) => {
   if (error) throw error
 }
 
-// ─── GALLERY ─────────────────────────────────────────────────────────────────
-export const getGallery = async () => {
-  const { data, error } = await supabase
-    .from('gallery')
-    .select('*')
-    .order('created_at', { ascending: false })
-  if (error) throw error
-  return (data || []).map(rowToDoc)
-}
-
-export const addGalleryItem = async (data) => {
-  const { data: row, error } = await supabase
-    .from('gallery')
-    .insert(docToRow(data))
-    .select('id')
-    .single()
-  if (error) throw error
-  return { id: row.id }
-}
-
-export const deleteGalleryItem = async (id) => {
-  const { error } = await supabase.from('gallery').delete().eq('id', id)
-  if (error) throw error
-}
 
 // ─── TESTIMONIALS ─────────────────────────────────────────────────────────────
 export const getTestimonials = async () => {

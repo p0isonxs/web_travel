@@ -9,6 +9,8 @@ import { useSettings } from '../contexts/SettingsContext'
 import { getPackageImageAlt } from '../utils/imageAlt'
 import { optimizeImageUrl } from '../utils/cloudinary'
 
+const SITE_URL = (import.meta.env.VITE_APP_URL || import.meta.env.VITE_SITE_URL || 'https://web-travel-pi.vercel.app').replace(/\/$/, '')
+
 function resolveMapSource(pkg, packageLocation, fallbackLocation) {
   const rawLink = typeof pkg.mapLink === 'string' ? pkg.mapLink.trim() : ''
   if (rawLink) {
@@ -139,7 +141,7 @@ const PackageDetail = () => {
                                     setSelectedDate(data.departureDates[0])
                             }
                   } catch (error) {
-                            console.error('Error fetching package:', error)
+                            if (import.meta.env.DEV) console.error('Error fetching package:', error)
                   } finally {
                             setLoading(false)
                   }
@@ -258,9 +260,9 @@ const PackageDetail = () => {
             const mapEmbedUrl = `https://maps.google.com/maps?q=${encodeURIComponent(mapSource.embedQuery)}&z=12&output=embed`
             const mapOpenUrl = mapSource.openUrl
             const bookingReasons = [
-              isOpenTrip ? 'Jadwal dan slot terus diperbarui dari booking yang masuk.' : 'Tanggal keberangkatan bisa kamu sesuaikan dengan kebutuhan grup.',
-              'Proses booking dibuat ringkas: isi data, lanjut pembayaran, lalu upload bukti.',
-              'Admin akan follow up via WhatsApp untuk verifikasi dan kebutuhan perjalanan.',
+              isOpenTrip ? t('packageDetail.whyBookReason1OpenTrip') : t('packageDetail.whyBookReason1PrivateTrip'),
+              t('packageDetail.whyBookReason2'),
+              t('packageDetail.whyBookReason3'),
             ]
               
                 return (
@@ -295,8 +297,8 @@ const PackageDetail = () => {
                                   "@context": "https://schema.org",
                                   "@type": "BreadcrumbList",
                                   "itemListElement": [
-                                    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://liburanterus.com" },
-                                    { "@type": "ListItem", "position": 2, "name": isOpenTrip ? "Open Trip" : "Private Trip", "item": `https://liburanterus.com/${isOpenTrip ? 'open-trip' : 'private-trip'}` },
+                                    { "@type": "ListItem", "position": 1, "name": "Home", "item": SITE_URL },
+                                    { "@type": "ListItem", "position": 2, "name": isOpenTrip ? "Open Trip" : "Private Trip", "item": `${SITE_URL}/${isOpenTrip ? 'open-trip' : 'private-trip'}` },
                                     { "@type": "ListItem", "position": 3, "name": packageTitle }
                                   ]
                       })}</script>
@@ -687,7 +689,7 @@ const PackageDetail = () => {
                                                                                           </a>
                                                                         </div>
                                                                         <div className="bg-white rounded-2xl shadow-sm p-6">
-                                                                          <h3 className="text-lg font-bold text-gray-800">Kenapa booking di sini?</h3>
+                                                                          <h3 className="text-lg font-bold text-gray-800">{t('packageDetail.whyBookTitle')}</h3>
                                                                           <div className="mt-4 space-y-3">
                                                                             {bookingReasons.map((reason) => (
                                                                               <div key={reason} className="flex gap-3 text-sm text-gray-600">

@@ -50,8 +50,14 @@ function RouteLoading() {
 function PublicLayout() {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[9999] focus:bg-emerald-600 focus:text-white focus:px-4 focus:py-2 focus:rounded-lg focus:font-semibold focus:shadow-lg"
+      >
+        Lewati ke konten utama
+      </a>
       <Navbar />
-      <main className="flex-1">
+      <main id="main-content" className="flex-1">
         <Outlet />
       </main>
       <Footer />

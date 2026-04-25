@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import { Helmet } from 'react-helmet-async'
 import { getPackages } from '../lib/database'
 import { generateSlug } from '../utils/slug'
 import { FaSearch, FaMapMarkerAlt, FaClock, FaUserFriends, FaStar, FaFilter, FaCheck } from 'react-icons/fa'
@@ -7,6 +8,8 @@ import Seo from '../components/Seo'
 import { useLanguage } from '../contexts/LanguageContext'
 import { getPackageImageAlt } from '../utils/imageAlt'
 import { optimizeImageUrl } from '../utils/cloudinary'
+
+const SITE_URL = (import.meta.env.VITE_APP_URL || import.meta.env.VITE_SITE_URL || 'https://web-travel-pi.vercel.app').replace(/\/$/, '')
 
 const PrivateTrip = () => {
     const [packages, setPackages] = useState([])
@@ -57,6 +60,27 @@ const PrivateTrip = () => {
           t('privateTrip.benefit6'),
         ]
 
+    const itemListSchema = packages.length > 0 ? {
+      '@context': 'https://schema.org',
+      '@type': 'ItemList',
+      name: language === 'en' ? 'Private Trip Packages' : 'Paket Private Trip',
+      description: t('privateTrip.seoDescription'),
+      url: `${SITE_URL}/private-trip`,
+      numberOfItems: packages.length,
+      itemListElement: packages.slice(0, 10).map((pkg, i) => ({
+        '@type': 'ListItem',
+        position: i + 1,
+        item: {
+          '@type': 'Product',
+          name: localize(pkg.title),
+          description: localize(pkg.location),
+          url: `${SITE_URL}/private-trip/${pkg.slug?.id || generateSlug(pkg.title?.id || '')}`,
+          image: pkg.images?.[0] || undefined,
+          offers: { '@type': 'Offer', price: pkg.price, priceCurrency: 'IDR', availability: 'https://schema.org/InStock' },
+        },
+      })),
+    } : null
+
     return (
           <>
                 <Seo
@@ -64,6 +88,11 @@ const PrivateTrip = () => {
                   description={t('privateTrip.seoDescription')}
                   image="https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=1200&h=630&fit=crop&q=80"
                 />
+                {itemListSchema && (
+                  <Helmet>
+                    <script type="application/ld+json">{JSON.stringify(itemListSchema)}</script>
+                  </Helmet>
+                )}
           
             {/* Hero */}
                 <section className="relative pt-20 pb-16 bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-700 overflow-hidden">
@@ -85,8 +114,10 @@ const PrivateTrip = () => {
                                   <div className="max-w-2xl mx-auto">
                                               <div className="relative bg-white rounded-2xl shadow-xl p-2 flex gap-2">
                                                             <div className="flex-1 relative">
+                                                                            <label htmlFor="private-trip-search" className="sr-only">{t('privateTrip.searchPlaceholder')}</label>
                                                                             <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
                                                                             <input
+                                                                                                id="private-trip-search"
                                                                                                 type="text"
                                                                                                 value={search}
                                                                                                 onChange={e => setSearch(e.target.value)}
@@ -94,7 +125,11 @@ const PrivateTrip = () => {
                                                                                                 className="w-full pl-10 pr-4 py-3 rounded-xl text-gray-700 focus:outline-none text-sm"
                                                                                               />
                                                             </div>
-                                                            <button className="bg-gradient-to-r from-violet-500 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all text-sm">
+                                                            <button
+                                                              type="button"
+                                                              onClick={() => document.getElementById('private-trip-search').focus()}
+                                                              className="bg-gradient-to-r from-violet-500 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all text-sm"
+                                                            >
                                                                             {t('privateTrip.searchButton')}
                                                             </button>
                                               </div>
@@ -177,7 +212,7 @@ const PrivateTrip = () => {
                                           const duration = localize(pkg.duration)
                                           return (
                                           <Link key={pkg.id} to={`/private-trip/${pkg.slug?.id || generateSlug(pkg.title?.id || pkg.title || '')}`} className="group">
-                                                            <div className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+                                                            <div className="bg-white rounded-[28px] overflow-hidden border border-gray-100 shadow-[0_18px_50px_-30px_rgba(15,23,42,0.35)] hover:shadow-[0_24px_60px_-28px_rgba(139,92,246,0.28)] transition-all duration-300 hover:-translate-y-1">
                                                                                 <div className="relative h-52 overflow-hidden">
                                                                                                       <img
                                                                                                                                 src={optimizeImageUrl(pkg.images?.[0] || pkg.image, { width: 800, height: 520 }) || 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=600'}
@@ -188,39 +223,61 @@ const PrivateTrip = () => {
                                                                                                                               />
                                                                                                       <div className="absolute top-3 left-3">
                                                                                                                               <span className="bg-purple-600 text-white text-xs font-semibold px-3 py-1 rounded-full">
-                                                                                                                                                        {t('privateTrip.privateBadge')}
-                                                                                                                                </span>
-                                                                                                        </div>
+                                                                                                                                {t('privateTrip.privateBadge')}
+                                                                                                                              </span>
+                                                                                                      </div>
+                                                                                  {pkg.originalPrice && pkg.originalPrice > pkg.price && (
+                                                                                    <div className="absolute top-3 right-3">
+                                                                                      <span className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                                                                                        {t('openTrip.discount')}
+                                                                                      </span>
+                                                                                    </div>
+                                                                                  )}
                                                                                   </div>
                                                                                 <div className="p-5">
-                                                                                                      <h3 className="font-bold text-gray-800 text-base mb-2 line-clamp-2 group-hover:text-purple-600 transition-colors">
-                                                                                                        {title}
-                                                                                                        </h3>
-                                                                                                      <div className="flex items-center gap-1.5 text-gray-500 text-sm mb-1">
-                                                                                                                              <FaMapMarkerAlt className="text-purple-500" size={12} />
-                                                                                                                              <span>{location || t('privateTrip.locationFallback')}</span>
-                                                                                                        </div>
-                                                                                                      <div className="flex items-center gap-4 text-gray-500 text-xs mb-4">
-                                                                                                                              <span className="flex items-center gap-1">
-                                                                                                                                                        <FaClock className="text-purple-400" size={11} />
-                                                                                                                                {duration || t('privateTrip.durationFallback')}
-                                                                                                                                </span>
+                                                                                                      <div className="flex items-center justify-end gap-3 mb-3">
                                                                                                         {pkg.rating && (
-                                                                      <span className="flex items-center gap-1">
-                                                                                                  <FaStar className="text-yellow-400" size={11} />
-                                                                        {pkg.rating}
-                                                                      </span>
-                                                                                                                              )}
+                                                                                                          <div className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-700">
+                                                                                                            <FaStar className="text-yellow-400" size={11} />
+                                                                                                            <span>{pkg.rating}</span>
+                                                                                                          </div>
+                                                                                                        )}
+                                                                                                      </div>
+                                                                                                      <h3 className="font-bold text-gray-900 text-lg leading-snug mb-3 line-clamp-2 group-hover:text-purple-600 transition-colors">
+                                                                                                        {title}
+                                                                                                      </h3>
+                                                                                                      <div className="flex items-center gap-2 text-gray-500 text-sm mb-4">
+                                                                                                        <FaMapMarkerAlt className="text-purple-500" size={12} />
+                                                                                                        <span className="line-clamp-1">{location || t('privateTrip.locationFallback')}</span>
+                                                                                                      </div>
+                                                                                                      <div className="grid grid-cols-2 gap-3 mb-5">
+                                                                                                        <div className="rounded-2xl bg-gray-50 px-3.5 py-3">
+                                                                                                          <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-gray-400 mb-1">{t('openTrip.duration')}</p>
+                                                                                                          <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-700">
+                                                                                                            <FaClock className="text-purple-400" size={11} />
+                                                                                                            <span>{duration || t('privateTrip.durationFallback')}</span>
+                                                                                                          </span>
                                                                                                         </div>
-                                                                                                      <div className="flex items-end justify-between">
-                                                                                                                              <div>
-                                                                                                                                                        <p className="text-xs text-gray-400">{t('privateTrip.startingFrom')}</p>
-                                                                                                                                                        <p className="text-purple-600 font-bold text-lg">{formatPrice(pkg.price)}</p>
-                                                                                                                                </div>
-                                                                                                                              <span className="bg-purple-50 text-purple-600 text-xs font-semibold px-3 py-1.5 rounded-xl hover:bg-purple-600 hover:text-white transition-colors">
-                                                                                                                                                        {t('privateTrip.viewDetail')}
-                                                                                                                                </span>
+                                                                                                        <div className="rounded-2xl bg-gray-50 px-3.5 py-3">
+                                                                                                          <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-gray-400 mb-1">{t('openTrip.participants')}</p>
+                                                                                                          <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-700">
+                                                                                                            <FaUserFriends className="text-purple-400" size={11} />
+                                                                                                            <span>{pkg.maxParticipants || 15} {t('openTrip.participantUnit')}</span>
+                                                                                                          </span>
                                                                                                         </div>
+                                                                                                      </div>
+                                                                                                      <div className="flex items-end justify-between border-t border-gray-100 pt-4">
+                                                                                                        <div>
+                                                                                                          {pkg.originalPrice && pkg.originalPrice > pkg.price && (
+                                                                                                            <p className="text-xs text-gray-400 line-through">{formatPrice(pkg.originalPrice)}</p>
+                                                                                                          )}
+                                                                                                          <p className="text-purple-600 font-bold text-xl">{formatPrice(pkg.price)}</p>
+                                                                                                          <p className="text-gray-400 text-xs uppercase tracking-[0.18em]">{t('openTrip.perPerson')}</p>
+                                                                                                        </div>
+                                                                                                        <span className="inline-flex items-center rounded-full border border-purple-200 bg-white px-4 py-2 text-xs font-semibold text-purple-700 transition-colors group-hover:bg-purple-600 group-hover:border-purple-600 group-hover:text-white">
+                                                                                                          {t('privateTrip.viewDetail')}
+                                                                                                        </span>
+                                                                                                      </div>
                                                                                   </div>
                                                             </div>
                                           </Link>

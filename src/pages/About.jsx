@@ -1,12 +1,17 @@
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { Target, Eye, Heart } from 'lucide-react';
 import Seo from '../components/Seo';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useSettings } from '../contexts/SettingsContext';
+
+const SITE_URL = (import.meta.env.VITE_APP_URL || import.meta.env.VITE_SITE_URL || 'https://web-travel-pi.vercel.app').replace(/\/$/, '')
 
 export default function About() {
   useEffect(() => { window.scrollTo(0, 0); }, []);
   const { t } = useLanguage();
+  const settings = useSettings();
 
   const team = [
     { name: 'Budi Santoso', role: 'Founder & CEO', emoji: '👨‍💼' },
@@ -24,6 +29,24 @@ export default function About() {
         description={t('about.seoDescription')}
         image="https://images.unsplash.com/photo-1501854140801-50d01698950b?w=1200&h=630&fit=crop&q=80"
       />
+      <Helmet>
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "TravelAgency",
+          "name": "Liburan Terus",
+          "description": t('about.seoDescription'),
+          "url": `${SITE_URL}/tentang-kami`,
+          "telephone": `+${settings.phone}`,
+          "email": settings.email,
+          "address": { "@type": "PostalAddress", "addressCountry": "ID", "streetAddress": settings.address },
+          "sameAs": [
+            settings.instagram,
+            settings.facebook,
+            settings.youtube,
+            settings.tiktok,
+          ].filter(Boolean)
+        })}</script>
+      </Helmet>
 
       {/* Hero */}
       <div className="bg-gradient-to-r from-emerald-700 to-teal-600 py-24 mt-16">

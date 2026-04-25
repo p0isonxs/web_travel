@@ -45,15 +45,3 @@ export function getBlogImageAlt(post, preferredLanguage = 'id') {
   return joinParts([title, category]) || excerpt || (preferredLanguage === 'en' ? 'Blog cover image' : 'Gambar cover artikel');
 }
 
-export function getGalleryImageAlt(photo, preferredLanguage = 'id') {
-  const manualAlt = compact(photo?.imageAlt);
-  if (manualAlt) return manualAlt;
-
-  const caption = compact(photo?.caption);
-  const category = compact(photo?.category);
-
-  return caption || joinParts([
-    preferredLanguage === 'en' ? 'Travel gallery' : 'Galeri wisata',
-    category,
-  ]) || (preferredLanguage === 'en' ? 'Travel gallery image' : 'Gambar galeri wisata');
-}

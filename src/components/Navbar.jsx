@@ -106,6 +106,9 @@ const Navbar = () => {
                             {/* Mobile Menu Button */}
                                     <button
                                                   onClick={() => setIsOpen(!isOpen)}
+                                                  aria-expanded={isOpen}
+                                                  aria-controls="mobile-menu"
+                                                  aria-label={isOpen ? 'Tutup menu navigasi' : 'Buka menu navigasi'}
                                                   className={`lg:hidden p-2 rounded-lg transition-colors ${
                                                                   scrolled || !isHomePage
                                                                     ? 'text-gray-700 hover:bg-gray-100'
@@ -118,7 +121,7 @@ const Navbar = () => {
                   </div>
           
             {/* Mobile Menu */}
-                <div className={`lg:hidden transition-all duration-300 overflow-hidden ${
+                <div id="mobile-menu" className={`lg:hidden transition-all duration-300 overflow-hidden ${
                     isOpen ? 'max-h-screen bg-white shadow-xl' : 'max-h-0'
           }`}>
                         <div className="px-4 py-3 space-y-1">

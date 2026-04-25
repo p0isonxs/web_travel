@@ -27,6 +27,9 @@ export default function Seo({
       <meta name="description" content={description} />
       <link rel="canonical" href={url} />
       <meta name="robots" content={robotsContent} />
+      <link rel="alternate" hreflang="id" href={url} />
+      <link rel="alternate" hreflang="en" href={url} />
+      <link rel="alternate" hreflang="x-default" href={url} />
 
       {/* Open Graph */}
       <meta property="og:site_name" content={SITE_NAME} />

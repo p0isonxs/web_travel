@@ -33,7 +33,7 @@ const Payment = () => {
                               navigateToSuccess(data)
                             }
                   } catch (error) {
-                            console.error('Error:', error)
+                            if (import.meta.env.DEV) console.error('Error:', error)
                   } finally {
                             setLoading(false)
                   }
@@ -103,7 +103,7 @@ const Payment = () => {
           try {
                   url = await uploadToCloudinary(proofFile, 'payments')
           } catch (error) {
-                  console.error('Cloudinary upload error:', error)
+                  if (import.meta.env.DEV) console.error('Cloudinary upload error:', error)
                   toast.error('Gagal upload foto: ' + (error.message || error))
                   setUploading(false)
                   return
@@ -115,7 +115,7 @@ const Payment = () => {
                             proofUrl: url,
                   })
           } catch (error) {
-                  console.error('Payment record error:', error)
+                  if (import.meta.env.DEV) console.error('Payment record error:', error)
                   toast.error('Gagal simpan data pembayaran: ' + (error.message || error))
                   setUploading(false)
                   return
@@ -131,7 +131,7 @@ const Payment = () => {
                   toast.success(t('payment.proofUploaded'))
                   navigateToSuccess()
           } catch (error) {
-                  console.error('Update booking error:', error)
+                  if (import.meta.env.DEV) console.error('Update booking error:', error)
                   toast.error('Gagal update status booking: ' + (error.message || error))
           } finally {
                   setUploading(false)
@@ -282,7 +282,9 @@ const Payment = () => {
                                                                                                                             className="hidden" id="proof-upload" />
                                                                           {proofPreview ? (
                                                           <div>
-                                                                                      <img src={proofPreview} alt="Bukti" className="max-h-40 mx-auto rounded-lg mb-2 object-contain" />
+                                                                                      <div className="h-40 flex items-center justify-center mb-2">
+                                                                                        <img src={proofPreview} alt="Bukti pembayaran" width="160" height="160" className="max-h-40 max-w-full rounded-lg object-contain" />
+                                                                                      </div>
                                                                                       <label htmlFor="proof-upload" className="text-emerald-600 text-sm cursor-pointer hover:underline">
                                                                                             {t('payment.changeImage')}
                                                                                         </label>
