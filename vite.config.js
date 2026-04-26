@@ -9,6 +9,8 @@ export default defineConfig({
     },
     build: {
           outDir: 'dist',
+          cssCodeSplit: true,
+          reportCompressedSize: false,
           rollupOptions: {
                 output: {
                       manualChunks(id) {
@@ -35,6 +37,13 @@ export default defineConfig({
                               id.includes('/react-toastify/')
                             ) {
                               return 'ui-vendor';
+                            }
+
+                            if (
+                              id.includes('/@supabase/') ||
+                              id.includes('/supabase-js/')
+                            ) {
+                              return 'supabase-vendor';
                             }
                       },
                 },

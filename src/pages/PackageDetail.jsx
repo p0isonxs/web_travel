@@ -121,7 +121,6 @@ const PackageDetail = () => {
 
     useEffect(() => {
           const handleResize = () => setIsMobile(window.innerWidth < 768)
-          handleResize()
           window.addEventListener('resize', handleResize)
           return () => window.removeEventListener('resize', handleResize)
     }, [])
@@ -176,9 +175,18 @@ const PackageDetail = () => {
                   }
           }
 
-          fetchSlotUsage()
+          // Defer until browser is idle so slot fetch doesn't compete with LCP render
+          let timerId
+          if (typeof requestIdleCallback !== 'undefined') {
+                  timerId = requestIdleCallback(fetchSlotUsage, { timeout: 3000 })
+          } else {
+                  timerId = setTimeout(fetchSlotUsage, 300)
+          }
+
           return () => {
                   cancelled = true
+                  if (typeof cancelIdleCallback !== 'undefined') cancelIdleCallback(timerId)
+                  else clearTimeout(timerId)
           }
     }, [pkg?.id, pkg?.type, pkg?.departureDates, pkg?.maxParticipants])
 
@@ -305,10 +313,10 @@ const PackageDetail = () => {
               containIntrinsicSize: '460px',
             }
             const heroImage = buildResponsiveImageProps(images[activeImage], {
-              widths: [640, 960, 1280, 1600],
+              widths: [480, 750, 960, 1280],
               quality: 'auto',
               format: 'auto',
-              sizes: '(max-width: 1023px) 100vw, 66vw',
+              sizes: '(max-width: 767px) 100vw, (max-width: 1023px) 100vw, 66vw',
             })
             const scheduleReady = !isOpenTrip || !slotUsageLoading
             const selectedSlotsAvailable = !isOpenTrip || selectedRemainingSlots > 0
@@ -575,7 +583,7 @@ const PackageDetail = () => {
                                                                                               >
                                                                                                 <div className="absolute inset-0">
                                                                                                   <img
-                                                                                                    src={optimizeImageUrl(images[0], { width: 960, height: 540 }) || images[0]}
+                                                                                                    src={optimizeImageUrl(images[0], { width: 480, height: 270 }) || images[0]}
                                                                                                     alt=""
                                                                                                     className="h-full w-full object-cover opacity-20 blur-[2px]"
                                                                                                     loading="lazy"
