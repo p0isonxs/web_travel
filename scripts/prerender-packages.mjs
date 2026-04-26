@@ -151,6 +151,13 @@ async function main() {
 
   const baseHtml = await fs.readFile(path.join(DIST, 'index.html'), 'utf8')
 
+  // Find PackageDetail chunk for modulepreload hint
+  const assetFiles = await fs.readdir(path.join(DIST, 'assets')).catch(() => [])
+  const pkgDetailChunk = assetFiles.find(f => f.startsWith('PackageDetail') && f.endsWith('.js'))
+  const pkgDetailPreload = pkgDetailChunk
+    ? `<link rel="modulepreload" crossorigin href="/assets/${pkgDetailChunk}">`
+    : ''
+
   const headers = {
     apikey: SUPABASE_ANON_KEY,
     Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
@@ -192,10 +199,10 @@ async function main() {
 
     // Inject into HTML
     let html = baseHtml
-      // Add preload + data script before </head>
+      // Add modulepreload for PackageDetail chunk + image preload + data script before </head>
       .replace(
         '</head>',
-        `  ${preloadTag}\n  <script id="__PKG_DATA__" type="application/json">${safeJson(pkg)}</script>\n</head>`
+        `${pkgDetailPreload ? `  ${pkgDetailPreload}\n` : ''}  ${preloadTag}\n  <script id="__PKG_DATA__" type="application/json">${safeJson(pkg)}</script>\n</head>`
       )
       // Replace generic OG image with package-specific one
       .replace(

@@ -207,6 +207,27 @@ const PackageDetail = () => {
           }
     }, [pkg?.id, pkg?.type, pkg?.departureDates, pkg?.maxParticipants])
 
+    // Preload all gallery images after page is idle so slider switches instantly
+    useEffect(() => {
+          const imgs = pkg?.images
+          if (!Array.isArray(imgs) || imgs.length < 2) return
+          const cb = () => {
+                  imgs.slice(1).forEach(url => {
+                            if (!url) return
+                            const img = new window.Image()
+                            img.src = url.includes('res.cloudinary.com')
+                              ? url.replace('/image/upload/', '/image/upload/f_auto,q_auto,c_fill,w_960/')
+                              : url
+                  })
+          }
+          if (typeof requestIdleCallback !== 'undefined') {
+                  const id = requestIdleCallback(cb, { timeout: 5000 })
+                  return () => cancelIdleCallback(id)
+          }
+          const t = setTimeout(cb, 1000)
+          return () => clearTimeout(t)
+    }, [pkg?.images])
+
     const formatPrice = (price) => {
           return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(price)
     }
@@ -430,7 +451,7 @@ const PackageDetail = () => {
                                                                                                                                 srcSet={heroImage.srcSet}
                                                                                                                                 alt={getPackageImageAlt(pkg, language, activeImage)}
                                                                                                                                 fetchpriority={activeImage === 0 ? 'high' : 'auto'}
-                                                                                                                                loading={activeImage === 0 ? 'eager' : 'lazy'}
+                                                                                                                                loading="eager"
                                                                                                                                 sizes={heroImage.sizes}
                                                                                                                                 decoding="async"
                                                                                                                                 className="w-full h-full object-cover"
