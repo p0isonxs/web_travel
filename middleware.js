@@ -22,7 +22,7 @@ function buildHtml({ title, description, image, url }) {
 <meta charset="UTF-8">
 <title>${t}</title>
 <meta name="description" content="${d}">
-<meta property="og:site_name" content="Liburan Terus">
+<meta property="og:site_name" content="Vakansi Trip">
 <meta property="og:type" content="website">
 <meta property="og:url" content="${u}">
 <meta property="og:title" content="${t}">
@@ -44,32 +44,32 @@ export default async function middleware(request) {
   const { pathname } = new URL(request.url);
   const [, type, slug] = pathname.split('/');
 
-  let title = 'Liburan Terus - Paket Wisata Indonesia';
+  let title = 'Vakansi Trip - Paket Wisata Indonesia';
   let description = 'Paket wisata open trip dan private trip terbaik di Indonesia.';
   let bgImage = '';
   let pageType = 'website';
 
   if (pathname === '/') {
-    title = 'Liburan Terus - Paket Wisata Open Trip & Private Trip Terbaik';
-    description = 'Temukan paket open trip dan private trip terbaik ke berbagai destinasi indah di Indonesia bersama Liburan Terus.';
+    title = 'Vakansi Trip - Paket Wisata Open Trip & Private Trip Terbaik';
+    description = 'Temukan paket open trip dan private trip terbaik ke berbagai destinasi indah di Indonesia bersama Vakansi Trip.';
   } else if (pathname === '/open-trip') {
-    title = 'Open Trip - Liburan Terus';
+    title = 'Open Trip - Vakansi Trip';
     description = 'Temukan berbagai paket open trip seru dengan harga terjangkau dan jadwal keberangkatan terbaik.';
     pageType = 'open-trip';
   } else if (pathname === '/private-trip') {
-    title = 'Private Trip - Liburan Terus';
+    title = 'Private Trip - Vakansi Trip';
     description = 'Nikmati private trip eksklusif dengan itinerary fleksibel untuk keluarga, pasangan, dan rombongan.';
     pageType = 'private-trip';
   } else if (pathname === '/blog') {
-    title = 'Blog & Artikel Wisata - Liburan Terus';
-    description = 'Baca tips wisata, destinasi terbaik, dan panduan perjalanan terbaru dari Liburan Terus.';
+    title = 'Blog & Artikel Wisata - Vakansi Trip';
+    description = 'Baca tips wisata, destinasi terbaik, dan panduan perjalanan terbaru dari Vakansi Trip.';
     pageType = 'blog';
   } else if (pathname === '/kontak') {
-    title = 'Kontak - Liburan Terus';
-    description = 'Hubungi Liburan Terus untuk informasi paket wisata, booking, dan konsultasi perjalanan.';
+    title = 'Kontak - Vakansi Trip';
+    description = 'Hubungi Vakansi Trip untuk informasi paket wisata, booking, dan konsultasi perjalanan.';
   } else if (pathname === '/tentang-kami') {
-    title = 'Tentang Kami - Liburan Terus';
-    description = 'Kenali Liburan Terus lebih dekat sebagai penyedia open trip dan private trip terpercaya di Indonesia.';
+    title = 'Tentang Kami - Vakansi Trip';
+    description = 'Kenali Vakansi Trip lebih dekat sebagai penyedia open trip dan private trip terpercaya di Indonesia.';
   }
 
   try {
@@ -108,14 +108,14 @@ export default async function middleware(request) {
         if (type === 'blog' && slug) {
           const rawTitle = typeof item.title === 'object' ? item.title.id : item.title;
           const rawExcerpt = typeof item.excerpt === 'object' ? item.excerpt.id : item.excerpt;
-          if (rawTitle) title = `${rawTitle} - Liburan Terus`;
+          if (rawTitle) title = `${rawTitle} - Vakansi Trip`;
           if (rawExcerpt) description = rawExcerpt;
           if (item.cover_image) bgImage = item.cover_image;
           pageType = 'blog';
         } else {
           const rawTitle = typeof item.title === 'object' ? item.title.id : item.title;
           const rawDesc = typeof item.description === 'object' ? item.description.id : item.description;
-          if (rawTitle) title = `${rawTitle} - Liburan Terus`;
+          if (rawTitle) title = `${rawTitle} - Vakansi Trip`;
           if (rawDesc) description = rawDesc;
           if (item.images?.[0]) bgImage = item.images[0];
           pageType = type;

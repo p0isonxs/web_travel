@@ -2,7 +2,7 @@ import { ImageResponse } from '@vercel/og';
 
 export const config = { runtime: 'edge' };
 
-const SITE_NAME = 'Liburan Terus';
+const SITE_NAME = 'Vakansi Trip';
 const SITE_DOMAIN = 'web-travel-pi.vercel.app';
 const BRAND_COLOR = '#059669';
 

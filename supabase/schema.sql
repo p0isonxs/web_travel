@@ -1,5 +1,5 @@
 -- ============================================================
--- Liburan Terus - Supabase Schema
+-- Vakansi Trip - Supabase Schema
 -- Jalankan ini di Supabase SQL Editor
 -- ============================================================
 
