@@ -396,7 +396,7 @@ const PackageDetail = () => {
                                   url: canonicalUrl,
                                   touristType: isOpenTrip ? 'Open Trip' : 'Private Trip',
                                   image: images,
-                                  provider: { '@type': 'TravelAgency', name: settings.siteName, url: SITE_URL },
+                                  provider: { '@type': 'Organization', name: settings.siteName, url: SITE_URL },
                                   ...(packageLocation && { location: { '@type': 'Place', name: packageLocation, address: { '@type': 'PostalAddress', addressCountry: 'ID' } } }),
                                   offers: {
                                     '@type': 'Offer',
