@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { useAuth } from '../../contexts/AuthContext';
-import { SITE_NAME } from '../../lib/siteConfig';
+import { useSettings } from '../../contexts/SettingsContext';
 import {
     LayoutDashboard, Package, CalendarCheck, CreditCard,
     FileText, Star, Settings, LogOut, Menu, X,
@@ -28,6 +28,7 @@ export default function AdminLayout() {
     const [unreadCount, setUnreadCount] = useState(0);
     const [newBookings, setNewBookings] = useState(0);
     const { logout, currentUser } = useAuth();
+    const settings = useSettings();
 
   useEffect(() => {
     getContacts().then(list => setUnreadCount(list.filter(c => c.status === 'unread').length)).catch(() => {});
@@ -73,7 +74,7 @@ export default function AdminLayout() {
                       <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center text-2xl">🌴</div>
                                 <div>
-                                            <p className="font-bold text-lg leading-tight">{SITE_NAME}</p>
+                                            <p className="font-bold text-lg leading-tight">{settings.siteName}</p>
                                             <p className="text-xs text-gray-400">Admin Panel</p>
                                 </div>
                       </div>

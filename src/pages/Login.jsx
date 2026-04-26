@@ -2,9 +2,10 @@ import { useState } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { Helmet } from 'react-helmet-async'
-import { FaPlane, FaEye, FaEyeSlash, FaLock, FaEnvelope } from 'react-icons/fa'
+import { FaEye, FaEyeSlash, FaLock, FaEnvelope } from 'react-icons/fa'
 import { toast } from 'react-toastify'
-import { SITE_NAME } from '../lib/siteConfig'
+import { useSettings } from '../contexts/SettingsContext'
+import BrandLogo from '../components/BrandLogo'
 
 const Login = () => {
     const [email, setEmail] = useState('')
@@ -12,6 +13,7 @@ const Login = () => {
     const [showPassword, setShowPassword] = useState(false)
     const [loading, setLoading] = useState(false)
     const { currentUser, login } = useAuth()
+    const settings = useSettings()
     const navigate = useNavigate()
 
     if (currentUser) return <Navigate to="/admin" replace />
@@ -40,7 +42,7 @@ const Login = () => {
     return (
           <>
                 <Helmet>
-                        <title>Login Admin - {SITE_NAME}</title>
+                        <title>Login Admin - {settings.siteName}</title>
                         <meta name="robots" content="noindex, nofollow" />
                 </Helmet>
                 <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 flex items-center justify-center p-4">
@@ -49,10 +51,18 @@ const Login = () => {
                                   <div className="bg-white rounded-3xl shadow-2xl p-8">
                                     {/* Logo */}
                                               <div className="text-center mb-8">
-                                                            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl mb-4 shadow-lg">
-                                                                            <FaPlane className="text-white text-2xl" />
-                                                            </div>
-                                                            <h1 className="text-2xl font-bold text-gray-800">{SITE_NAME}</h1>
+                                                <div className="mb-4 flex justify-center">
+                                                  <div className="rounded-2xl bg-white px-4 py-3 shadow-sm">
+                                                    <div className="flex items-center justify-center gap-3">
+                                                      <BrandLogo
+                                                        showTagline={false}
+                                                        titleClassName="text-gray-800"
+                                                        logoClassName="h-14 w-auto max-w-[180px] object-contain"
+                                                        iconWrapperClassName="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl shadow-lg"
+                                                      />
+                                                    </div>
+                                                  </div>
+                                                </div>
                                                             <p className="text-gray-500 text-sm mt-1">Panel Admin</p>
                                               </div>
                                   
@@ -116,7 +126,7 @@ const Login = () => {
                                               </form>
                                   
                                               <p className="text-center text-xs text-gray-400 mt-6">
-                                                            Hanya untuk administrator {SITE_NAME}
+                                                            Hanya untuk administrator {settings.siteName}
                                               </p>
                                   </div>
                         </div>

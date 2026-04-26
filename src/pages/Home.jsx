@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 
 import { Helmet } from 'react-helmet-async';
-import { SITE_URL, SITE_NAME } from '../lib/siteConfig';
+import { SITE_URL } from '../lib/siteConfig';
 import { getPackages, getApprovedTestimonials, getBlogPosts } from '../lib/database';
 import { generateSlug } from '../utils/slug';
 import { MapPin, Users, Star, ChevronRight, Phone, CheckCircle, ArrowRight, Calendar } from 'lucide-react';
@@ -22,6 +22,7 @@ export default function Home() {
     const [heroCardIdx, setHeroCardIdx] = useState(0);
     const [visibleCount, setVisibleCount] = useState(4);
     const [isDesktop, setIsDesktop] = useState(() => window.innerWidth >= 1024);
+    const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
     const timerRef = useRef(null);
     const { t, language, localize } = useLanguage();
     const settings = useSettings();
@@ -37,6 +38,7 @@ export default function Home() {
                   const w = window.innerWidth;
                   setVisibleCount(w >= 1024 ? 3 : w >= 640 ? 2 : 1);
                   setIsDesktop(w >= 1024);
+                  setIsMobile(w < 768);
         };
         update();
         window.addEventListener('resize', update);
@@ -70,10 +72,10 @@ export default function Home() {
 
   // Hero card auto-slide
   useEffect(() => {
-    if (openPackages.length <= 1) return;
+    if (isMobile || openPackages.length <= 1) return;
     const t = setInterval(() => setHeroCardIdx(i => (i + 1) % Math.min(openPackages.length, 5)), 3500);
     return () => clearInterval(t);
-  }, [openPackages.length]);
+  }, [isMobile, openPackages.length]);
 
   // Carousel logic
   const maxSlideIdx = Math.max(0, testimonials.length - visibleCount);
@@ -83,12 +85,12 @@ export default function Home() {
 
   const startTimer = useCallback(() => {
         clearInterval(timerRef.current);
-        if (testimonials.length > visibleCount) {
+        if (!isMobile && testimonials.length > visibleCount) {
                   timerRef.current = setInterval(() => {
                             setSlideIdx(prev => (prev >= maxSlideIdxRef.current ? 0 : prev + 1));
                   }, 4000);
         }
-  }, [testimonials.length, visibleCount]);
+  }, [isMobile, testimonials.length, visibleCount]);
 
   useEffect(() => {
         startTimer();
@@ -112,6 +114,10 @@ export default function Home() {
   const deferredSectionStyle = {
     contentVisibility: 'auto',
     containIntrinsicSize: '900px',
+  };
+  const deferredCardStyle = {
+    contentVisibility: 'auto',
+    containIntrinsicSize: '420px',
   };
   const heroBackgroundImage = buildResponsiveImageProps(HERO_BG, {
     widths: [640, 960, 1280, 1600],
@@ -139,7 +145,7 @@ export default function Home() {
                 <script type="application/ld+json">{JSON.stringify({
                     "@context": "https://schema.org",
                     "@type": "TravelAgency",
-                    "name": SITE_NAME,
+                    "name": settings.siteName,
                     "description": language === 'en' ? "Trusted travel agency for open trips and private trips" : "Agen wisata terpercaya untuk open trip dan private trip",
                     "url": SITE_URL,
                     "telephone": `+${settings.phone}`,
@@ -166,6 +172,7 @@ export default function Home() {
                       sizes={heroBackgroundImage.sizes}
                       alt=""
                       loading="eager"
+                      fetchPriority="high"
                       decoding="async"
                       className="w-full h-full object-cover"
                     />
@@ -175,8 +182,8 @@ export default function Home() {
                 </div>
 
                 {/* Decorative blobs */}
-                <div className="absolute top-1/4 left-1/3 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-                <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-teal-400/10 rounded-full blur-3xl pointer-events-none" />
+                <div className="absolute top-1/4 left-1/3 hidden md:block w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+                <div className="absolute bottom-1/4 right-1/4 hidden md:block w-64 h-64 bg-teal-400/10 rounded-full blur-3xl pointer-events-none" />
 
                 <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-20 grid lg:grid-cols-2 gap-12 items-center">
 
@@ -204,7 +211,7 @@ export default function Home() {
                     {/* CTAs */}
                     <div className="flex flex-col sm:flex-row gap-3 mb-10">
                       <Link to="/open-trip"
-                        className="inline-flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-white font-bold px-8 py-4 rounded-xl shadow-lg shadow-emerald-500/30 transition-all hover:scale-105 text-base">
+                        className="inline-flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-white font-bold px-8 py-4 rounded-xl shadow-lg shadow-emerald-500/30 transition-all md:hover:scale-105 text-base">
                         {t('home.heroPrimaryCta')} <ArrowRight className="w-4 h-4" />
                       </Link>
                       <Link to="/private-trip"
@@ -410,14 +417,15 @@ export default function Home() {
                                         const duration = localize(pkg.duration);
                                         return (
                                         <Link key={pkg.id} to={`/open-trip/${pkg.slug?.id || generateSlug(pkg.title?.id || pkg.title || '')}`} className="group">
-                                                          <div className="bg-white rounded-[28px] overflow-hidden border border-gray-100 shadow-[0_18px_50px_-30px_rgba(15,23,42,0.35)] hover:shadow-[0_24px_60px_-28px_rgba(16,185,129,0.28)] transition-all duration-300 hover:-translate-y-1">
+                                                          <div className="bg-white rounded-[28px] overflow-hidden border border-gray-100 shadow-[0_18px_50px_-30px_rgba(15,23,42,0.35)] md:hover:shadow-[0_24px_60px_-28px_rgba(16,185,129,0.28)] transition-all duration-300 md:hover:-translate-y-1" style={deferredCardStyle}>
                                                                               <div className="relative h-52 overflow-hidden">
                                                                                                     <img
                                                                                                       src={optimizeImageUrl(pkg.images?.[0], { width: 800, height: 520 }) || 'https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?w=600'}
                                                                                                       alt={getPackageImageAlt(pkg, language)}
                                                                                                       loading="lazy"
+                                                                                                      sizes="(max-width: 767px) 100vw, (max-width: 1023px) 50vw, 33vw"
                                                                                                       decoding="async"
-                                                                                                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                                                                                      className="w-full h-full object-cover md:group-hover:scale-110 transition-transform duration-500"
                                                                                                     />
                                                                                                     <div className="absolute top-3 left-3">
                                                                                                                       <span className="bg-emerald-500 text-white text-xs font-semibold px-3 py-1 rounded-full">
@@ -560,7 +568,7 @@ export default function Home() {
                           <Link to={`/${pkg.type}/${pkg.slug?.id || generateSlug(pkg.title?.id || pkg.title || '')}`}
                                 className="relative rounded-3xl overflow-hidden row-span-2 group">
                             <img src={optimizeImageUrl(pkg.images?.[0], { width: 900, height: 900 }) || 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&q=80'}
-                                 alt={getPackageImageAlt(pkg, language)} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" loading="lazy" decoding="async" />
+                                 alt={getPackageImageAlt(pkg, language)} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" loading="lazy" sizes="(max-width: 1279px) 50vw, 30vw" decoding="async" />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
                             <div className="absolute bottom-5 left-5 right-5">
                               <span className="inline-block bg-purple-500/80 backdrop-blur-sm text-white text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full mb-2">Private Trip</span>
@@ -576,7 +584,7 @@ export default function Home() {
                           <Link key={pkg.id} to={`/${pkg.type}/${pkg.slug?.id || generateSlug(pkg.title?.id || pkg.title || '')}`}
                                 className="relative rounded-3xl overflow-hidden group">
                             <img src={optimizeImageUrl(pkg.images?.[0], { width: 500, height: 500 }) || 'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=400&q=80'}
-                                 alt={getPackageImageAlt(pkg, language)} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" loading="lazy" decoding="async" />
+                                 alt={getPackageImageAlt(pkg, language)} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" loading="lazy" sizes="(max-width: 1279px) 50vw, 20vw" decoding="async" />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                             <p className="absolute bottom-4 left-4 right-4 text-white font-semibold text-sm leading-snug">{title}</p>
                           </Link>
@@ -664,7 +672,7 @@ export default function Home() {
                           style={{ flex: `0 0 ${cardWidth}%` }}
                           className="px-3"
                         >
-                          <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-3xl p-6 h-full flex flex-col hover:bg-white/15 transition-colors duration-300">
+                          <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-3xl p-6 h-full flex flex-col md:hover:bg-white/15 transition-colors duration-300" style={deferredCardStyle}>
                             {/* Big quote mark */}
                             <div className="text-6xl leading-none font-serif text-emerald-300/60 mb-1 select-none">"</div>
 
@@ -743,14 +751,15 @@ export default function Home() {
                             const excerpt = localize(blog.excerpt) || blog.excerpt?.id || '';
                             return (
                               <Link key={blog.id} to={`/blog/${blog.slug}`} className="group flex flex-col snap-start shrink-0 w-[78vw] sm:w-[55vw] md:w-auto">
-                                <article className="flex flex-col h-full bg-white rounded-[28px] overflow-hidden border border-gray-100 shadow-[0_18px_45px_-32px_rgba(15,23,42,0.35)] hover:shadow-[0_26px_60px_-32px_rgba(16,185,129,0.28)] transition-all duration-300 hover:-translate-y-1">
+                                <article className="flex flex-col h-full bg-white rounded-[28px] overflow-hidden border border-gray-100 shadow-[0_18px_45px_-32px_rgba(15,23,42,0.35)] md:hover:shadow-[0_26px_60px_-32px_rgba(16,185,129,0.28)] transition-all duration-300 md:hover:-translate-y-1" style={deferredCardStyle}>
                                   {/* Image */}
                                   <div className="relative aspect-[16/9] overflow-hidden">
                                     <img
                                       src={optimizeImageUrl(blog.coverImage, { width: 800, height: 450 }) || 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=600&q=80'}
                                       alt={getBlogImageAlt(blog, language) || title}
-                                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                      className="w-full h-full object-cover md:group-hover:scale-105 transition-transform duration-500"
                                       loading="lazy"
+                                      sizes="(max-width: 767px) 78vw, (max-width: 1023px) 55vw, 33vw"
                                       decoding="async"
                                     />
                                     {i === 0 && (
@@ -800,7 +809,7 @@ export default function Home() {
                                             <a
                                                             href={`https://wa.me/${settings.phone}?text=${homepageWhatsappMessage}`}
                                                             target="_blank" rel="noopener noreferrer"
-                                                            className="inline-flex items-center gap-2 bg-green-500 hover:bg-green-400 text-white font-bold px-8 py-4 rounded-xl text-lg transition-all hover:scale-105"
+                                                            className="inline-flex items-center gap-2 bg-green-500 hover:bg-green-400 text-white font-bold px-8 py-4 rounded-xl text-lg transition-all md:hover:scale-105"
                                                           >
                                                           <Phone className="w-5 h-5" /> {t('home.chatWhatsapp')}
                                             </a>

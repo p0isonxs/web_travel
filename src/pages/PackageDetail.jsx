@@ -9,7 +9,7 @@ import { useSettings } from '../contexts/SettingsContext'
 import { getPackageImageAlt } from '../utils/imageAlt'
 import { optimizeImageUrl } from '../utils/cloudinary'
 
-import { SITE_URL, SITE_NAME } from '../lib/siteConfig'
+import { SITE_URL } from '../lib/siteConfig'
 
 function resolveMapSource(pkg, packageLocation, fallbackLocation) {
   const rawLink = typeof pkg.mapLink === 'string' ? pkg.mapLink.trim() : ''
@@ -110,10 +110,18 @@ const PackageDetail = () => {
     const [selectedDate, setSelectedDate] = useState('')
     const [participants, setParticipants] = useState(1)
     const [slotUsage, setSlotUsage] = useState({})
+    const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768)
     const scheduleScrollerRef = useRef(null)
     const scheduleDragRef = useRef({ isDragging: false, startX: 0, scrollLeft: 0, moved: false })
     const { t, language, localize } = useLanguage()
     const settings = useSettings()
+
+    useEffect(() => {
+          const handleResize = () => setIsMobile(window.innerWidth < 768)
+          handleResize()
+          window.addEventListener('resize', handleResize)
+          return () => window.removeEventListener('resize', handleResize)
+    }, [])
 
     useEffect(() => {
           const fetchPackage = async () => {
@@ -264,11 +272,15 @@ const PackageDetail = () => {
               t('packageDetail.whyBookReason2'),
               t('packageDetail.whyBookReason3'),
             ]
+            const deferredBlockStyle = {
+              contentVisibility: 'auto',
+              containIntrinsicSize: '460px',
+            }
               
                 return (
                       <>
                             <Seo
-                              title={pkg.metaTitle || `${packageTitle} - ${SITE_NAME}`}
+                              title={pkg.metaTitle || `${packageTitle} - ${settings.siteName}`}
                               description={pkg.metaDescription || packageDescription?.substring(0, 160) || `${t(isOpenTrip ? 'packageDetail.openTrip' : 'packageDetail.privateTrip')} ${packageTitle} di ${packageLocation}`}
                               image={optimizeImageUrl(images[0], { width: 1200, height: 630 })}
                             />
@@ -325,24 +337,25 @@ const PackageDetail = () => {
                                                 {/* Left - Main Content */}
                                                           <div className="lg:col-span-2 space-y-6">
                                                             {/* Image Gallery */}
-                                                                        <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
+                                                                        <div className="bg-white rounded-2xl overflow-hidden shadow-sm" style={deferredBlockStyle}>
                                                                                         <div className="relative aspect-[16/9] overflow-hidden">
                                                                                                           <img
                                                                                                                                 src={optimizeImageUrl(images[activeImage], { width: 1400, height: 790 }) || images[activeImage]}
                                                                                                                                 alt={getPackageImageAlt(pkg, language, activeImage)}
                                                                                                                                 fetchpriority={activeImage === 0 ? 'high' : 'auto'}
                                                                                                                                 loading={activeImage === 0 ? 'eager' : 'lazy'}
+                                                                                                                                sizes="(max-width: 1023px) 100vw, 66vw"
                                                                                                                                 decoding="async"
                                                                                                                                 className="w-full h-full object-cover"
                                                                                                                               />
                                                                                           {images.length > 1 && (
                                             <>
                                                                   <button onClick={() => setActiveImage(i => (i - 1 + images.length) % images.length)}
-                                                                                            className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/50 text-white p-2 rounded-full hover:bg-black/70 transition-colors">
+                                                                                            className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/50 text-white p-2 rounded-full md:hover:bg-black/70 transition-colors">
                                                                                           <FaChevronLeft />
                                                                   </button>
                                                                   <button onClick={() => setActiveImage(i => (i + 1) % images.length)}
-                                                                                            className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/50 text-white p-2 rounded-full hover:bg-black/70 transition-colors">
+                                                                                            className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/50 text-white p-2 rounded-full md:hover:bg-black/70 transition-colors">
                                                                                           <FaChevronRight />
                                                                   </button>
                                             </>
@@ -356,7 +369,7 @@ const PackageDetail = () => {
                                             {images.map((img, i) => (
                                                                   <button key={i} onClick={() => setActiveImage(i)}
                                                                                             className={`shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-colors ${activeImage === i ? `${accent.border}` : 'border-transparent'}`}>
-                                                                                          <img src={optimizeImageUrl(img, { width: 160, height: 160 }) || img} alt={getPackageImageAlt(pkg, language, i)} className="w-full h-full object-cover" loading="lazy" decoding="async" />
+                                                                                          <img src={optimizeImageUrl(img, { width: 160, height: 160 }) || img} alt={getPackageImageAlt(pkg, language, i)} className="w-full h-full object-cover" loading="lazy" sizes="64px" decoding="async" />
                                                                   </button>
                                                                 ))}
                                           </div>
@@ -364,7 +377,7 @@ const PackageDetail = () => {
                                                                         </div>
                                                           
                                                             {/* Title & Info */}
-                                                                        <div className="bg-white rounded-2xl p-6 shadow-sm">
+                                                                        <div className="bg-white rounded-2xl p-6 shadow-sm" style={deferredBlockStyle}>
                                                                                         <h1 className="text-2xl font-bold text-gray-800 mb-3">{packageTitle}</h1>
                                                                                         <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500 mb-4">
                                                                                                           <span className="flex items-center gap-1.5">
@@ -391,7 +404,7 @@ const PackageDetail = () => {
                                                                         </div>
                                                           
                                                             {/* Tabs */}
-                                                                        <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+                                                                        <div className="bg-white rounded-2xl shadow-sm overflow-hidden" style={deferredBlockStyle}>
                                                                                         <div className="flex border-b">
                                                                                           {['deskripsi', 'jadwal', 'fasilitas'].map(tab => (
                                             <button key={tab} onClick={() => setActiveTab(tab)}
@@ -492,7 +505,7 @@ const PackageDetail = () => {
                                                                         />
 
                                                             {/* Location Map */}
-                                                                        <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+                                                                        <div className="bg-white rounded-2xl shadow-sm overflow-hidden" style={deferredBlockStyle}>
                                                                                           <div className="flex items-start justify-between gap-4 border-b border-gray-100 px-6 py-5">
                                                                                                             <div>
                                                                                                                               <h2 className="text-lg font-bold text-gray-800">{t('packageDetail.locationMapTitle')}</h2>
@@ -512,6 +525,7 @@ const PackageDetail = () => {
                                                                                                               title={`${t('packageDetail.locationMapTitle')} - ${packageTitle}`}
                                                                                                               src={mapEmbedUrl}
                                                                                                               loading="lazy"
+                                                                                                              importance={isMobile ? 'low' : 'auto'}
                                                                                                               referrerPolicy="no-referrer-when-downgrade"
                                                                                                               className="h-full w-full border-0"
                                                                                                             />
@@ -522,7 +536,7 @@ const PackageDetail = () => {
                                                 {/* Right - Booking Card */}
                                                           <div className="lg:col-span-1">
                                                                         <div className="space-y-4 sticky top-24">
-                                                                          <div className={`rounded-3xl bg-gradient-to-br ${isOpenTrip ? 'from-emerald-600 via-teal-600 to-cyan-500' : 'from-violet-600 via-purple-600 to-fuchsia-500'} p-6 text-white shadow-lg`}>
+                                                                          <div className={`rounded-3xl bg-gradient-to-br ${isOpenTrip ? 'from-emerald-600 via-teal-600 to-cyan-500' : 'from-violet-600 via-purple-600 to-fuchsia-500'} p-6 text-white shadow-lg`} style={deferredBlockStyle}>
                                                                             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/70">
                                                                               {isOpenTrip ? t('packageDetail.openTrip') : t('packageDetail.privateTrip')}
                                                                             </p>
@@ -539,7 +553,7 @@ const PackageDetail = () => {
                                                                               </div>
                                                                             </div>
                                                                           </div>
-                                                                        <div className="bg-white rounded-2xl shadow-sm p-6">
+                                                                        <div className="bg-white rounded-2xl shadow-sm p-6" style={deferredBlockStyle}>
                                                                           {/* Price */}
                                                                                         <div className="mb-6 rounded-2xl border border-gray-100 bg-gray-50 px-5 py-4">
                                                                                           {pkg.originalPrice && pkg.originalPrice > pkg.price && (
@@ -589,7 +603,7 @@ const PackageDetail = () => {
                                                                                                                             ? isOpenTrip
                                                                                                                               ? 'border-emerald-500 bg-emerald-50 shadow-sm shadow-emerald-100'
                                                                                                                               : 'border-purple-500 bg-purple-50 shadow-sm shadow-purple-100'
-                                                                                                                            : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50'
+                                                                                                                            : 'border-gray-200 bg-white md:hover:border-gray-300 md:hover:bg-gray-50'
                                                                                                                         }`}
                                                                                                                       >
                                                                                                                         <div className="flex items-start justify-between gap-3">
@@ -676,19 +690,19 @@ const PackageDetail = () => {
                                                                           {/* Book Button */}
                                                                                         <button onClick={handleBooking}
                                                                                                             disabled={isOpenTrip && selectedRemainingSlots <= 0}
-                                                                                                            className={`w-full bg-gradient-to-r ${isOpenTrip ? 'from-emerald-500 to-teal-600' : 'from-violet-500 to-purple-600'} text-white py-4 rounded-xl font-bold hover:shadow-lg hover:scale-[1.02] transition-all duration-200 mb-3`}>
+                                                                                                            className={`w-full bg-gradient-to-r ${isOpenTrip ? 'from-emerald-500 to-teal-600' : 'from-violet-500 to-purple-600'} text-white py-4 rounded-xl font-bold md:hover:shadow-lg md:hover:scale-[1.02] transition-all duration-200 mb-3`}>
                                                                                                           {isOpenTrip && selectedRemainingSlots <= 0 ? t('packageDetail.scheduleFullButton') : t('packageDetail.bookNow')}
                                                                                           </button>
                                                                         
                                                                           {/* WhatsApp */}
                                                                                         <a href={`https://wa.me/${settings.phone}?text=${packageWhatsappMessage}`}
                                                                                                             target="_blank" rel="noopener noreferrer"
-                                                                                                            className="w-full flex items-center justify-center gap-2 bg-green-50 text-green-600 border border-green-200 py-3 rounded-xl font-semibold hover:bg-green-100 transition-colors text-sm">
+                                                                                                            className="w-full flex items-center justify-center gap-2 bg-green-50 text-green-600 border border-green-200 py-3 rounded-xl font-semibold md:hover:bg-green-100 transition-colors text-sm">
                                                                                                           <FaWhatsapp size={16} />
                                                                                                           {t('packageDetail.askWhatsapp')}
                                                                                           </a>
                                                                         </div>
-                                                                        <div className="bg-white rounded-2xl shadow-sm p-6">
+                                                                        <div className="bg-white rounded-2xl shadow-sm p-6" style={deferredBlockStyle}>
                                                                           <h3 className="text-lg font-bold text-gray-800">{t('packageDetail.whyBookTitle')}</h3>
                                                                           <div className="mt-4 space-y-3">
                                                                             {bookingReasons.map((reason) => (

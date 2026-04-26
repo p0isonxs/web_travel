@@ -1,6 +1,8 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import { translations } from '../locales/translations'
 import { resolveLocalizedValue } from '../utils/localizedContent'
+import { useSettings } from './SettingsContext'
+import { SITE_NAME } from '../lib/siteConfig'
 
 const STORAGE_KEY = 'web_travel_language'
 const LanguageContext = createContext(null)
@@ -38,6 +40,7 @@ function detectInitialLanguage() {
 
 export function LanguageProvider({ children }) {
   const [language, setLanguage] = useState(detectInitialLanguage)
+  const settings = useSettings()
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -53,12 +56,13 @@ export function LanguageProvider({ children }) {
     t: (path, vars = {}) => {
       const template = getNestedValue(translations[language], path) ?? getNestedValue(translations.id, path) ?? path
       if (typeof template !== 'string') return template
+      const brandedTemplate = settings.siteName ? template.replaceAll(SITE_NAME, settings.siteName) : template
       return Object.entries(vars).reduce(
         (result, [key, value]) => result.replaceAll(`{{${key}}}`, String(value)),
-        template
+        brandedTemplate
       )
     },
-  }), [language])
+  }), [language, settings.siteName])
 
   return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>
 }

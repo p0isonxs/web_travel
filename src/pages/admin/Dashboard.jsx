@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { getDashboardStats, getRecentBookings, getRecentPayments, getSettings, addPackage, deletePackage, getPackages, getBookings } from '../../lib/database';
 import { useAuth } from '../../contexts/AuthContext';
-import { SITE_NAME } from '../../lib/siteConfig';
+import { useSettings } from '../../contexts/SettingsContext';
 import { Package, CalendarCheck, CreditCard, ArrowRight, Clock, Download } from 'lucide-react';
 import { toast } from 'react-toastify';
 
@@ -25,6 +25,7 @@ export default function Dashboard() {
     const [diagLoading, setDiagLoading] = useState(false);
     const [diagResult, setDiagResult] = useState(null);
     const { currentUser } = useAuth();
+    const settings = useSettings();
 
   useEffect(() => { fetchData(); }, []);
 
@@ -142,7 +143,7 @@ export default function Dashboard() {
         <div className="space-y-8">
               <div>
                       <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-                      <p className="text-gray-500">Selamat datang kembali di panel admin {SITE_NAME}</p>
+                      <p className="text-gray-500">Selamat datang kembali di panel admin {settings.siteName}</p>
               </div>
 
               <div className="bg-white rounded-2xl shadow-sm p-6 space-y-4">

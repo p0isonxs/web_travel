@@ -4,6 +4,7 @@ import { uploadToCloudinary } from '../../utils/cloudinary';
 import { Save, RefreshCw, Upload, X, ShieldCheck, Globe2, Landmark, AlertTriangle, Phone, Mail, MapPin, Undo2 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { SITE_NAME } from '../../lib/siteConfig';
+import { useSettings } from '../../contexts/SettingsContext';
 
 const defaultSettings = {
     heroBackground: '',
@@ -11,7 +12,10 @@ const defaultSettings = {
     testimonialBackground: '',
     ogImage: '',
     siteName: SITE_NAME,
+    metaTitle: '',
     tagline: 'Jelajahi Keindahan Indonesia Bersama Kami',
+    brandLogo: '',
+    favicon: '',
     phone: '',
     email: '',
     address: '',
@@ -41,7 +45,10 @@ function normalizeSettingsInput(settings) {
     ...settings,
     phone: String(settings.phone || '').replace(/[^\d]/g, ''),
     siteName: String(settings.siteName || '').trim(),
+    metaTitle: String(settings.metaTitle || '').trim(),
     tagline: String(settings.tagline || '').trim(),
+    brandLogo: String(settings.brandLogo || '').trim(),
+    favicon: String(settings.favicon || '').trim(),
     email: String(settings.email || '').trim(),
     address: String(settings.address || '').trim(),
     bankName: String(settings.bankName || '').trim(),
@@ -117,6 +124,7 @@ export default function AdminSettings() {
     const [savedSettings, setSavedSettings] = useState(defaultSettings);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const { applySettings } = useSettings();
 
   useEffect(() => { fetchSettings(); }, []);
 
@@ -151,6 +159,7 @@ export default function AdminSettings() {
                   }
                 }
                 await updateSettings(normalized);
+                applySettings(normalized);
                 setSettings(normalized);
                 setSavedSettings(normalized);
                 toast.success('Pengaturan berhasil disimpan!');
@@ -162,16 +171,19 @@ export default function AdminSettings() {
     const labelClass = 'block text-sm font-medium text-gray-700 mb-1';
     const isDirty = JSON.stringify(settings) !== JSON.stringify(savedSettings);
     const publicChecks = [
+      { label: 'Brand name dan meta title sudah terisi', done: Boolean(settings.siteName && settings.metaTitle) },
+      { label: 'Logo dan favicon brand sudah terpasang', done: Boolean(settings.brandLogo && settings.favicon) },
       { label: 'Kontak utama siap tampil', done: Boolean(settings.phone && settings.email) },
       { label: 'Rekening transfer sudah lengkap', done: Boolean(settings.bankName && settings.bankAccount && settings.bankAccountName) },
       { label: 'SEO dasar homepage tersedia', done: Boolean(settings.metaDescription && settings.metaKeywords) },
       { label: 'Hero background sudah terpasang', done: Boolean(settings.heroBackground) },
     ];
     const statCards = [
-      { label: 'WhatsApp publik', value: settings.phone ? `+${settings.phone}` : '-', icon: Phone, tone: 'emerald' },
+      { label: 'Nama brand', value: settings.siteName || '-', icon: Globe2, tone: 'emerald' },
+      { label: 'WhatsApp publik', value: settings.phone ? `+${settings.phone}` : '-', icon: Phone, tone: 'blue' },
       { label: 'Email publik', value: settings.email || '-', icon: Mail, tone: 'blue' },
       { label: 'Bank transfer', value: settings.bankName || '-', icon: Landmark, tone: 'amber' },
-      { label: 'Alamat tampil', value: settings.address ? 'Aktif' : 'Kosong', icon: MapPin, tone: 'rose' },
+      { label: 'Favicon', value: settings.favicon ? 'Siap' : 'Kosong', icon: MapPin, tone: 'rose' },
     ];
     const toneClasses = {
       emerald: 'bg-emerald-50 text-emerald-600',
@@ -235,12 +247,13 @@ export default function AdminSettings() {
                         <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">Brand</p>
                         <p className="mt-2 text-lg font-bold text-gray-900">{settings.siteName || '-'}</p>
                         <p className="mt-1 text-sm text-gray-600">{settings.tagline || 'Tagline belum diisi'}</p>
+                        <p className="mt-2 text-xs text-gray-500">Meta title: {settings.metaTitle || 'Belum diisi'}</p>
                       </div>
                       <div className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
-                        <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">Transfer Manual</p>
-                        <p className="mt-2 text-lg font-bold text-gray-900">{settings.bankName || '-'}</p>
-                        <p className="mt-1 text-sm text-gray-600">{settings.bankAccount || '-'}</p>
-                        <p className="text-sm text-gray-600">{settings.bankAccountName || '-'}</p>
+                        <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">Aset Brand</p>
+                        <p className="mt-2 text-lg font-bold text-gray-900">{settings.brandLogo ? 'Logo siap' : 'Logo belum ada'}</p>
+                        <p className="mt-1 text-sm text-gray-600">{settings.favicon ? 'Favicon siap dipakai' : 'Favicon belum ada'}</p>
+                        <p className="text-sm text-gray-600">{settings.ogImage ? 'OG image siap dibagikan' : 'OG image belum ada'}</p>
                       </div>
                     </div>
                   </div>
@@ -272,6 +285,10 @@ export default function AdminSettings() {
                                               <input value={settings.siteName} onChange={e => setSettings({...settings, siteName: e.target.value})} className={inputClass} />
                                   </div>
                                   <div>
+                                              <label className={labelClass}>Meta Title Global</label>
+                                              <input value={settings.metaTitle} onChange={e => setSettings({...settings, metaTitle: e.target.value})} className={inputClass} placeholder="Vakansi Trip - Paket Open Trip & Private Trip" maxLength={70} />
+                                  </div>
+                                  <div>
                                               <label className={labelClass}>Tagline</label>
                                               <input value={settings.tagline} onChange={e => setSettings({...settings, tagline: e.target.value})} className={inputClass} />
                                   </div>
@@ -287,6 +304,25 @@ export default function AdminSettings() {
                                               <label className={labelClass}>Email</label>
                                               <input type="email" value={settings.email} onChange={e => setSettings({...settings, email: e.target.value})} className={inputClass} />
                                   </div>
+                        </Section>
+
+                        <Section title="Branding Website">
+                                  <ImageUploadField
+                                    label="Logo Brand"
+                                    value={settings.brandLogo}
+                                    settingKey="brandLogo"
+                                    folder="branding"
+                                    hint="PNG/WebP transparan disarankan. Logo ini tampil di navbar, footer, dan login admin."
+                                    onUploaded={(key, url) => setSettings({ ...settings, [key]: url })}
+                                  />
+                                  <ImageUploadField
+                                    label="Favicon"
+                                    value={settings.favicon}
+                                    settingKey="favicon"
+                                    folder="branding"
+                                    hint="PNG square 256×256 atau 512×512 disarankan. Ikon ini tampil di tab browser."
+                                    onUploaded={(key, url) => setSettings({ ...settings, [key]: url })}
+                                  />
                         </Section>
                 
                         <Section title="Media Sosial">
@@ -359,6 +395,10 @@ export default function AdminSettings() {
                         </Section>
 
                         <Section title="SEO Meta Tags">
+                                  <div className="md:col-span-2 rounded-2xl border border-emerald-100 bg-emerald-50 p-4 text-sm text-emerald-900">
+                                    <p className="font-semibold">Rebrand cepat ke Vakansi Trip</p>
+                                    <p className="mt-1">Isi Nama Website dan Meta Title Global dengan brand baru Anda. Perubahan ini akan dipakai di tampilan publik, admin, dan metadata dasar website.</p>
+                                  </div>
                                   <div className="md:col-span-2">
                                               <label className={labelClass}>Meta Description</label>
                                               <textarea rows={2} value={settings.metaDescription} onChange={e => setSettings({...settings, metaDescription: e.target.value})} className={inputClass} />

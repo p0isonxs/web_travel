@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom'
-import { FaPlane, FaInstagram, FaWhatsapp, FaYoutube, FaTiktok, FaMapMarkerAlt, FaPhone, FaEnvelope, FaFacebook } from 'react-icons/fa'
+import { FaInstagram, FaWhatsapp, FaYoutube, FaTiktok, FaMapMarkerAlt, FaPhone, FaEnvelope, FaFacebook } from 'react-icons/fa'
 import { useSettings } from '../contexts/SettingsContext'
 import { useLanguage } from '../contexts/LanguageContext'
+import BrandLogo from './BrandLogo'
 
 const Footer = () => {
     const currentYear = new Date().getFullYear()
@@ -16,13 +17,11 @@ const Footer = () => {
                           {/* Brand */}
                                   <div className="lg:col-span-1">
                                               <Link to="/" className="flex items-center gap-2 mb-4">
-                                                            <div className="bg-gradient-to-r from-emerald-500 to-teal-600 p-2 rounded-xl">
-                                                                            <FaPlane className="text-white text-xl" />
-                                                            </div>
-                                                            <div>
-                                                                            <span className="font-bold text-lg text-white block">{settings.siteName}</span>
-                                                                            <span className="text-xs text-emerald-400 block">{t('common.brandTagline')}</span>
-                                                            </div>
+                                                <BrandLogo
+                                                  titleClassName="text-white"
+                                                  taglineClassName="text-emerald-400"
+                                                  logoClassName="h-12 w-auto max-w-[180px] object-contain"
+                                                />
                                               </Link>
                                               <p className="text-sm leading-relaxed text-gray-400 mb-6">
                                                             {t('footer.description')}
@@ -31,33 +30,33 @@ const Footer = () => {
                                                 {settings.instagram && (
                                                   <a href={settings.instagram} target="_blank" rel="noopener noreferrer"
                                                     aria-label="Instagram"
-                                                    className="bg-gray-800 hover:bg-pink-600 p-2.5 rounded-lg transition-colors">
+                                                    className="bg-gray-800 md:hover:bg-pink-600 p-2.5 rounded-lg transition-colors">
                                                     <FaInstagram size={16} />
                                                   </a>
                                                 )}
                                                 <a href={`https://wa.me/${settings.phone}`} target="_blank" rel="noopener noreferrer"
                                                   aria-label="WhatsApp"
-                                                  className="bg-gray-800 hover:bg-green-600 p-2.5 rounded-lg transition-colors">
+                                                  className="bg-gray-800 md:hover:bg-green-600 p-2.5 rounded-lg transition-colors">
                                                   <FaWhatsapp size={16} />
                                                 </a>
                                                 {settings.facebook && (
                                                   <a href={settings.facebook} target="_blank" rel="noopener noreferrer"
                                                     aria-label="Facebook"
-                                                    className="bg-gray-800 hover:bg-blue-700 p-2.5 rounded-lg transition-colors">
+                                                    className="bg-gray-800 md:hover:bg-blue-700 p-2.5 rounded-lg transition-colors">
                                                     <FaFacebook size={16} />
                                                   </a>
                                                 )}
                                                 {settings.youtube && (
                                                   <a href={settings.youtube} target="_blank" rel="noopener noreferrer"
                                                     aria-label="YouTube"
-                                                    className="bg-gray-800 hover:bg-red-600 p-2.5 rounded-lg transition-colors">
+                                                    className="bg-gray-800 md:hover:bg-red-600 p-2.5 rounded-lg transition-colors">
                                                     <FaYoutube size={16} />
                                                   </a>
                                                 )}
                                                 {settings.tiktok && (
                                                   <a href={settings.tiktok} target="_blank" rel="noopener noreferrer"
                                                     aria-label="TikTok"
-                                                    className="bg-gray-800 hover:bg-gray-600 p-2.5 rounded-lg transition-colors">
+                                                    className="bg-gray-800 md:hover:bg-gray-600 p-2.5 rounded-lg transition-colors">
                                                     <FaTiktok size={16} />
                                                   </a>
                                                 )}
@@ -75,7 +74,7 @@ const Footer = () => {
                           ].map(item => (
                                             <li key={item.to}>
                                                               <Link to={item.to}
-                                                                                    className="text-sm text-gray-400 hover:text-emerald-400 transition-colors flex items-center gap-1.5">
+                                                                                    className="text-sm text-gray-400 md:hover:text-emerald-400 transition-colors flex items-center gap-1.5">
                                                                                   <span className="text-emerald-500">›</span> {item.label}
                                                               </Link>
                                             </li>
@@ -93,7 +92,7 @@ const Footer = () => {
                           ].map(item => (
                                             <li key={item.to}>
                                                               <Link to={item.to}
-                                                                                    className="text-sm text-gray-400 hover:text-emerald-400 transition-colors flex items-center gap-1.5">
+                                                                                    className="text-sm text-gray-400 md:hover:text-emerald-400 transition-colors flex items-center gap-1.5">
                                                                                   <span className="text-emerald-500">›</span> {item.label}
                                                               </Link>
                                             </li>
@@ -111,13 +110,13 @@ const Footer = () => {
                                                             </li>
                                                             <li className="flex items-center gap-3 text-sm text-gray-400">
                                                                             <FaPhone className="text-emerald-500 shrink-0" />
-                                                                            <a href={`tel:+${settings.phone}`} className="hover:text-emerald-400 transition-colors">
+                                                                            <a href={`tel:+${settings.phone}`} className="md:hover:text-emerald-400 transition-colors">
                                                                                               +{settings.phone}
                                                                             </a>
                                                             </li>
                                                             <li className="flex items-center gap-3 text-sm text-gray-400">
                                                                             <FaEnvelope className="text-emerald-500 shrink-0" />
-                                                                            <a href={`mailto:${settings.email}`} className="hover:text-emerald-400 transition-colors">
+                                                                            <a href={`mailto:${settings.email}`} className="md:hover:text-emerald-400 transition-colors">
                                                                                               {settings.email}
                                                                             </a>
                                                             </li>

@@ -4,7 +4,10 @@ import { SITE_NAME } from '../lib/siteConfig';
 
 export const defaultSettings = {
   siteName: SITE_NAME,
+  metaTitle: '',
   tagline: 'Jelajahi Keindahan Indonesia Bersama Kami',
+  brandLogo: '',
+  favicon: '',
   phone: '',
   email: '',
   address: '',
@@ -35,20 +38,24 @@ export function useSettings() {
 export function SettingsProvider({ children }) {
   const [settings, setSettings] = useState(settingsCache || defaultSettings);
 
+  const applySettings = (nextSettings) => {
+    settingsCache = { ...defaultSettings, ...nextSettings };
+    setSettings(settingsCache);
+  };
+
   useEffect(() => {
     if (settingsCache) return;
     getSettings()
       .then((data) => {
         if (data && Object.keys(data).length > 0) {
-          settingsCache = { ...defaultSettings, ...data };
-          setSettings(settingsCache);
+          applySettings(data);
         }
       })
       .catch(() => {});
   }, []);
 
   return (
-    <SettingsContext.Provider value={settings}>
+    <SettingsContext.Provider value={{ ...settings, applySettings }}>
       {children}
     </SettingsContext.Provider>
   );

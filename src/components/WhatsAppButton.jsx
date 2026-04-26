@@ -6,10 +6,27 @@ export default function WhatsAppButton() {
     const [showTooltip, setShowTooltip] = useState(false);
     const settings = useSettings();
     const [visible, setVisible] = useState(false);
+    const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
 
   useEffect(() => {
-        const timer = setTimeout(() => setVisible(true), 2000);
-        return () => clearTimeout(timer);
+        const handleResize = () => setIsMobile(window.innerWidth < 768);
+        handleResize();
+        window.addEventListener('resize', handleResize);
+
+        let timer;
+        if ('requestIdleCallback' in window) {
+          const idleId = window.requestIdleCallback(() => setVisible(true), { timeout: 2500 });
+          return () => {
+            window.cancelIdleCallback(idleId);
+            window.removeEventListener('resize', handleResize);
+          };
+        }
+
+        timer = setTimeout(() => setVisible(true), 2000);
+        return () => {
+          clearTimeout(timer);
+          window.removeEventListener('resize', handleResize);
+        };
   }, []);
 
   const waNumber = settings.phone || '6281234567890';
@@ -25,7 +42,7 @@ export default function WhatsAppButton() {
                   <div className="bg-white rounded-2xl shadow-xl p-4 max-w-xs border border-gray-100 relative">
                             <button
                                           onClick={() => setShowTooltip(false)}
-                                          className="absolute top-2 right-2 text-gray-400 hover:text-gray-600"
+                                          className="absolute top-2 right-2 text-gray-400 md:hover:text-gray-600"
                                         >
                                         <X className="w-4 h-4" />
                             </button>
@@ -45,7 +62,7 @@ export default function WhatsAppButton() {
                                           href={waUrl}
                                           target="_blank"
                                           rel="noopener noreferrer"
-                                          className="block w-full text-center bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-xl text-sm transition-colors"
+                                          className="block w-full text-center bg-green-500 md:hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-xl text-sm transition-colors"
                                         >
                                         Mulai Chat
                             </a>
@@ -55,12 +72,12 @@ export default function WhatsAppButton() {
           {/* Main Button */}
               <button
                         onClick={() => setShowTooltip(!showTooltip)}
-                        className="relative w-16 h-16 bg-green-500 hover:bg-green-600 text-white rounded-full shadow-2xl flex items-center justify-center transition-all hover:scale-110 active:scale-95"
+                        className="relative w-16 h-16 bg-green-500 md:hover:bg-green-600 text-white rounded-full shadow-2xl flex items-center justify-center transition-all md:hover:scale-110 active:scale-95"
                         aria-label="Chat WhatsApp"
                       >
                       <MessageCircle className="w-8 h-8" fill="white" />
                 {/* Ping animation */}
-                      <span className="absolute inset-0 rounded-full bg-green-500 animate-ping opacity-30" />
+                      {!isMobile && <span className="absolute inset-0 rounded-full bg-green-500 animate-ping opacity-30" />}
               </button>
         </div>
       );

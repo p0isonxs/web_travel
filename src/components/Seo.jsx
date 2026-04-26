@@ -15,25 +15,32 @@ export default function Seo({
 }) {
   const { pathname } = useLocation();
   const settings = useSettings();
+  const brandName = settings.siteName || SITE_NAME;
+  const replaceBrand = (value) => {
+    if (typeof value !== 'string') return value;
+    return settings.siteName ? value.replaceAll(SITE_NAME, settings.siteName) : value;
+  };
   const normalizedPath = pathname === '/' ? '/' : pathname.replace(/\/$/, '');
   const url = `${SITE_URL}${normalizedPath}`;
+  const resolvedTitle = replaceBrand(title || settings.metaTitle || DEFAULT_TITLE);
+  const resolvedDescription = replaceBrand(description || settings.metaDescription || DEFAULT_DESCRIPTION);
   const ogImage = image || settings.ogImage || '';
-  const imageAlt = title || SITE_NAME;
+  const imageAlt = resolvedTitle || brandName;
   const robotsContent = noindex ? 'noindex, nofollow' : 'index, follow, max-image-preview:large';
 
   return (
     <Helmet>
-      <title>{title}</title>
-      <meta name="description" content={description} />
+      <title>{resolvedTitle}</title>
+      <meta name="description" content={resolvedDescription} />
       <link rel="canonical" href={url} />
       <meta name="robots" content={robotsContent} />
 
       {/* Open Graph */}
-      <meta property="og:site_name" content={SITE_NAME} />
+      <meta property="og:site_name" content={brandName} />
       <meta property="og:type" content={type} />
       <meta property="og:url" content={url} />
-      <meta property="og:title" content={title} />
-      <meta property="og:description" content={description} />
+      <meta property="og:title" content={resolvedTitle} />
+      <meta property="og:description" content={resolvedDescription} />
       {ogImage && <meta property="og:image" content={ogImage} />}
       {ogImage && <meta property="og:image:secure_url" content={ogImage} />}
       {ogImage && <meta property="og:image:alt" content={imageAlt} />}
@@ -44,8 +51,8 @@ export default function Seo({
       {/* Twitter / X */}
       <meta name="twitter:card" content={ogImage ? 'summary_large_image' : 'summary'} />
       {TWITTER_HANDLE && <meta name="twitter:site" content={TWITTER_HANDLE} />}
-      <meta name="twitter:title" content={title} />
-      <meta name="twitter:description" content={description} />
+      <meta name="twitter:title" content={resolvedTitle} />
+      <meta name="twitter:description" content={resolvedDescription} />
       {ogImage && <meta name="twitter:image" content={ogImage} />}
       {ogImage && <meta name="twitter:image:alt" content={imageAlt} />}
     </Helmet>

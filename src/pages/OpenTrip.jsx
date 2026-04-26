@@ -17,7 +17,16 @@ const OpenTrip = () => {
     const [loading, setLoading] = useState(true)
     const [search, setSearch] = useState('')
     const [sortBy, setSortBy] = useState('newest')
+    const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768)
+    const [mobileVisibleCount, setMobileVisibleCount] = useState(8)
     const { t, localize, language } = useLanguage()
+
+    useEffect(() => {
+          const updateViewport = () => setIsMobile(window.innerWidth < 768)
+          updateViewport()
+          window.addEventListener('resize', updateViewport)
+          return () => window.removeEventListener('resize', updateViewport)
+    }, [])
 
     useEffect(() => {
           const fetchPackages = async () => {
@@ -47,8 +56,23 @@ const OpenTrip = () => {
           setFiltered(result)
     }, [search, sortBy, packages])
 
+    useEffect(() => {
+          setMobileVisibleCount(8)
+    }, [search, sortBy])
+
+    useEffect(() => {
+          if (!isMobile) setMobileVisibleCount(filtered.length || 8)
+    }, [filtered.length, isMobile])
+
     const formatPrice = (price) => {
           return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(price)
+    }
+
+    const visiblePackages = isMobile ? filtered.slice(0, mobileVisibleCount) : filtered
+    const hasMoreMobilePackages = isMobile && visiblePackages.length < filtered.length
+    const deferredCardStyle = {
+      contentVisibility: 'auto',
+      containIntrinsicSize: '420px',
     }
 
     const itemListSchema = packages.length > 0 ? {
@@ -158,7 +182,7 @@ const OpenTrip = () => {
                           {/* Loading */}
                           {loading && (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                          {[...Array(6)].map((_, i) => (
+                          {[...Array(isMobile ? 4 : 6)].map((_, i) => (
                                           <div key={i} className="bg-white rounded-2xl overflow-hidden shadow-sm animate-pulse">
                                                             <div className="h-52 bg-gray-200"></div>
                                                             <div className="p-5 space-y-3">
@@ -183,21 +207,22 @@ const OpenTrip = () => {
                           {/* Grid */}
                           {!loading && filtered.length > 0 && (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                          {filtered.map((pkg) => {
+                          {visiblePackages.map((pkg) => {
                                           const title = localize(pkg.title)
                                           const location = localize(pkg.location)
                                           const duration = localize(pkg.duration)
                                           return (
                                           <Link key={pkg.id} to={`/open-trip/${pkg.slug?.id || generateSlug(pkg.title?.id || pkg.title || '')}`} className="group">
-                                                            <div className="bg-white rounded-[28px] overflow-hidden border border-gray-100 shadow-[0_18px_50px_-30px_rgba(15,23,42,0.35)] hover:shadow-[0_24px_60px_-28px_rgba(16,185,129,0.28)] transition-all duration-300 hover:-translate-y-1">
+                                                            <div className="bg-white rounded-[28px] overflow-hidden border border-gray-100 shadow-[0_18px_50px_-30px_rgba(15,23,42,0.35)] md:hover:shadow-[0_24px_60px_-28px_rgba(16,185,129,0.28)] transition-all duration-300 md:hover:-translate-y-1" style={deferredCardStyle}>
                                                               {/* Image */}
                                                                                 <div className="relative h-52 overflow-hidden">
                                                                                                       <img
                                                                                                                                 src={optimizeImageUrl(pkg.images?.[0] || pkg.image, { width: 800, height: 520 }) || 'https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?w=600'}
                                                                                                                                 alt={getPackageImageAlt(pkg, language)}
                                                                                                                                 loading="lazy"
+                                                                                                                                sizes="(max-width: 767px) 100vw, (max-width: 1023px) 50vw, 33vw"
                                                                                                                                 decoding="async"
-                                                                                                                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                                                                                                                className="w-full h-full object-cover md:group-hover:scale-110 transition-transform duration-500"
                                                                                                                               />
                                                                                                       <div className="absolute top-3 left-3">
                                                                                                                               <span className="bg-emerald-500 text-white text-xs font-semibold px-3 py-1 rounded-full">
@@ -224,7 +249,7 @@ const OpenTrip = () => {
                                                                                                         )}
                                                                                                       </div>
 
-                                                                                                      <h3 className="font-bold text-gray-900 text-lg leading-snug mb-3 line-clamp-2 group-hover:text-emerald-600 transition-colors">
+                                                                                                      <h3 className="font-bold text-gray-900 text-lg leading-snug mb-3 line-clamp-2 md:group-hover:text-emerald-600 transition-colors">
                                                                                                         {title}
                                                                                                         </h3>
                                                                                 
@@ -258,7 +283,7 @@ const OpenTrip = () => {
                                                                                                                                                         <p className="text-emerald-600 font-bold text-xl">{formatPrice(pkg.price)}</p>
                                                                                                                                                         <p className="text-gray-400 text-xs uppercase tracking-[0.18em]">{t('openTrip.perPerson')}</p>
                                                                                                                                 </div>
-                                                                                                                              <span className="inline-flex items-center rounded-full border border-emerald-200 bg-white px-4 py-2 text-xs font-semibold text-emerald-700 transition-colors group-hover:bg-emerald-500 group-hover:border-emerald-500 group-hover:text-white">
+                                                                                                                              <span className="inline-flex items-center rounded-full border border-emerald-200 bg-white px-4 py-2 text-xs font-semibold text-emerald-700 transition-colors md:group-hover:bg-emerald-500 md:group-hover:border-emerald-500 md:group-hover:text-white">
                                                                                                                                                         {t('openTrip.viewDetail')}
                                                                                                                                 </span>
                                                                                                         </div>
@@ -266,6 +291,17 @@ const OpenTrip = () => {
                                                             </div>
                                           </Link>
                                         )})}
+                        </div>
+                                  )}
+                          {hasMoreMobilePackages && (
+                        <div className="mt-8 flex justify-center md:hidden">
+                                      <button
+                                        type="button"
+                                        onClick={() => setMobileVisibleCount((prev) => prev + 8)}
+                                        className="inline-flex items-center justify-center rounded-xl border border-emerald-200 bg-white px-5 py-3 text-sm font-semibold text-emerald-700 shadow-sm transition-colors hover:bg-emerald-50"
+                                      >
+                                        Tampilkan lebih banyak
+                                      </button>
                         </div>
                                   )}
                         </div>

@@ -3,7 +3,10 @@ import { toLocalizedField } from '../utils/localizedContent'
 
 const PUBLIC_SETTINGS_KEYS = [
   'siteName',
+  'metaTitle',
   'tagline',
+  'brandLogo',
+  'favicon',
   'phone',
   'email',
   'address',

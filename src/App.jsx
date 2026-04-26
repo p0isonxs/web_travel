@@ -12,6 +12,7 @@ import Footer from './components/Footer';
 import WhatsAppButton from './components/WhatsAppButton';
 import PrivateRoute from './components/PrivateRoute';
 import ErrorBoundary from './components/ErrorBoundary';
+import SiteBrandingHead from './components/SiteBrandingHead';
 
 const Home = lazy(() => import('./pages/Home'));
 const OpenTrip = lazy(() => import('./pages/OpenTrip'));
@@ -75,6 +76,7 @@ export default function App() {
         <SettingsProvider>
         <LanguageProvider>
         <BrowserRouter>
+          <SiteBrandingHead />
           <Suspense fallback={<RouteLoading />}>
             <Routes>
               {/* Admin Routes - no navbar/footer */}

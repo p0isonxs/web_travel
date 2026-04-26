@@ -6,7 +6,7 @@ import Seo from '../components/Seo';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useSettings } from '../contexts/SettingsContext';
 
-import { SITE_URL, SITE_NAME } from '../lib/siteConfig';
+import { SITE_URL } from '../lib/siteConfig';
 
 export default function About() {
   useEffect(() => { window.scrollTo(0, 0); }, []);
@@ -33,7 +33,7 @@ export default function About() {
         <script type="application/ld+json">{JSON.stringify({
           "@context": "https://schema.org",
           "@type": "TravelAgency",
-          "name": SITE_NAME,
+          "name": settings.siteName,
           "description": t('about.seoDescription'),
           "url": `${SITE_URL}/tentang-kami`,
           "telephone": `+${settings.phone}`,

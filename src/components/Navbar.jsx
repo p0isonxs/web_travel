@@ -1,25 +1,36 @@
 import { useState, useEffect } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
-import { FaBars, FaTimes, FaPlane } from 'react-icons/fa'
+import { FaBars, FaTimes } from 'react-icons/fa'
 import { useLanguage } from '../contexts/LanguageContext'
-import { useSettings } from '../contexts/SettingsContext'
+import BrandLogo from './BrandLogo'
 
 const Navbar = () => {
     const [isOpen, setIsOpen] = useState(false)
     const [scrolled, setScrolled] = useState(false)
     const location = useLocation()
     const { language, setLanguage, t } = useLanguage()
-    const settings = useSettings()
 
     useEffect(() => {
           const handleScroll = () => setScrolled(window.scrollY > 20)
-          window.addEventListener('scroll', handleScroll)
+          window.addEventListener('scroll', handleScroll, { passive: true })
           return () => window.removeEventListener('scroll', handleScroll)
     }, [])
 
     useEffect(() => {
           setIsOpen(false)
     }, [location])
+
+    useEffect(() => {
+          const previousOverflow = document.body.style.overflow
+          if (isOpen) {
+                  document.body.style.overflow = 'hidden'
+          } else {
+                  document.body.style.overflow = previousOverflow || ''
+          }
+          return () => {
+                  document.body.style.overflow = previousOverflow
+          }
+    }, [isOpen])
 
     const navLinks = [
       { to: '/', label: 'Home' },
@@ -42,17 +53,12 @@ const Navbar = () => {
                           <div className="flex items-center justify-between h-16 lg:h-20">
                             {/* Logo */}
                                     <Link to="/" className="flex items-center gap-2 group">
-                                                <div className="bg-gradient-to-r from-emerald-500 to-teal-600 p-2 rounded-xl group-hover:scale-110 transition-transform">
-                                                              <FaPlane className="text-white text-xl" />
-                                                </div>
-                                                <div>
-                                                              <span className={`font-bold text-lg leading-tight block ${
-                            scrolled || !isHomePage ? 'text-gray-800' : 'text-white'
-          }`}>{settings.siteName}</span>
-                                                              <span className={`text-xs leading-tight block ${
-                            scrolled || !isHomePage ? 'text-emerald-600' : 'text-emerald-300'
-          }`}>{t('common.brandTagline')}</span>
-                                                </div>
+                                      <BrandLogo
+                                        titleClassName={scrolled || !isHomePage ? 'text-gray-800' : 'text-white'}
+                                        taglineClassName={scrolled || !isHomePage ? 'text-emerald-600' : 'text-emerald-300'}
+                                        iconWrapperClassName="bg-gradient-to-r from-emerald-500 to-teal-600 p-2 rounded-xl md:group-hover:scale-110 transition-transform"
+                                        logoClassName="h-11 w-auto max-w-[170px] object-contain"
+                                      />
                                     </Link>
                           
                             {/* Desktop Nav */}
@@ -99,7 +105,7 @@ const Navbar = () => {
                                                 </div>
                                                 <Link
                                                                 to="/open-trip"
-                                                                className="bg-gradient-to-r from-emerald-500 to-teal-600 text-white px-5 py-2 rounded-xl text-sm font-semibold hover:shadow-lg hover:scale-105 transition-all duration-200"
+                                                                className="bg-gradient-to-r from-emerald-500 to-teal-600 text-white px-5 py-2 rounded-xl text-sm font-semibold md:hover:shadow-lg md:hover:scale-105 transition-all duration-200"
                                                               >
                                                               {t('common.bookNow')}
                                                 </Link>
@@ -126,7 +132,7 @@ const Navbar = () => {
                 <div id="mobile-menu" className={`lg:hidden transition-all duration-300 overflow-hidden ${
                     isOpen ? 'max-h-screen bg-white shadow-xl' : 'max-h-0'
           }`}>
-                        <div className="px-4 py-3 space-y-1">
+                        <div className="px-4 py-3 space-y-1 max-h-[calc(100vh-4rem)] overflow-y-auto overscroll-contain">
                           {navLinks.map((link) => (
                         <NavLink
                                         key={link.to}

@@ -2,10 +2,10 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import { getPackageById, addBooking, getOpenTripSlotUsage } from '../lib/database'
-import { SITE_NAME } from '../lib/siteConfig'
 import { FaUser, FaEnvelope, FaPhone, FaCalendar, FaUsers, FaArrowLeft } from 'react-icons/fa'
 import { toast } from 'react-toastify'
 import { useLanguage } from '../contexts/LanguageContext'
+import { useSettings } from '../contexts/SettingsContext'
 import { getPackageImageAlt } from '../utils/imageAlt'
 
 const Booking = () => {
@@ -17,6 +17,7 @@ const Booking = () => {
     const [submitting, setSubmitting] = useState(false)
     const [slotUsage, setSlotUsage] = useState({})
     const { t, language, localize } = useLanguage()
+    const settings = useSettings()
 
     const preDate = searchParams.get('date') || ''
     const preParticipants = parseInt(searchParams.get('participants')) || 1
@@ -181,7 +182,7 @@ const Booking = () => {
         return (
               <>
                     <Helmet>
-                            <title>{t('booking.seoTitle')} - {packageTitle} | {SITE_NAME}</title>
+                            <title>{t('booking.seoTitle')} - {packageTitle} | {settings.siteName}</title>
                             <meta name="robots" content="noindex" />
                     </Helmet>
               

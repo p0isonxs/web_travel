@@ -3,10 +3,11 @@ import { useParams, Link, useLocation } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import DOMPurify from 'dompurify';
 import { getBlogBySlug, getBlogPostsByCategory } from '../lib/database';
-import { SITE_URL, SITE_NAME } from '../lib/siteConfig';
+import { SITE_URL } from '../lib/siteConfig';
 import { Calendar, User, Tag, ArrowLeft, Share2, Facebook, Twitter } from 'lucide-react';
 import Seo from '../components/Seo';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useSettings } from '../contexts/SettingsContext';
 import { getBlogImageAlt } from '../utils/imageAlt';
 import { optimizeImageUrl } from '../utils/cloudinary';
 
@@ -35,7 +36,16 @@ export default function BlogDetail() {
     const [post, setPost] = useState(null);
     const [related, setRelated] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
     const { t, language, localize } = useLanguage();
+    const settings = useSettings();
+
+  useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth < 768);
+        handleResize();
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
         fetchPost();
@@ -91,11 +101,15 @@ export default function BlogDetail() {
     const modifiedDate = post.updatedAt ? new Date(post.updatedAt).toISOString() : publishedDate;
     const articleUrl = `${SITE_URL}${location.pathname}`;
     const articleImage = optimizeImageUrl(post.coverImage, { width: 1200, height: 630 }) || post.coverImage;
+    const deferredBlockStyle = {
+      contentVisibility: 'auto',
+      containIntrinsicSize: '420px',
+    };
   
     return (
           <>
                 <Seo
-                  title={`${title} - ${SITE_NAME}`}
+                  title={`${title} - ${settings.siteName}`}
                   description={excerpt || title}
                   image={articleImage}
                   type="article"
@@ -112,10 +126,10 @@ export default function BlogDetail() {
                       "headline": title,
                       "description": excerpt,
                       "image": articleImage ? [articleImage] : undefined,
-                      "author": { "@type": "Person", "name": post.author || SITE_NAME },
+                      "author": { "@type": "Person", "name": post.author || settings.siteName },
                       "publisher": {
                         "@type": "Organization",
-                        "name": SITE_NAME,
+                        "name": settings.siteName,
                         "url": SITE_URL,
                       },
                       "datePublished": publishedDate,
@@ -127,7 +141,7 @@ export default function BlogDetail() {
                   {/* Cover */}
                   {post.coverImage && (
                       <div className="w-full h-72 md:h-96 overflow-hidden">
-                                  <img src={optimizeImageUrl(post.coverImage, { width: 1400, height: 720 })} alt={getBlogImageAlt(post, language) || title} className="w-full h-full object-cover" fetchpriority="high" decoding="async" />
+                                  <img src={optimizeImageUrl(post.coverImage, { width: 1400, height: 720 })} alt={getBlogImageAlt(post, language) || title} className="w-full h-full object-cover" fetchpriority="high" sizes="100vw" decoding="async" />
                       </div>
                         )}
                 
@@ -138,7 +152,7 @@ export default function BlogDetail() {
                                   </Link>
                         
                           {/* Article */}
-                                  <article className="bg-white rounded-3xl shadow-sm overflow-hidden">
+                                  <article className="bg-white rounded-3xl shadow-sm overflow-hidden" style={deferredBlockStyle}>
                                               <div className="p-8 md:p-12">
                                                 {post.category && post.category.toLowerCase() !== 'tips wisata' && (
                             <span className="inline-flex items-center gap-1 bg-emerald-100 text-emerald-700 text-sm font-semibold px-3 py-1 rounded-full mb-4 capitalize">
@@ -201,18 +215,18 @@ export default function BlogDetail() {
                         <div className="mt-12">
                                       <h2 className="text-2xl font-bold text-gray-900 mb-6">{t('blogDetail.relatedArticles')}</h2>
                                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        {related.slice(0, 2).map(p => {
+                                        {related.slice(0, isMobile ? 1 : 2).map(p => {
                                           const relatedTitle = localize(p.title);
                                           return (
-                                            <Link key={p.id} to={`/blog/${p.slug || p.id}`} className="bg-white rounded-2xl overflow-hidden shadow hover:shadow-lg transition-all group flex gap-4 p-4">
+                                            <Link key={p.id} to={`/blog/${p.slug || p.id}`} className="bg-white rounded-2xl overflow-hidden shadow md:hover:shadow-lg transition-all group flex gap-4 p-4" style={deferredBlockStyle}>
                                               {p.coverImage && (
                                                                     <div className="w-24 h-24 shrink-0 rounded-xl overflow-hidden">
-                                                                                            <img src={optimizeImageUrl(p.coverImage, { width: 320, height: 320 })} alt={getBlogImageAlt(p, language) || relatedTitle} className="w-full h-full object-cover group-hover:scale-105 transition-transform" loading="lazy" decoding="async" />
+                                                                                            <img src={optimizeImageUrl(p.coverImage, { width: 320, height: 320 })} alt={getBlogImageAlt(p, language) || relatedTitle} className="w-full h-full object-cover md:group-hover:scale-105 transition-transform" loading="lazy" sizes="96px" decoding="async" />
                                                                     </div>
                                                                 )}
                                                                 <div>
                                                                                       <p className="text-xs text-gray-400 mb-1">{formatDate(p.createdAt)}</p>
-                                                                                      <h3 className="font-semibold text-gray-900 line-clamp-2 group-hover:text-emerald-600 transition-colors">{relatedTitle}</h3>
+                                                                                      <h3 className="font-semibold text-gray-900 line-clamp-2 md:group-hover:text-emerald-600 transition-colors">{relatedTitle}</h3>
                                                                 </div>
                                             </Link>
                                           )})}

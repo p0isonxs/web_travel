@@ -6,10 +6,11 @@ import { Calendar, User, ArrowRight } from 'lucide-react';
 import { FaSearch } from 'react-icons/fa';
 import Seo from '../components/Seo';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useSettings } from '../contexts/SettingsContext';
 import { getBlogImageAlt } from '../utils/imageAlt';
 import { optimizeImageUrl } from '../utils/cloudinary';
 
-import { SITE_URL, SITE_NAME } from '../lib/siteConfig';
+import { SITE_URL } from '../lib/siteConfig';
 
 function getCategoryLabel(category, t) {
   switch ((category || '').toLowerCase()) {
@@ -35,7 +36,10 @@ export default function Blog() {
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
     const [activeCategory, setActiveCategory] = useState('semua');
+    const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
+    const [mobileVisibleCount, setMobileVisibleCount] = useState(8);
     const { t, language, localize } = useLanguage();
+    const settings = useSettings();
 
   const categories = [
     { value: 'semua', label: t('blog.all') },
@@ -45,6 +49,13 @@ export default function Blog() {
     { value: 'open trip', label: t('blog.openTrip') },
     { value: 'private trip', label: t('blog.privateTrip') },
   ];
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -65,6 +76,10 @@ export default function Blog() {
     window.scrollTo(0, 0);
   }, [activeCategory]);
 
+  useEffect(() => {
+    setMobileVisibleCount(8);
+  }, [activeCategory, search]);
+
   const posts = useMemo(() =>
     allPosts
       .filter(post => activeCategory === 'semua' || post.category === activeCategory)
@@ -76,6 +91,12 @@ export default function Blog() {
         localize(p.title)?.toLowerCase().includes(search.toLowerCase()) ||
         localize(p.excerpt)?.toLowerCase().includes(search.toLowerCase())
                                   );
+  const visiblePosts = isMobile ? filtered.slice(0, mobileVisibleCount) : filtered;
+  const hasMoreMobilePosts = isMobile && visiblePosts.length < filtered.length;
+  const deferredCardStyle = {
+    contentVisibility: 'auto',
+    containIntrinsicSize: '360px',
+  };
 
   const formatDate = (ts) => {
         if (!ts) return '';
@@ -86,7 +107,7 @@ export default function Blog() {
   const blogListSchema = posts.length > 0 ? {
     '@context': 'https://schema.org',
     '@type': 'Blog',
-    name: language === 'en' ? `${SITE_NAME} Travel Blog` : `Blog Wisata ${SITE_NAME}`,
+    name: language === 'en' ? `${settings.siteName} Travel Blog` : `Blog Wisata ${settings.siteName}`,
     description: t('blog.seoDescription'),
     url: `${SITE_URL}/blog`,
     blogPost: posts.slice(0, 10).map(post => ({
@@ -95,7 +116,7 @@ export default function Blog() {
       url: `${SITE_URL}/blog/${post.slug}`,
       datePublished: post.createdAt ? new Date(post.createdAt).toISOString() : undefined,
       image: post.coverImage || undefined,
-      author: { '@type': 'Person', name: post.author || SITE_NAME },
+      author: { '@type': 'Person', name: post.author || settings.siteName },
     })),
   } : null
 
@@ -135,7 +156,7 @@ export default function Blog() {
                                                           <button
                                                             type="button"
                                                             onClick={() => document.getElementById('blog-search').focus()}
-                                                            className="bg-gradient-to-r from-emerald-500 to-teal-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all text-sm"
+                                                            className="bg-gradient-to-r from-emerald-500 to-teal-600 text-white px-6 py-3 rounded-xl font-semibold md:hover:shadow-lg transition-all text-sm"
                                                           >
                                                                           {t('blog.searchButton')}
                                                           </button>
@@ -162,7 +183,7 @@ export default function Blog() {
                 {/* Posts Grid */}
                 {loading ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                      {[...Array(6)].map((_, i) => (
+                      {[...Array(isMobile ? 4 : 6)].map((_, i) => (
                                     <div key={i} className="bg-white rounded-2xl overflow-hidden shadow animate-pulse">
                                                     <div className="h-48 bg-gray-200" />
                                                     <div className="p-5 space-y-3">
@@ -179,42 +200,56 @@ export default function Blog() {
                                 <p className="text-xl">{t('blog.empty')}</p>
                     </div>
                   ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                      {filtered.map((post, i) => {
-                        const title = localize(post.title);
-                        const excerpt = localize(post.excerpt);
-                        return (
-                                    <Link key={post.id} to={`/blog/${post.slug || post.id}`} className="bg-white rounded-2xl overflow-hidden shadow hover:shadow-xl transition-all group">
-                                                    <div className="relative h-48 overflow-hidden">
-                                                                      <img
-                                                                                            src={optimizeImageUrl(post.coverImage, { width: 800, height: 480 }) || 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&q=80'}
-                                                                                            alt={getBlogImageAlt(post, language) || title}
-                                                                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                                                                                            loading={i === 0 ? 'eager' : 'lazy'}
-                                                                                            fetchpriority={i === 0 ? 'high' : undefined}
-                                                                                            decoding="async"
-                                                                                          />
-                                                      {post.category && (
-                                                          <span className="absolute top-3 left-3 bg-emerald-500 text-white text-xs font-bold px-3 py-1 rounded-full capitalize">
-                                                            {getCategoryLabel(post.category, t)}
-                                                          </span>
-                                                                      )}
-                                                    </div>
-                                                    <div className="p-5">
-                                                                      <div className="flex items-center gap-3 text-gray-400 text-sm mb-3">
-                                                                                          <span className="flex items-center gap-1"><Calendar className="w-4 h-4" />{formatDate(post.createdAt)}</span>
-                                                                        {post.author && <span className="flex items-center gap-1"><User className="w-4 h-4" />{post.author}</span>}
-                                                                      </div>
-                                                                      <h2 className="font-bold text-gray-900 text-lg mb-2 line-clamp-2 group-hover:text-emerald-600 transition-colors">{title}</h2>
-                                                                      <p className="text-gray-500 text-sm line-clamp-3 mb-4">{excerpt}</p>
-                                                                      <span className="inline-flex items-center gap-1 text-emerald-600 font-semibold text-sm group-hover:gap-2 transition-all">
-                                                                                          {t('blog.readMore')} <ArrowRight className="w-4 h-4" />
-                                                                      </span>
-                                                    </div>
-                                    </Link>
-                                  )})}
-                    </div>
+                    <>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        {visiblePosts.map((post, i) => {
+                          const title = localize(post.title);
+                          const excerpt = localize(post.excerpt);
+                          return (
+                                      <Link key={post.id} to={`/blog/${post.slug || post.id}`} className="bg-white rounded-2xl overflow-hidden shadow md:hover:shadow-xl transition-all group" style={deferredCardStyle}>
+                                                      <div className="relative h-48 overflow-hidden">
+                                                                        <img
+                                                                                              src={optimizeImageUrl(post.coverImage, { width: 800, height: 480 }) || 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&q=80'}
+                                                                                              alt={getBlogImageAlt(post, language) || title}
+                                                                                              className="w-full h-full object-cover md:group-hover:scale-105 transition-transform duration-500"
+                                                                                              loading={i === 0 ? 'eager' : 'lazy'}
+                                                                                              fetchpriority={i === 0 ? 'high' : undefined}
+                                                                                              sizes="(max-width: 767px) 100vw, (max-width: 1023px) 50vw, 33vw"
+                                                                                              decoding="async"
+                                                                                            />
+                                                        {post.category && (
+                                                            <span className="absolute top-3 left-3 bg-emerald-500 text-white text-xs font-bold px-3 py-1 rounded-full capitalize">
+                                                              {getCategoryLabel(post.category, t)}
+                                                            </span>
+                                                                        )}
+                                                      </div>
+                                                      <div className="p-5">
+                                                                        <div className="flex items-center gap-3 text-gray-400 text-sm mb-3">
+                                                                                            <span className="flex items-center gap-1"><Calendar className="w-4 h-4" />{formatDate(post.createdAt)}</span>
+                                                                          {post.author && <span className="flex items-center gap-1"><User className="w-4 h-4" />{post.author}</span>}
+                                                                        </div>
+                                                                        <h2 className="font-bold text-gray-900 text-lg mb-2 line-clamp-2 md:group-hover:text-emerald-600 transition-colors">{title}</h2>
+                                                                        <p className="text-gray-500 text-sm line-clamp-3 mb-4">{excerpt}</p>
+                                                                        <span className="inline-flex items-center gap-1 text-emerald-600 font-semibold text-sm md:group-hover:gap-2 transition-all">
+                                                                                            {t('blog.readMore')} <ArrowRight className="w-4 h-4" />
+                                                                        </span>
+                                                      </div>
+                                      </Link>
+                                    )})}
+                      </div>
+                      {hasMoreMobilePosts && (
+                        <div className="mt-8 flex justify-center md:hidden">
+                          <button
+                            type="button"
+                            onClick={() => setMobileVisibleCount((prev) => prev + 8)}
+                            className="inline-flex items-center justify-center rounded-xl border border-emerald-200 bg-white px-5 py-3 text-sm font-semibold text-emerald-700 shadow-sm transition-colors hover:bg-emerald-50"
+                          >
+                            Tampilkan lebih banyak
+                          </button>
+                        </div>
                       )}
+                    </>
+                  )}
               </div>
         </>
       );

@@ -7,7 +7,7 @@ import { useSettings } from '../contexts/SettingsContext';
 import Seo from '../components/Seo';
 import { useLanguage } from '../contexts/LanguageContext';
 
-import { SITE_URL, SITE_NAME } from '../lib/siteConfig';
+import { SITE_URL } from '../lib/siteConfig';
 
 const iconColorMap = {
   emerald: { bg: 'bg-emerald-100', text: 'text-emerald-600' },
@@ -65,7 +65,7 @@ export default function Contact() {
                   "url": `${SITE_URL}/kontak`,
                   "mainEntity": {
                     "@type": "Organization",
-                    "name": SITE_NAME,
+                    "name": settings.siteName,
                     "telephone": `+${settings.phone}`,
                     "email": settings.email,
                     "address": { "@type": "PostalAddress", "addressCountry": "ID", "streetAddress": settings.address }

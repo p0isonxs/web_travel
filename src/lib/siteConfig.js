@@ -3,7 +3,7 @@ export const SITE_URL = (
   'https://example.com'
 ).replace(/\/$/, '')
 
-export const SITE_NAME = import.meta.env.VITE_APP_NAME || 'Travel'
+export const SITE_NAME = import.meta.env.VITE_APP_NAME || 'Vakansi Trip'
 
 // Format: @handle (dengan @). Kosongkan kalau belum punya Twitter.
 export const TWITTER_HANDLE = import.meta.env.VITE_TWITTER_HANDLE || ''
