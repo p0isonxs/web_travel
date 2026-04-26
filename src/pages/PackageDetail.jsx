@@ -459,12 +459,14 @@ const PackageDetail = () => {
                                                                                           {images.length > 1 && (
                                             <>
                                                                   <button onClick={() => setActiveImage(i => (i - 1 + images.length) % images.length)}
+                                                                                            aria-label={t('packageDetail.prevImage') || 'Foto sebelumnya'}
                                                                                             className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/50 text-white p-2 rounded-full md:hover:bg-black/70 transition-colors">
-                                                                                          <FaChevronLeft />
+                                                                                          <FaChevronLeft aria-hidden="true" />
                                                                   </button>
                                                                   <button onClick={() => setActiveImage(i => (i + 1) % images.length)}
+                                                                                            aria-label={t('packageDetail.nextImage') || 'Foto berikutnya'}
                                                                                             className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/50 text-white p-2 rounded-full md:hover:bg-black/70 transition-colors">
-                                                                                          <FaChevronRight />
+                                                                                          <FaChevronRight aria-hidden="true" />
                                                                   </button>
                                             </>
                                           )}
@@ -476,8 +478,10 @@ const PackageDetail = () => {
                                           <div className="flex gap-2 p-3 overflow-x-auto">
                                             {images.map((img, i) => (
                                                                   <button key={i} onClick={() => setActiveImage(i)}
+                                                                                            aria-label={`Foto ${i + 1}${getPackageImageAlt(pkg, language, i) ? `: ${getPackageImageAlt(pkg, language, i)}` : ''}`}
+                                                                                            aria-pressed={activeImage === i}
                                                                                             className={`shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-colors ${activeImage === i ? `${accent.border}` : 'border-transparent'}`}>
-                                                                                          <img src={optimizeImageUrl(img, { width: 160, height: 160 }) || img} alt={getPackageImageAlt(pkg, language, i)} className="w-full h-full object-cover" loading="lazy" sizes="64px" decoding="async" />
+                                                                                          <img src={optimizeImageUrl(img, { width: 160, height: 160 }) || img} alt="" role="presentation" className="w-full h-full object-cover" loading="lazy" sizes="64px" decoding="async" />
                                                                   </button>
                                                                 ))}
                                           </div>
@@ -513,16 +517,24 @@ const PackageDetail = () => {
                                                           
                                                             {/* Tabs */}
                                                                         <div className="bg-white rounded-2xl shadow-sm overflow-hidden" style={deferredBlockStyle}>
-                                                                                        <div className="flex border-b">
+                                                                                        <div className="flex border-b" role="tablist">
                                                                                           {['deskripsi', 'jadwal', 'fasilitas'].map(tab => (
                                             <button key={tab} onClick={() => setActiveTab(tab)}
+                                                                    role="tab"
+                                                                    aria-selected={activeTab === tab}
+                                                                    aria-controls={`tabpanel-${tab}`}
+                                                                    id={`tab-${tab}`}
                                                                     className={`flex-1 py-4 text-sm font-medium capitalize transition-colors ${activeTab === tab ? `${accent.text} border-b-2 ${accent.border}` : 'text-gray-500 hover:text-gray-700'}`}>
                                               {tab === 'deskripsi' ? t('packageDetail.descriptionTab') : tab === 'jadwal' ? t('packageDetail.itineraryTab') : t('packageDetail.facilitiesTab')}
                                             </button>
                                           ))}
                                                                                           </div>
-                                                                        
-                                                                                        <div className="p-6">
+
+                                                                                        <div className="p-6"
+                                                                                          role="tabpanel"
+                                                                                          id={`tabpanel-${activeTab}`}
+                                                                                          aria-labelledby={`tab-${activeTab}`}
+                                                                                          tabIndex={0}>
                                                                                           {activeTab === 'deskripsi' && (
                                             <div className="prose prose-sm max-w-none text-gray-600 leading-relaxed">
                                                                   <p>{packageDescription || t('packageDetail.descriptionFallback')}</p>
@@ -698,8 +710,8 @@ const PackageDetail = () => {
                                                                         
                                                                           {/* Select Date */}
                                                                                         <div className="mb-4">
-                                                                                                          <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                                                                                                                              <FaCalendar className={`inline mr-1.5 ${accent.icon}`} />
+                                                                                                          <label htmlFor={isOpenTrip ? undefined : 'pkg-booking-date'} className="block text-sm font-medium text-gray-700 mb-1.5">
+                                                                                                                              <FaCalendar aria-hidden="true" className={`inline mr-1.5 ${accent.icon}`} />
                                                                                                                               {isOpenTrip ? t('packageDetail.selectOpenTripSchedule') : t('packageDetail.departureDate')}
                                                                                                             </label>
                                                                                                           {isOpenTrip ? (
@@ -785,6 +797,7 @@ const PackageDetail = () => {
                                                                                                               value={selectedDate}
                                                                                                               onChange={e => setSelectedDate(e.target.value)}
                                                                                                               min={new Date().toISOString().split('T')[0]}
+                                                                                                              id="pkg-booking-date"
                                                                                                               className={`w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 ${accent.ring}`}
                                                                                                             />
                                                                                                           )}
@@ -793,18 +806,22 @@ const PackageDetail = () => {
                                                                           {/* Participants */}
                                                                                         <div className="mb-6">
                                                                                                           <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                                                                                                                              <FaUsers className={`inline mr-1.5 ${accent.icon}`} />
+                                                                                                                              <FaUsers aria-hidden="true" className={`inline mr-1.5 ${accent.icon}`} />
                                                                                                                               {t('packageDetail.participantsLabel')}
                                                                                                             </label>
-                                                                                                          <div className="flex items-center gap-3 border border-gray-200 rounded-xl px-4 py-3">
+                                                                                                          <div className="flex items-center gap-3 border border-gray-200 rounded-xl px-4 py-3" role="group" aria-label={t('packageDetail.participantsLabel')}>
                                                                                                                               <button onClick={() => setParticipants(p => Math.max(1, p - 1))}
+                                                                                                                                                      aria-label={t('packageDetail.decreaseParticipants') || 'Kurangi jumlah peserta'}
+                                                                                                                                                      type="button"
                                                                                                                                                       className={`w-7 h-7 ${accent.bg100} ${accent.text} rounded-full flex items-center justify-center font-bold text-lg hover:${accent.bg200} transition-colors`}>
-                                                                                                                                                    -
+                                                                                                                                                    <span aria-hidden="true">-</span>
                                                                                                                                 </button>
-                                                                                                                              <span className="flex-1 text-center font-semibold text-gray-800">{participants}</span>
+                                                                                                                              <span className="flex-1 text-center font-semibold text-gray-800" aria-live="polite" aria-atomic="true">{participants}</span>
                                                                                                                               <button onClick={() => setParticipants(p => Math.min(isOpenTrip ? Math.max(1, selectedRemainingSlots) : (pkg.maxParticipants || 99), p + 1))}
+                                                                                                                                                      aria-label={t('packageDetail.increaseParticipants') || 'Tambah jumlah peserta'}
+                                                                                                                                                      type="button"
                                                                                                                                                       className={`w-7 h-7 ${accent.bg100} ${accent.text} rounded-full flex items-center justify-center font-bold text-lg hover:${accent.bg200} transition-colors`}>
-                                                                                                                                                    +
+                                                                                                                                                    <span aria-hidden="true">+</span>
                                                                                                                                 </button>
                                                                                                             </div>
                                                                                                           {isOpenTrip && selectedDate && scheduleReady && (
@@ -827,16 +844,18 @@ const PackageDetail = () => {
                                                                         
                                                                           {/* Book Button */}
                                                                                         <button onClick={handleBooking}
+                                                                                                            type="button"
                                                                                                             disabled={!scheduleReady || !selectedSlotsAvailable}
                                                                                                             className={`w-full bg-gradient-to-r ${isOpenTrip ? 'from-emerald-500 to-teal-600' : 'from-violet-500 to-purple-600'} text-white py-4 rounded-xl font-bold md:hover:shadow-lg md:hover:scale-[1.02] transition-all duration-200 mb-3`}>
                                                                                                           {!scheduleReady ? 'Memuat jadwal...' : isOpenTrip && selectedRemainingSlots <= 0 ? t('packageDetail.scheduleFullButton') : t('packageDetail.bookNow')}
                                                                                           </button>
-                                                                        
+
                                                                           {/* WhatsApp */}
                                                                                         <a href={`https://wa.me/${settings.phone}?text=${packageWhatsappMessage}`}
                                                                                                             target="_blank" rel="noopener noreferrer"
+                                                                                                            aria-label={`${t('packageDetail.askWhatsapp')} - ${packageTitle}`}
                                                                                                             className="w-full flex items-center justify-center gap-2 bg-green-50 text-green-600 border border-green-200 py-3 rounded-xl font-semibold md:hover:bg-green-100 transition-colors text-sm">
-                                                                                                          <FaWhatsapp size={16} />
+                                                                                                          <FaWhatsapp aria-hidden="true" size={16} />
                                                                                                           {t('packageDetail.askWhatsapp')}
                                                                                           </a>
                                                                         </div>
