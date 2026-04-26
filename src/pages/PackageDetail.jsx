@@ -396,7 +396,19 @@ const PackageDetail = () => {
                                   url: canonicalUrl,
                                   touristType: isOpenTrip ? 'Open Trip' : 'Private Trip',
                                   image: images,
-                                  provider: { '@type': 'Organization', name: settings.siteName, url: SITE_URL },
+                                  provider: {
+                                    '@type': 'TravelAgency',
+                                    name: settings.siteName,
+                                    url: SITE_URL,
+                                    ...(settings.phone && { telephone: `+${settings.phone}` }),
+                                    ...(settings.ogImage || settings.brandLogo ? { image: settings.ogImage || settings.brandLogo } : {}),
+                                    priceRange: pkg.price ? `Mulai Rp ${new Intl.NumberFormat('id-ID').format(pkg.price)}` : undefined,
+                                    address: {
+                                      '@type': 'PostalAddress',
+                                      addressCountry: 'ID',
+                                      ...(settings.address && { streetAddress: settings.address }),
+                                    },
+                                  },
                                   ...(packageLocation && { location: { '@type': 'Place', name: packageLocation, address: { '@type': 'PostalAddress', addressCountry: 'ID' } } }),
                                   offers: {
                                     '@type': 'Offer',
