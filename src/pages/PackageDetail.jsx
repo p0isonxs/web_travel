@@ -3,11 +3,12 @@ import { useParams, Link, useNavigate, useLocation } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import { getPackageById, getPackageBySlug, getOpenTripSlotUsage } from '../lib/database'
 import { FaMapMarkerAlt, FaClock, FaUsers, FaStar, FaCheck, FaTimes, FaChevronLeft, FaChevronRight, FaWhatsapp, FaCalendar } from 'react-icons/fa'
+import { MapPinned } from 'lucide-react'
 import Seo from '../components/Seo'
 import { useLanguage } from '../contexts/LanguageContext'
 import { useSettings } from '../contexts/SettingsContext'
 import { getPackageImageAlt } from '../utils/imageAlt'
-import { optimizeImageUrl } from '../utils/cloudinary'
+import { buildResponsiveImageProps, optimizeImageUrl } from '../utils/cloudinary'
 
 import { SITE_URL } from '../lib/siteConfig'
 
@@ -110,6 +111,8 @@ const PackageDetail = () => {
     const [selectedDate, setSelectedDate] = useState('')
     const [participants, setParticipants] = useState(1)
     const [slotUsage, setSlotUsage] = useState({})
+    const [slotUsageLoading, setSlotUsageLoading] = useState(false)
+    const [mapLoaded, setMapLoaded] = useState(false)
     const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768)
     const scheduleScrollerRef = useRef(null)
     const scheduleDragRef = useRef({ isDragging: false, startX: 0, scrollLeft: 0, moved: false })
@@ -134,18 +137,7 @@ const PackageDetail = () => {
                                     data = await getPackageById(id)
                             }
                             setPkg(data)
-                            const pkgId = data?.id
-                            if (data?.type === 'open-trip' && pkgId) {
-                                    const usage = await getOpenTripSlotUsage(pkgId)
-                                    setSlotUsage(usage)
-                                    if (data.departureDates?.length > 0) {
-                                            const firstAvailableDate = data.departureDates.find((date) => {
-                                                      const capacity = Number(data.maxParticipants) || 15
-                                                      return Math.max(0, capacity - (usage[date] || 0)) > 0
-                                            })
-                                            setSelectedDate(firstAvailableDate || data.departureDates[0])
-                                    }
-                            } else if (data?.departureDates?.length > 0) {
+                            if (data?.departureDates?.length > 0) {
                                     setSelectedDate(data.departureDates[0])
                             }
                   } catch (error) {
@@ -156,6 +148,39 @@ const PackageDetail = () => {
           }
           fetchPackage()
     }, [id, slug, location.pathname])
+
+    useEffect(() => {
+          const pkgId = pkg?.id
+          if (!pkgId || pkg?.type !== 'open-trip') return
+
+          let cancelled = false
+          const fetchSlotUsage = async () => {
+                  setSlotUsageLoading(true)
+                  try {
+                            const usage = await getOpenTripSlotUsage(pkgId)
+                            if (cancelled) return
+                            setSlotUsage(usage)
+                            if (pkg.departureDates?.length > 0) {
+                                    const capacity = Number(pkg.maxParticipants) || 15
+                                    const firstAvailableDate = pkg.departureDates.find((date) => Math.max(0, capacity - (usage[date] || 0)) > 0)
+                                    setSelectedDate((current) => {
+                                      if (!current) return firstAvailableDate || pkg.departureDates[0]
+                                      const currentRemaining = Math.max(0, capacity - (usage[current] || 0))
+                                      return currentRemaining > 0 ? current : (firstAvailableDate || current)
+                                    })
+                            }
+                  } catch (error) {
+                            if (import.meta.env.DEV) console.error('Error fetching slot usage:', error)
+                  } finally {
+                            if (!cancelled) setSlotUsageLoading(false)
+                  }
+          }
+
+          fetchSlotUsage()
+          return () => {
+                  cancelled = true
+          }
+    }, [pkg?.id, pkg?.type, pkg?.departureDates, pkg?.maxParticipants])
 
     const formatPrice = (price) => {
           return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(price)
@@ -177,6 +202,9 @@ const PackageDetail = () => {
     }
 
     const handleBooking = () => {
+          if (isOpenTrip && slotUsageLoading) {
+                  return
+          }
           if (isOpenTrip && !selectedDate) {
                   alert(t('packageDetail.chooseDateAlert'))
                   return
@@ -276,6 +304,14 @@ const PackageDetail = () => {
               contentVisibility: 'auto',
               containIntrinsicSize: '460px',
             }
+            const heroImage = buildResponsiveImageProps(images[activeImage], {
+              widths: [640, 960, 1280, 1600],
+              quality: 'auto',
+              format: 'auto',
+              sizes: '(max-width: 1023px) 100vw, 66vw',
+            })
+            const scheduleReady = !isOpenTrip || !slotUsageLoading
+            const selectedSlotsAvailable = !isOpenTrip || selectedRemainingSlots > 0
               
                 return (
                       <>
@@ -340,11 +376,12 @@ const PackageDetail = () => {
                                                                         <div className="bg-white rounded-2xl overflow-hidden shadow-sm" style={deferredBlockStyle}>
                                                                                         <div className="relative aspect-[16/9] overflow-hidden">
                                                                                                           <img
-                                                                                                                                src={optimizeImageUrl(images[activeImage], { width: 1400, height: 790 }) || images[activeImage]}
+                                                                                                                                src={heroImage.src || optimizeImageUrl(images[activeImage], { width: 1400, height: 790 }) || images[activeImage]}
+                                                                                                                                srcSet={heroImage.srcSet}
                                                                                                                                 alt={getPackageImageAlt(pkg, language, activeImage)}
                                                                                                                                 fetchpriority={activeImage === 0 ? 'high' : 'auto'}
                                                                                                                                 loading={activeImage === 0 ? 'eager' : 'lazy'}
-                                                                                                                                sizes="(max-width: 1023px) 100vw, 66vw"
+                                                                                                                                sizes={heroImage.sizes}
                                                                                                                                 decoding="async"
                                                                                                                                 className="w-full h-full object-cover"
                                                                                                                               />
@@ -515,20 +552,43 @@ const PackageDetail = () => {
                                                                                                               href={mapOpenUrl}
                                                                                                               target="_blank"
                                                                                                               rel="noopener noreferrer"
-                                                                                                              className={`shrink-0 rounded-full border px-4 py-2 text-xs font-semibold transition-colors ${isOpenTrip ? 'border-emerald-200 text-emerald-700 hover:bg-emerald-50' : 'border-purple-200 text-purple-700 hover:bg-purple-50'}`}
+                                                                                                              className={`shrink-0 rounded-full border px-4 py-2 text-xs font-semibold transition-colors ${isOpenTrip ? 'border-emerald-200 text-emerald-700 md:hover:bg-emerald-50' : 'border-purple-200 text-purple-700 md:hover:bg-purple-50'}`}
                                                                                                             >
                                                                                                               {t('packageDetail.openMap')}
                                                                                                             </a>
                                                                                           </div>
                                                                                           <div className="relative aspect-[16/9] bg-gray-100">
-                                                                                                            <iframe
-                                                                                                              title={`${t('packageDetail.locationMapTitle')} - ${packageTitle}`}
-                                                                                                              src={mapEmbedUrl}
-                                                                                                              loading="lazy"
-                                                                                                              importance={isMobile ? 'low' : 'auto'}
-                                                                                                              referrerPolicy="no-referrer-when-downgrade"
-                                                                                                              className="h-full w-full border-0"
-                                                                                                            />
+                                                                                            {mapLoaded ? (
+                                                                                              <iframe
+                                                                                                title={`${t('packageDetail.locationMapTitle')} - ${packageTitle}`}
+                                                                                                src={mapEmbedUrl}
+                                                                                                loading="lazy"
+                                                                                                importance={isMobile ? 'low' : 'auto'}
+                                                                                                referrerPolicy="no-referrer-when-downgrade"
+                                                                                                className="h-full w-full border-0"
+                                                                                              />
+                                                                                            ) : (
+                                                                                              <button
+                                                                                                type="button"
+                                                                                                onClick={() => setMapLoaded(true)}
+                                                                                                className="absolute inset-0 flex h-full w-full items-center justify-center bg-gray-100 text-left"
+                                                                                              >
+                                                                                                <div className="absolute inset-0">
+                                                                                                  <img
+                                                                                                    src={optimizeImageUrl(images[0], { width: 960, height: 540 }) || images[0]}
+                                                                                                    alt=""
+                                                                                                    className="h-full w-full object-cover opacity-20 blur-[2px]"
+                                                                                                    loading="lazy"
+                                                                                                    decoding="async"
+                                                                                                  />
+                                                                                                </div>
+                                                                                                <div className="relative z-10 flex max-w-sm flex-col items-center rounded-2xl border border-white/80 bg-white/90 px-6 py-5 text-center shadow-lg backdrop-blur-sm">
+                                                                                                  <MapPinned className={`h-8 w-8 ${isOpenTrip ? 'text-emerald-600' : 'text-purple-600'}`} />
+                                                                                                  <p className="mt-3 text-sm font-semibold text-gray-900">{t('packageDetail.locationMapTitle')}</p>
+                                                                                                  <p className="mt-1 text-xs text-gray-500">Klik untuk memuat peta interaktif</p>
+                                                                                                </div>
+                                                                                              </button>
+                                                                                            )}
                                                                                           </div>
                                                                         </div>
                                                           </div>
@@ -574,6 +634,11 @@ const PackageDetail = () => {
                                                                                                           {isOpenTrip ? (
                                                                                                             pkg.departureDates?.length > 0 ? (
                                                                                                               <div className="space-y-3">
+                                                                                                                {slotUsageLoading && (
+                                                                                                                  <div className="rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-500">
+                                                                                                                    Memuat ketersediaan slot terbaru...
+                                                                                                                  </div>
+                                                                                                                )}
                                                                                                                 <div
                                                                                                                   ref={scheduleScrollerRef}
                                                                                                                   onMouseDown={handleScheduleMouseDown}
@@ -592,12 +657,14 @@ const PackageDetail = () => {
                                                                                                                         key={date}
                                                                                                                         type="button"
                                                                                                                         onClick={() => {
-                                                                                                                          if (scheduleDragRef.current.moved || isFull) return
+                                                                                                                          if (scheduleDragRef.current.moved || slotUsageLoading || isFull) return
                                                                                                                           setSelectedDate(date)
                                                                                                                         }}
-                                                                                                                        disabled={isFull}
+                                                                                                                        disabled={slotUsageLoading || isFull}
                                                                                                                         className={`min-w-[168px] shrink-0 rounded-2xl border px-4 py-3 text-left transition-all ${
-                                                                                                                          isFull
+                                                                                                                          slotUsageLoading
+                                                                                                                            ? 'border-gray-200 bg-white'
+                                                                                                                            : isFull
                                                                                                                             ? 'cursor-not-allowed border-gray-200 bg-gray-100 opacity-70'
                                                                                                                             : isSelected
                                                                                                                             ? isOpenTrip
@@ -614,8 +681,8 @@ const PackageDetail = () => {
                                                                                                                             <p className="mt-1 text-sm font-semibold text-gray-800">
                                                                                                                               {formatDepartureDate(date)}
                                                                                                                             </p>
-                                                                                                                            <p className={`mt-2 text-xs font-medium ${isFull ? 'text-red-500' : isOpenTrip ? 'text-emerald-600' : 'text-purple-600'}`}>
-                                                                                                                              {isFull ? t('packageDetail.scheduleFull') : `${remaining} ${t('packageDetail.slotsLeft')}`}
+                                                                                                                            <p className={`mt-2 text-xs font-medium ${slotUsageLoading ? 'text-gray-500' : isFull ? 'text-red-500' : isOpenTrip ? 'text-emerald-600' : 'text-purple-600'}`}>
+                                                                                                                              {slotUsageLoading ? 'Memuat slot...' : isFull ? t('packageDetail.scheduleFull') : `${remaining} ${t('packageDetail.slotsLeft')}`}
                                                                                                                             </p>
                                                                                                                           </div>
                                                                                                                           <span className={`mt-0.5 h-5 w-5 rounded-full border-2 transition-colors ${
@@ -669,7 +736,7 @@ const PackageDetail = () => {
                                                                                                                                                     +
                                                                                                                                 </button>
                                                                                                             </div>
-                                                                                                          {isOpenTrip && selectedDate && (
+                                                                                                          {isOpenTrip && selectedDate && scheduleReady && (
                                                                                                             <p className={`mt-2 text-xs ${selectedRemainingSlots > 0 ? 'text-gray-500' : 'text-red-500'}`}>
                                                                                                               {selectedRemainingSlots > 0 ? t('packageDetail.slotsLeftForDate', { count: selectedRemainingSlots }) : t('packageDetail.dateFullChooseOther')}
                                                                                                             </p>
@@ -689,9 +756,9 @@ const PackageDetail = () => {
                                                                         
                                                                           {/* Book Button */}
                                                                                         <button onClick={handleBooking}
-                                                                                                            disabled={isOpenTrip && selectedRemainingSlots <= 0}
+                                                                                                            disabled={!scheduleReady || !selectedSlotsAvailable}
                                                                                                             className={`w-full bg-gradient-to-r ${isOpenTrip ? 'from-emerald-500 to-teal-600' : 'from-violet-500 to-purple-600'} text-white py-4 rounded-xl font-bold md:hover:shadow-lg md:hover:scale-[1.02] transition-all duration-200 mb-3`}>
-                                                                                                          {isOpenTrip && selectedRemainingSlots <= 0 ? t('packageDetail.scheduleFullButton') : t('packageDetail.bookNow')}
+                                                                                                          {!scheduleReady ? 'Memuat jadwal...' : isOpenTrip && selectedRemainingSlots <= 0 ? t('packageDetail.scheduleFullButton') : t('packageDetail.bookNow')}
                                                                                           </button>
                                                                         
                                                                           {/* WhatsApp */}
