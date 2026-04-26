@@ -42,7 +42,7 @@ function normalizeSiteUrl(...values) {
     }
   });
 
-  return (valid || DEFAULT_SITE_URL).replace(/\/$/, '');
+  return (valid || DEFAULT_SITE_URL).trim().replace(/\/$/, '');
 }
 
 function xmlEscape(value = '') {
