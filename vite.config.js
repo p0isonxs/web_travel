@@ -1,8 +1,29 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
+function asyncCssPlugin() {
+  return {
+    name: 'async-css',
+    transformIndexHtml: {
+      order: 'post',
+      handler(html, ctx) {
+        if (!ctx.bundle) return html
+        const noscripts = []
+        const result = html.replace(
+          /<link rel="stylesheet"([^>]*)>/g,
+          (_, rest) => {
+            noscripts.push(`<noscript><link rel="stylesheet"${rest}></noscript>`)
+            return `<link rel="preload"${rest} as="style" onload="this.onload=null;this.rel='stylesheet'">`
+          }
+        )
+        return result.replace('</head>', noscripts.join('') + '\n  </head>')
+      }
+    }
+  }
+}
+
 export default defineConfig({
-    plugins: [react()],
+    plugins: [react(), asyncCssPlugin()],
     server: {
           port: 3000,
           open: true
@@ -32,11 +53,12 @@ export default defineConfig({
                               return 'icons-vendor';
                             }
 
-                            if (
-                              id.includes('/react-helmet-async/') ||
-                              id.includes('/react-toastify/')
-                            ) {
-                              return 'ui-vendor';
+                            if (id.includes('/react-helmet-async/')) {
+                              return 'helmet-vendor';
+                            }
+
+                            if (id.includes('/react-toastify/')) {
+                              return 'toast-vendor';
                             }
 
                             if (

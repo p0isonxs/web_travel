@@ -381,7 +381,7 @@ const PackageDetail = () => {
                                                 {/* Left - Main Content */}
                                                           <div className="lg:col-span-2 space-y-6">
                                                             {/* Image Gallery */}
-                                                                        <div className="bg-white rounded-2xl overflow-hidden shadow-sm" style={deferredBlockStyle}>
+                                                                        <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
                                                                                         <div className="relative aspect-[16/9] overflow-hidden">
                                                                                                           <img
                                                                                                                                 src={heroImage.src || optimizeImageUrl(images[activeImage], { width: 1400, height: 790 }) || images[activeImage]}
@@ -422,7 +422,7 @@ const PackageDetail = () => {
                                                                         </div>
                                                           
                                                             {/* Title & Info */}
-                                                                        <div className="bg-white rounded-2xl p-6 shadow-sm" style={deferredBlockStyle}>
+                                                                        <div className="bg-white rounded-2xl p-6 shadow-sm">
                                                                                         <h1 className="text-2xl font-bold text-gray-800 mb-3">{packageTitle}</h1>
                                                                                         <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500 mb-4">
                                                                                                           <span className="flex items-center gap-1.5">

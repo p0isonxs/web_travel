@@ -17,6 +17,7 @@
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
         <link rel="preconnect" href="https://res.cloudinary.com" crossorigin />
         <link rel="dns-prefetch" href="https://res.cloudinary.com" />
+        <link rel="preconnect" href="%VITE_SUPABASE_URL%" crossorigin />
         <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'" />
         <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet" /></noscript>
         <!-- Open Graph (fallback for crawlers that don't run JS) -->
@@ -34,9 +35,10 @@
         <meta name="twitter:title" content="%VITE_APP_NAME% - Paket Wisata Open Trip & Private Trip Indonesia" />
         <meta name="twitter:description" content="Paket wisata open trip dan private trip terbaik ke berbagai destinasi indah di Indonesia." />
         <meta name="twitter:image" content="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&h=630&fit=crop&q=80" />
+        <style>*,*::before,*::after{box-sizing:border-box}body{margin:0;background:#f9fafb}#root{min-height:100vh}._lt-load{display:flex;align-items:center;justify-content:center;min-height:100vh}._lt-spin{width:40px;height:40px;border:3px solid #10b981;border-top-color:transparent;border-radius:50%;animation:_s .8s linear infinite}@keyframes _s{to{transform:rotate(360deg)}}</style>
     </head>
   <body>
-        <div id="root"></div>
+        <div id="root"><div class="_lt-load"><div class="_lt-spin"></div></div></div>
         <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

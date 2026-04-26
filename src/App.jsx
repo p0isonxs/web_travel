@@ -1,8 +1,6 @@
 import { Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 
 import { AuthProvider } from './contexts/AuthContext';
 import { SettingsProvider } from './contexts/SettingsContext';
@@ -37,6 +35,7 @@ const AdminBlog = lazy(() => import('./pages/admin/Blog'));
 const AdminTestimonials = lazy(() => import('./pages/admin/Testimonials'));
 const AdminSettings = lazy(() => import('./pages/admin/Settings'));
 const AdminContacts = lazy(() => import('./pages/admin/Contacts'));
+const LazyToast = lazy(() => import('./components/LazyToast'));
 
 function RouteLoading() {
   return (
@@ -118,22 +117,24 @@ export default function App() {
               </Route>
             </Routes>
           </Suspense>
-          <ToastContainer
-            position="top-right"
-            autoClose={4200}
-            hideProgressBar={false}
-            newestOnTop
-            closeOnClick
-            pauseOnFocusLoss
-            draggable
-            pauseOnHover
-            theme="light"
-            icon={false}
-            toastClassName={(context) => `lt-toast lt-toast--${context?.type || 'default'}`}
-            bodyClassName="lt-toast__body"
-            progressClassName="lt-toast__progress"
-            closeButton={false}
-          />
+          <Suspense fallback={null}>
+            <LazyToast
+              position="top-right"
+              autoClose={4200}
+              hideProgressBar={false}
+              newestOnTop
+              closeOnClick
+              pauseOnFocusLoss
+              draggable
+              pauseOnHover
+              theme="light"
+              icon={false}
+              toastClassName={(context) => `lt-toast lt-toast--${context?.type || 'default'}`}
+              bodyClassName="lt-toast__body"
+              progressClassName="lt-toast__progress"
+              closeButton={false}
+            />
+          </Suspense>
         </BrowserRouter>
         </LanguageProvider>
         </SettingsProvider>
