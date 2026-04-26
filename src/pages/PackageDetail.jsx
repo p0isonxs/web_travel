@@ -127,6 +127,23 @@ const PackageDetail = () => {
 
     useEffect(() => {
           const fetchPackage = async () => {
+                  // On a direct page load, the pre-render script may have embedded package
+                  // data in the HTML so we can skip the Supabase round-trip entirely.
+                  const prerendered = document.getElementById('__PKG_DATA__')
+                  if (prerendered) {
+                          try {
+                                    const data = JSON.parse(prerendered.textContent)
+                                    if (data && data.id) {
+                                            setPkg(data)
+                                            if (data.departureDates?.length > 0) {
+                                                    setSelectedDate(data.departureDates[0])
+                                            }
+                                            setLoading(false)
+                                            return
+                                    }
+                          } catch {}
+                  }
+
                   try {
                             let data = null
                             if (slug) {
