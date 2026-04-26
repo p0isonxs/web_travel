@@ -109,6 +109,11 @@ export default function Home() {
   const PRIVATE_BG = settings.privateTripBackground || '';
   const TESTI_BG = settings.testimonialBackground || '';
 
+  const allPackagePrices = [...openPackages, ...privatePackages].map(p => p.price).filter(Boolean)
+  const agencyPriceRange = allPackagePrices.length
+    ? `Rp ${new Intl.NumberFormat('id-ID').format(Math.min(...allPackagePrices))} - Rp ${new Intl.NumberFormat('id-ID').format(Math.max(...allPackagePrices))}`
+    : 'Rp 150.000 - Rp 5.000.000'
+
   const whyUs = t('home.whyUsItems');
   const homepageWhatsappMessage = encodeURIComponent(t('home.whatsappTemplate'));
   const deferredSectionStyle = {
@@ -148,8 +153,14 @@ export default function Home() {
                     "name": settings.siteName,
                     "description": language === 'en' ? "Trusted travel agency for open trips and private trips" : "Agen wisata terpercaya untuk open trip dan private trip",
                     "url": SITE_URL,
-                    "telephone": `+${settings.phone}`,
-                    "address": { "@type": "PostalAddress", "addressCountry": "ID" },
+                    ...(settings.phone && { "telephone": `+${settings.phone}` }),
+                    "priceRange": agencyPriceRange,
+                    "address": {
+                      "@type": "PostalAddress",
+                      "addressCountry": "ID",
+                      ...(settings.address && { "streetAddress": settings.address }),
+                    },
+                    ...((settings.ogImage || settings.brandLogo) && { "image": settings.ogImage || settings.brandLogo }),
                     "aggregateRating": testimonials.length > 0 ? {
                       "@type": "AggregateRating",
                       "ratingValue": "4.9",
