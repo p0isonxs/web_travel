@@ -1,7 +1,7 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 
-const projectRoot = path.resolve('/Users/p0isonx/web_travel');
+const projectRoot = path.resolve(new URL('.', import.meta.url).pathname, '..')
 const distDir = path.join(projectRoot, 'dist');
 const envFile = path.join(projectRoot, '.env');
 
