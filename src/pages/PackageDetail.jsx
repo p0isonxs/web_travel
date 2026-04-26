@@ -337,44 +337,69 @@ const PackageDetail = () => {
             })
             const scheduleReady = !isOpenTrip || !slotUsageLoading
             const selectedSlotsAvailable = !isOpenTrip || selectedRemainingSlots > 0
-              
+            const canonicalUrl = `${SITE_URL}/${pkg.type}/${pkg.slug?.id || ''}`
+            const metaTitleFallback = `${packageTitle} | ${isOpenTrip ? 'Open Trip' : 'Private Trip'}${packageLocation ? ` di ${packageLocation}` : ''} - ${settings.siteName}`
+            const metaDescFallback = packageDescription
+              ? packageDescription.replace(/<[^>]*>/g, '').substring(0, 155).replace(/\s\S*$/, '') + '...'
+              : [
+                  `${isOpenTrip ? 'Open Trip' : 'Private Trip'} ${packageTitle}`,
+                  packageLocation && `di ${packageLocation}`,
+                  packageDuration && `durasi ${packageDuration}`,
+                  pkg.price && `mulai Rp ${new Intl.NumberFormat('id-ID').format(pkg.price)}/orang`,
+                ].filter(Boolean).join(' ')
+            const faqSchema = Array.isArray(pkg.faq) && pkg.faq.length > 0
+              ? {
+                  '@context': 'https://schema.org',
+                  '@type': 'FAQPage',
+                  mainEntity: pkg.faq.map(item => ({
+                    '@type': 'Question',
+                    name: item.q,
+                    acceptedAnswer: { '@type': 'Answer', text: item.a },
+                  })),
+                }
+              : null
+
                 return (
                       <>
                             <Seo
-                              title={pkg.metaTitle || `${packageTitle} - ${settings.siteName}`}
-                              description={pkg.metaDescription || packageDescription?.substring(0, 160) || `${t(isOpenTrip ? 'packageDetail.openTrip' : 'packageDetail.privateTrip')} ${packageTitle} di ${packageLocation}`}
+                              title={pkg.metaTitle || metaTitleFallback}
+                              description={pkg.metaDescription || metaDescFallback}
                               image={optimizeImageUrl(images[0], { width: 1200, height: 630 })}
                             />
                             <Helmet>
                                     <script type="application/ld+json">{JSON.stringify({
-                                  "@context": "https://schema.org",
-                                  "@type": "TouristTrip",
-                                  "name": packageTitle,
-                                  "description": packageDescription,
-                                  "touristType": isOpenTrip ? "Open Trip" : "Private Trip",
-                                  "image": images,
-                                  "offers": {
-                                    "@type": "Offer",
-                                    "price": pkg.price,
-                                    "priceCurrency": "IDR",
-                                    "availability": "https://schema.org/InStock",
-                                    "priceSpecification": {
-                                      "@type": "UnitPriceSpecification",
-                                      "price": pkg.price,
-                                      "priceCurrency": "IDR",
-                                      "unitText": "per orang"
-                                    }
-                                  }
+                                  '@context': 'https://schema.org',
+                                  '@type': 'TouristTrip',
+                                  name: packageTitle,
+                                  description: packageDescription,
+                                  url: canonicalUrl,
+                                  touristType: isOpenTrip ? 'Open Trip' : 'Private Trip',
+                                  image: images,
+                                  provider: { '@type': 'TravelAgency', name: settings.siteName, url: SITE_URL },
+                                  ...(packageLocation && { location: { '@type': 'Place', name: packageLocation, address: { '@type': 'PostalAddress', addressCountry: 'ID' } } }),
+                                  offers: {
+                                    '@type': 'Offer',
+                                    price: pkg.price,
+                                    priceCurrency: 'IDR',
+                                    availability: 'https://schema.org/InStock',
+                                    priceSpecification: {
+                                      '@type': 'UnitPriceSpecification',
+                                      price: pkg.price,
+                                      priceCurrency: 'IDR',
+                                      unitText: 'per orang',
+                                    },
+                                  },
                       })}</script>
                                     <script type="application/ld+json">{JSON.stringify({
-                                  "@context": "https://schema.org",
-                                  "@type": "BreadcrumbList",
-                                  "itemListElement": [
-                                    { "@type": "ListItem", "position": 1, "name": "Home", "item": SITE_URL },
-                                    { "@type": "ListItem", "position": 2, "name": isOpenTrip ? "Open Trip" : "Private Trip", "item": `${SITE_URL}/${isOpenTrip ? 'open-trip' : 'private-trip'}` },
-                                    { "@type": "ListItem", "position": 3, "name": packageTitle }
-                                  ]
+                                  '@context': 'https://schema.org',
+                                  '@type': 'BreadcrumbList',
+                                  itemListElement: [
+                                    { '@type': 'ListItem', position: 1, name: 'Home', item: SITE_URL },
+                                    { '@type': 'ListItem', position: 2, name: isOpenTrip ? 'Open Trip' : 'Private Trip', item: `${SITE_URL}/${isOpenTrip ? 'open-trip' : 'private-trip'}` },
+                                    { '@type': 'ListItem', position: 3, name: packageTitle, item: canonicalUrl },
+                                  ],
                       })}</script>
+                                    {faqSchema && <script type="application/ld+json">{JSON.stringify(faqSchema)}</script>}
                             </Helmet>
                       
                             <div className="pt-20 min-h-screen bg-gray-50">

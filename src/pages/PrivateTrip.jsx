@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import { getPackages } from '../lib/database'
 import { generateSlug } from '../utils/slug'
-import { SITE_URL } from '../lib/siteConfig';
+import { SITE_URL, SITE_NAME } from '../lib/siteConfig';
 import { FaSearch, FaMapMarkerAlt, FaClock, FaUserFriends, FaStar, FaFilter, FaCheck } from 'react-icons/fa'
 import Seo from '../components/Seo'
 import { useLanguage } from '../contexts/LanguageContext'
@@ -66,18 +66,29 @@ const PrivateTrip = () => {
       description: t('privateTrip.seoDescription'),
       url: `${SITE_URL}/private-trip`,
       numberOfItems: packages.length,
-      itemListElement: packages.slice(0, 10).map((pkg, i) => ({
-        '@type': 'ListItem',
-        position: i + 1,
-        item: {
-          '@type': 'Product',
-          name: localize(pkg.title),
-          description: localize(pkg.location),
-          url: `${SITE_URL}/private-trip/${pkg.slug?.id || generateSlug(pkg.title?.id || '')}`,
-          image: pkg.images?.[0] || undefined,
-          offers: { '@type': 'Offer', price: pkg.price, priceCurrency: 'IDR', availability: 'https://schema.org/InStock' },
-        },
-      })),
+      itemListElement: packages.slice(0, 10).map((pkg, i) => {
+        const pkgUrl = `${SITE_URL}/private-trip/${pkg.slug?.id || generateSlug(pkg.title?.id || '')}`
+        const descParts = [localize(pkg.location), localize(pkg.duration)].filter(Boolean)
+        return {
+          '@type': 'ListItem',
+          position: i + 1,
+          item: {
+            '@type': 'Product',
+            name: localize(pkg.title),
+            description: descParts.length ? descParts.join(' · ') : undefined,
+            url: pkgUrl,
+            image: pkg.images?.[0] || undefined,
+            brand: { '@type': 'Brand', name: SITE_NAME },
+            offers: {
+              '@type': 'Offer',
+              price: pkg.price,
+              priceCurrency: 'IDR',
+              availability: 'https://schema.org/InStock',
+              url: pkgUrl,
+            },
+          },
+        }
+      }),
     } : null
 
     return (

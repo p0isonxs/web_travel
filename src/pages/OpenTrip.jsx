@@ -9,7 +9,7 @@ import { useLanguage } from '../contexts/LanguageContext'
 import { getPackageImageAlt } from '../utils/imageAlt'
 import { optimizeImageUrl } from '../utils/cloudinary'
 
-import { SITE_URL } from '../lib/siteConfig';
+import { SITE_URL, SITE_NAME } from '../lib/siteConfig';
 
 const OpenTrip = () => {
     const [packages, setPackages] = useState([])
@@ -82,18 +82,29 @@ const OpenTrip = () => {
       description: t('openTrip.seoDescription'),
       url: `${SITE_URL}/open-trip`,
       numberOfItems: packages.length,
-      itemListElement: packages.slice(0, 10).map((pkg, i) => ({
-        '@type': 'ListItem',
-        position: i + 1,
-        item: {
-          '@type': 'Product',
-          name: localize(pkg.title),
-          description: localize(pkg.location),
-          url: `${SITE_URL}/open-trip/${pkg.slug?.id || generateSlug(pkg.title?.id || '')}`,
-          image: pkg.images?.[0] || undefined,
-          offers: { '@type': 'Offer', price: pkg.price, priceCurrency: 'IDR', availability: 'https://schema.org/InStock' },
-        },
-      })),
+      itemListElement: packages.slice(0, 10).map((pkg, i) => {
+        const pkgUrl = `${SITE_URL}/open-trip/${pkg.slug?.id || generateSlug(pkg.title?.id || '')}`
+        const descParts = [localize(pkg.location), localize(pkg.duration)].filter(Boolean)
+        return {
+          '@type': 'ListItem',
+          position: i + 1,
+          item: {
+            '@type': 'Product',
+            name: localize(pkg.title),
+            description: descParts.length ? descParts.join(' · ') : undefined,
+            url: pkgUrl,
+            image: pkg.images?.[0] || undefined,
+            brand: { '@type': 'Brand', name: SITE_NAME },
+            offers: {
+              '@type': 'Offer',
+              price: pkg.price,
+              priceCurrency: 'IDR',
+              availability: 'https://schema.org/InStock',
+              url: pkgUrl,
+            },
+          },
+        }
+      }),
     } : null
 
     return (
